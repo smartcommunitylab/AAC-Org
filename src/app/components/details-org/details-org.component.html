@@ -1,0 +1,231 @@
+<div>
+  <mat-toolbar>
+    <span>Details Organization </span>
+    <span class="fill-remaining-space"></span>
+    <a routerLink="/activeOrg">
+      <button mat-raised-button color="primary">
+        Back
+        <i class="material-icons">forward</i>
+      </button>
+    </a>
+  </mat-toolbar>  
+</div>
+
+<mat-tab-group>
+  <mat-tab label="Information">
+    <mat-card class="example-card">
+      <mat-card-header>
+        <mat-card-title>
+          <span>Organization Name</span> 
+          
+        </mat-card-title>
+        <mat-card-subtitle>Information of the Organization</mat-card-subtitle>
+        <span class="fill-remaining-space"></span>
+          <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4ModifyOrg()">
+            <mat-icon matSuffix>mode_edit</mat-icon>
+            Modify Organization Information
+          </button>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-grid-list cols="3" rowHeight="12:1">
+          <mat-grid-tile>Name:</mat-grid-tile>
+          <mat-grid-tile>test1</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Domain:</mat-grid-tile>
+          <mat-grid-tile>test</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Owner Email:</mat-grid-tile>
+          <mat-grid-tile>test@fbk.eu</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Owner Name:</mat-grid-tile>
+          <mat-grid-tile>testOwner</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Description:</mat-grid-tile>
+          <mat-grid-tile>test12345</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Provider:</mat-grid-tile>
+          <mat-grid-tile>Yes</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Web:</mat-grid-tile>
+          <mat-grid-tile>test</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Logo:</mat-grid-tile>
+          <mat-grid-tile>test1</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Contact Email:</mat-grid-tile>
+          <mat-grid-tile>test@fbk.eu</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Tag:</mat-grid-tile>
+          <mat-grid-tile>testtag</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Members:</mat-grid-tile>
+          <mat-grid-tile>test1</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Provider Configuration:</mat-grid-tile>
+          <mat-grid-tile>Yes</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+          <mat-grid-tile>Status:</mat-grid-tile>
+          <mat-grid-tile>active</mat-grid-tile>
+          <mat-grid-tile >
+            
+          </mat-grid-tile>
+        </mat-grid-list>
+      </mat-card-content>
+      <!-- <mat-card-actions>
+        <button mat-button>LIKE</button>
+        <button mat-button>SHARE</button>
+      </mat-card-actions> -->
+    </mat-card>
+  </mat-tab>
+  <mat-tab label="Configuration">
+    <mat-card class="example-card">
+      <mat-card-header>
+        <mat-card-title>Organization Name</mat-card-title>
+        <mat-card-subtitle>Configuration of the Organization</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-accordion>
+          <mat-expansion-panel [expanded]="false"   #matExpansionPanel1>
+            <mat-expansion-panel-header >
+              <mat-panel-title>
+                Component Name 
+              </mat-panel-title>
+              <mat-panel-description>
+                  Domain: {{matExpansionPanel1.expanded? 'open' : 'closed'}}
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div class="contain-expansion-panel">
+              <div class="description">
+                <p>Description of the Component.</p>
+              </div>
+              <div class="providerConfig">
+                <mat-toolbar>
+                    <span>Provider Configurations</span>
+                    <span class="fill-remaining-space"></span>
+                    <button mat-raised-button color="primary" (click)="openDialog4CreateProviderConfig()">
+                      <i class="material-icons">add_circle_outline</i>
+                      Create Provider Config
+                    </button>
+                  </mat-toolbar>
+                  <mat-grid-list cols="3" rowHeight="8:1">
+                    
+                    <mat-grid-tile>Tenant</mat-grid-tile>
+                    <mat-grid-tile><mat-slide-toggle [checked]="true"  color="primary"> </mat-slide-toggle></mat-grid-tile>
+                    <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>mode_edit</mat-icon></button></mat-grid-tile>
+                    
+                    <mat-grid-tile>Tenant</mat-grid-tile>
+                    <mat-grid-tile><mat-slide-toggle [checked]="true"  color="primary"> </mat-slide-toggle></mat-grid-tile>
+                    <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>mode_edit</mat-icon></button></mat-grid-tile>
+                    
+                    <mat-grid-tile>Tenant</mat-grid-tile>
+                    <mat-grid-tile><mat-slide-toggle [checked]="true"  color="primary"> </mat-slide-toggle></mat-grid-tile>
+                    <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>mode_edit</mat-icon></button></mat-grid-tile>
+                  </mat-grid-list>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        
+          <mat-expansion-panel [expanded]="false" #matExpansionPanel2>
+            <mat-expansion-panel-header >
+              <mat-panel-title>
+                Component Name 
+              </mat-panel-title>
+              <mat-panel-description>
+                  Domain: {{matExpansionPanel2.expanded? 'open' : 'closed'}}
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div class="contain-expansion-panel">
+              <div class="description">
+                <p>Description of the Component.</p>
+              </div>
+              <div class="providerConfig">
+                <mat-toolbar>
+                  <span>Provider Configurations</span>
+                  <span class="fill-remaining-space"></span>
+                  <button mat-raised-button color="primary" (click)="openDialog4CreateProviderConfig()">
+                    <i class="material-icons">add_circle_outline</i>
+                    Create Provider Config
+                  </button>
+                </mat-toolbar>
+                <mat-grid-list cols="4" rowHeight="8:1">
+                  <mat-grid-tile>Provider Domain</mat-grid-tile>
+                  <mat-grid-tile>Tenant</mat-grid-tile>
+                  <mat-grid-tile>Activated</mat-grid-tile>
+                  <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>mode_edit</mat-icon></button></mat-grid-tile>
+                  <mat-grid-tile>Provider Domain</mat-grid-tile>
+                  <mat-grid-tile>Tenant</mat-grid-tile>
+                  <mat-grid-tile>Activated</mat-grid-tile>
+                  <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>mode_edit</mat-icon></button></mat-grid-tile>
+                  <mat-grid-tile>Provider Domain</mat-grid-tile>
+                  <mat-grid-tile>Tenant</mat-grid-tile>
+                  <mat-grid-tile>Activated</mat-grid-tile>
+                  <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>mode_edit</mat-icon></button></mat-grid-tile>
+                </mat-grid-list>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        
+        </mat-accordion>          
+      </mat-card-content>
+    </mat-card>
+  </mat-tab>
+  <mat-tab label="Users">
+    <mat-card class="example-card">
+      <mat-card-header>
+        <mat-card-title>Users of the Organization</mat-card-title>
+        <mat-card-subtitle>List of Users in the Organization</mat-card-subtitle>
+        <span class="fill-remaining-space"></span>
+        <button mat-raised-button color="primary" (click)="openDialog4AddUser()">
+          <i class="material-icons">add_circle_outline</i>
+          Add User
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-grid-list cols="3" rowHeight="8:1">
+          <mat-grid-tile>Username</mat-grid-tile>
+          <mat-grid-tile>Role</mat-grid-tile>
+          <mat-grid-tile >
+            <button mat-button (click)="openDialog4ModifyUser()"><mat-icon matSuffix>mode_edit</mat-icon></button>
+            <button mat-button (click)="openDialog4DeleteUser()"><mat-icon matSuffix>delete</mat-icon></button>
+          </mat-grid-tile>
+          <mat-grid-tile>Username</mat-grid-tile>
+          <mat-grid-tile>Role</mat-grid-tile>
+          <mat-grid-tile >
+            <button mat-button (click)="openDialog4ModifyUser()"><mat-icon matSuffix>mode_edit</mat-icon></button>
+            <button mat-button (click)="openDialog4DeleteUser()"><mat-icon matSuffix>delete</mat-icon></button>
+          </mat-grid-tile>
+          <mat-grid-tile>Username</mat-grid-tile>
+          <mat-grid-tile>Role</mat-grid-tile>
+          <mat-grid-tile >
+            <button mat-button (click)="openDialog4ModifyUser()"><mat-icon matSuffix>mode_edit</mat-icon></button>
+            <button mat-button (click)="openDialog4DeleteUser()"><mat-icon matSuffix>delete</mat-icon></button>
+          </mat-grid-tile>
+        </mat-grid-list>
+      </mat-card-content>
+    </mat-card>
+  </mat-tab>
+</mat-tab-group>
