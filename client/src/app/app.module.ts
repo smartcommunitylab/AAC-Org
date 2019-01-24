@@ -8,6 +8,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatChipsModule} from '@angular/material/chips';
 
 import {  AuthGuard, AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -16,7 +17,7 @@ import { LoginComponent } from './components/login/login.component';
 import { ActiveOrgComponent, CreateOrganizationDialogComponent } from './components/active-org/active-org.component';
 import { DeactivateOrgComponent } from './components/deactivate-org/deactivate-org.component';
 import { BlockOrgComponent } from './components/block-org/block-org.component';
-import { DetailsOrgComponent, detailsOrganizationDialogComponent } from './components/details-org/details-org.component';
+import { DetailsOrgComponent, detailsOrganizationDialogComponent, ChipsInputExamples} from './components/details-org/details-org.component';
 import { InputFileComponent } from './components/input-file/input-file.component';
 
 @NgModule({
@@ -30,11 +31,13 @@ import { InputFileComponent } from './components/input-file/input-file.component
     CreateOrganizationDialogComponent,
     DetailsOrgComponent,
     detailsOrganizationDialogComponent,
+    ChipsInputExamples,
     InputFileComponent
   ],
   entryComponents: [
     CreateOrganizationDialogComponent,
-    detailsOrganizationDialogComponent
+    detailsOrganizationDialogComponent,
+    ChipsInputExamples
   ],
   imports: [
     BrowserModule,
@@ -58,7 +61,8 @@ import { InputFileComponent } from './components/input-file/input-file.component
     MatListModule,
     MatSlideToggleModule,
     MatExpansionModule,
-    MatSelectModule
+    MatSelectModule,
+    MatChipsModule
   ],
   providers: [AuthGuard],
   bootstrap: [AppComponent]

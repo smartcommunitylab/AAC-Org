@@ -1,7 +1,7 @@
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyOrg'">Update Organization information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateProviderConfig'">Create New Provider Configuration</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyProviderConfig'">Update Provider Configuration</h2>
-<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleAddUser'">Create New A User</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleAddUser'">Create A New User</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyUser'">Update User Information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDeleteUser'">Delete User</h2>
 <mat-dialog-content>
@@ -106,12 +106,40 @@
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
         <!-- Select Role  -->
-        <mat-form-field class="dialog-container-form-field">
+        <!-- <mat-form-field class="dialog-container-form-field">
             <mat-select placeholder="Role">
                 <mat-option value="owner">Owner</mat-option>
                 <mat-option value="admin">Admin</mat-option>
                 <mat-option value="user">User</mat-option>
             </mat-select>
+        </mat-form-field> -->
+        <!-- <mat-form-field class="example-chip-list">
+            <mat-chip-list #chipList>
+                <mat-chip *ngFor="let fruit of fruits" [selectable]="selectable"
+                        [removable]="removable" (removed)="remove(fruit)">
+                {{fruit.name}}
+                <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
+                </mat-chip>
+                <input placeholder="New fruit..."
+                        [matChipInputFor]="chipList"
+                        [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                        [matChipInputAddOnBlur]="addOnBlur"
+                        (matChipInputTokenEnd)="add($event)">
+            </mat-chip-list>
+        </mat-form-field> -->
+        <mat-form-field>
+            <mat-chip-list #chipList>
+                <mat-chip *ngFor="let fruit of fruits" [selectable]="selectable"
+                    [removable]="removable" (removed)="remove(fruit)">
+                    {{fruit.name}}
+                    <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
+                </mat-chip>
+                <input placeholder="New fruit..." 
+                    [matChipInputFor]="chipList" 
+                    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                    [matChipInputAddOnBlur]="addOnBlur"
+                    (matChipInputTokenEnd)="add($event)">
+            </mat-chip-list>
         </mat-form-field>
     </div>
     <!-- Modify A User -->
@@ -119,7 +147,7 @@
         <mat-label class="mat-h4">Please Update this information</mat-label>
         <!-- Username -->
         <mat-form-field class="dialog-container-form-field">
-            <input matInput  placeholder="Username"  required >
+            <input matInput  disabled value={{data.name}}  >
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
         <!-- Select Role  -->

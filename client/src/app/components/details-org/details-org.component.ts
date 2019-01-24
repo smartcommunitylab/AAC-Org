@@ -1,7 +1,10 @@
 import { Component, OnInit, Inject } from '@angular/core';
-import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource} from '@angular/material';
+import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource, MatChipInputEvent} from '@angular/material';
 import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+
+import {COMMA, ENTER} from '@angular/cdk/keycodes';
+// import {MatChipInputEvent} from '@angular/material';
 
 @Component({
   selector: 'app-details-org',
@@ -26,7 +29,7 @@ export class DetailsOrgComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
+      console.log('The dialog was closed from openDialog4ModifyOrg()');
     });
   }
 
@@ -37,7 +40,7 @@ export class DetailsOrgComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
+      console.log('The dialog was closed from openDialog4CreateProviderConfig()');
     });
   }
 
@@ -48,7 +51,7 @@ export class DetailsOrgComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
+      console.log('The dialog was closed from openDialog4ModifyProviderConfig()');
     });
   }
 
@@ -59,29 +62,29 @@ export class DetailsOrgComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
+      console.log('The dialog was closed from openDialog4AddUser()');
     });
   }
 
   openDialog4ModifyUser(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
-      data: { name: "", dialogStatus:"TitleModifyUser"  }
+      data: { name: "testUser4modify", dialogStatus:"TitleModifyUser"  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
+      console.log('The dialog was closed from openDialog4ModifyUser()');
     });
   }
 
   openDialog4DeleteUser(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
-      data: { name: "", dialogStatus:"TitleDeleteUser"  }
+      data: { name: "testUser4delete", dialogStatus:"TitleDeleteUser"  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
+      console.log('The dialog was closed from openDialog4DeleteUser()');
     });
   }
 
@@ -101,5 +104,60 @@ export class detailsOrganizationDialogComponent {
 
   onNoClick(): void {
     this.dialogRef.close();
+  }
+}
+
+///////////////////////////////////// for test
+export interface Fruit {
+  name: string;
+}
+
+/**
+ * @title Chips with input
+ */
+@Component({
+  selector: 'chips-input-example',
+  templateUrl: 'modifyDetails_Dialog.html',
+  styleUrls: ['./details-org.component.css'],
+})
+export class ChipsInputExamples {
+  constructor(public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any) {
+    console.log('come constructor of ChipsInputExamples...');
+   }
+  onNoClick(): void {
+    this.dialogRef.close();
+  }
+  visible = true;
+  selectable = true;
+  removable = true;
+  addOnBlur = true;
+  readonly separatorKeysCodes: number[] = [ENTER, COMMA];
+  fruits: Fruit[] = [
+    {name: 'Lemon'},
+    {name: 'Lime'},
+    {name: 'Apple'},
+  ];
+
+  add(event: MatChipInputEvent): void {
+    const input = event.input;
+    const value = event.value;
+    console.log('come add function...');
+    // Add our fruit
+    if ((value || '').trim()) {
+      this.fruits.push({name: value.trim()});
+    }
+
+    // Reset the input value
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  remove(fruit: Fruit): void {
+    const index = this.fruits.indexOf(fruit);
+
+    if (index >= 0) {
+      this.fruits.splice(index, 1);
+    }
   }
 }
