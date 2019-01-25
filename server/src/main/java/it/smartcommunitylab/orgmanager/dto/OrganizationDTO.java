@@ -1,0 +1,196 @@
+package it.smartcommunitylab.orgmanager.dto;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+
+import it.smartcommunitylab.orgmanager.model.Organization;
+
+public class OrganizationDTO {
+	private Long id;
+	private String name;
+	private String slug;
+	private String description;
+	private Contacts contacts;
+	private String[] tag;
+	private boolean active;
+	
+	public OrganizationDTO() {
+		this(null, null, null, new Contacts());
+	}
+	
+	public OrganizationDTO(String name, String slug, String description, Contacts contacts) {
+		this(name, slug, description, contacts, null);
+	}
+	
+	public OrganizationDTO(String name, String slug, String description, Contacts contacts, String[] tag) {
+		this(null, name, slug, description, contacts, tag, true);
+	}
+	
+	public OrganizationDTO(Long id, String name, String slug, String description, Contacts contacts, String[] tag, boolean active) {
+		this.id = id;
+		this.name = name;
+		this.slug = slug;
+		this.description = description;
+		this.contacts = contacts;
+		this.tag = tag;
+		this.active = active;
+	}
+	
+	public OrganizationDTO(OrganizationDTO org) {
+		this(new Long(org.getId().longValue()), org.getName(), org.getSlug(), org.getDescription(), new Contacts(org.getContacts()),
+				org.getTag() != null ? Arrays.copyOf(org.getTag(), org.getTag().length) : new String[0],
+				org.getActive());
+	}
+	
+	public OrganizationDTO(Organization org) {
+		this(new Long(org.getId().longValue()), org.getName(), org.getSlug(), org.getDescription(),
+				// Creates Contacts object
+				new Contacts(org.getContactsEmail(), org.getContactsName(), org.getContactsSurname(), org.getContactsWeb(), org.getContactsPhone() != null ? org.getContactsPhone() : new String[0], org.getContactsLogo()),
+				org.getTag() != null ? Arrays.copyOf(org.getTag(), org.getTag().length) : new String[0],
+				org.getActive());
+	}
+	
+	public Long getId() {
+		return id;
+	}
+	
+	public void setId(Long id) {
+		this.id = id;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public String getSlug() {
+		return slug;
+	}
+	
+	public void setSlug(String slug) {
+		this.slug = slug;
+	}
+	
+	public String getDescription() {
+		return description;
+	}
+	
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	
+	public Contacts getContacts() {
+		return contacts;
+	}
+	
+	public void setContacts(Contacts contacts) {
+		this.contacts = contacts;
+	}
+	
+	public String[] getTag() {
+		return tag;
+	}
+	
+	public void setTag(String[] tag) {
+		this.tag = tag != null ? Arrays.copyOf(tag, tag.length) : null;
+	}
+	
+	public boolean getActive() {
+		return active;
+	}
+	
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
+	@Override
+	public String toString() {
+		String enabled = active ? "enabled" : "disabled";
+		return this.getClass().getSimpleName() + " [" + id + "] (" + enabled + "): Name=" + name + ", Slug=" + slug + ", Description=" + description;
+	}
+	
+	public static class Contacts {
+		private String email;
+		private String name;
+		private String surname;
+		private URL web;
+		private String[] phone;
+		private URL logo;
+		
+		public Contacts() {}
+		
+		public Contacts(String email, String name, String surname, URL web, String[] phone, URL logo) {
+			this.email = email;
+			this.name = name;
+			this.surname = surname;
+			try {
+				this.web = web != null ? new URL(web.toString()) : null;
+			} catch (MalformedURLException e) { /* do nothing */ }
+			this.phone = phone != null ? Arrays.copyOf(phone, phone.length) : new String[0];
+			try {
+				this.logo = logo != null ? new URL(logo.toString()) : null;
+			} catch (MalformedURLException e) { /* do nothing */ }
+		}
+		
+		public Contacts(Contacts c) {
+			this(c.getEmail(), c.getName(), c.getSurname(), c.getWeb(), c.getPhone(), c.getLogo());
+		}
+		
+		public String getEmail() {
+			return email;
+		}
+		
+		public void setEmail(String email) {
+			this.email = email;
+		}
+		
+		public String getName() {
+			return name;
+		}
+		
+		public void setName(String name) {
+			this.name = name;
+		}
+		
+		public String getSurname() {
+			return surname;
+		}
+		
+		public void setSurname(String surname) {
+			this.surname = surname;
+		}
+		
+		public URL getWeb() {
+			return web;
+		}
+		
+		public void setWeb(URL web) {
+			this.web = web;
+		}
+		
+		public String[] getPhone() {
+			return phone;
+		}
+		
+		public void setPhone(String[] phone) {
+			this.phone = phone;
+		}
+		
+		public URL getLogo() {
+			return logo;
+		}
+		
+		public void setLogo(URL logo) {
+			this.logo = logo;
+		}
+		
+		@Override
+		public String toString() {
+			return this.getClass().getSimpleName() + ": Name=" + name + ", Surname=" + surname;
+		}
+	}
+}

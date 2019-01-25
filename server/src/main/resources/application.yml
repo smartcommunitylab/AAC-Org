@@ -1,0 +1,59 @@
+# SERVER ENDPOINT
+server:
+  port: 7979
+  servlet:
+    session:
+      cookie:
+        name: ORGMANAGERSESSIONID
+
+# SPRING CONFIGURATION
+spring:
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/orgmanager"
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  profiles:
+    include:
+      - components
+
+# OAUTH INTEGRATION
+security:
+  oauth2:
+    client:
+      clientId: b24e4974-6a9b-404a-a6df-aafc3172f6e8
+      clientSecret: a4da64d0-8191-4ee9-9f59-316cdb3d07d2
+      accessTokenUri: http://localhost:8080/aac/oauth/token
+      userAuthorizationUri: http://localhost:8080/aac/oauth/authorize
+      tokenInfoUri: http://localhost:8080/aac/token_introspection
+      tokenName: token
+      userIdField: aac_user_id
+      authenticationScheme: query
+      clientAuthenticationScheme: form
+      organizationManagementScope: organization.mgmt
+    resource:
+      userInfoUri: profile.basicprofile.me
+
+# AAC APIS
+aac:
+  uri: http://localhost:8080/aac/
+  apis:
+    manageRolesApi: userroles/user
+    userProfilesApi: basicprofile/all
+    currentUserRolesApi: userroles/me
+    currentUserProfileApi: basicprofile/me
+
+# LOGGING
+logging:
+  level:
+    org.springframework.security: DEBUG
