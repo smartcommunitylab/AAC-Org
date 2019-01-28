@@ -1,20 +1,24 @@
 package it.smartcommunitylab.orgmanager.dto;
 
+import java.util.List;
+
 public class ComponentDTO {
 	private String name;
 	private String componentId;
 	private String scope;
 	private String format;
 	private String implementation;
+	private List<String> roles;
 	
 	public ComponentDTO() {}
 	
-	public ComponentDTO(String name, String componentId, String scope, String format, String implementation) {
+	public ComponentDTO(String name, String componentId, String scope, String format, String implementation, List<String> roles) {
 		this.name = name;
 		this.componentId = componentId;
 		this.scope = scope;
 		this.format = format;
 		this.implementation = implementation;
+		this.roles = roles;
 	}
 	
 	public String getName() {
@@ -55,6 +59,14 @@ public class ComponentDTO {
 	
 	public void setImplementation(String implementation) {
 		this.implementation = implementation;
+	}
+	
+	public List<String> getRoles() {
+		return roles;
+	}
+	
+	public void setRoles(List<String> roles) {
+		this.roles = roles;
 	}
 	
 	@Override

@@ -50,6 +50,31 @@ public class OrganizationMemberService {
 	private OrgManagerUtils utils;
 	
 	/**
+	 * Lists users within an organization.
+	 * 
+	 * @param organizationId - ID of the organization
+	 * @param username - If specified, only users whose name contains this string will be returned
+	 * @return - Users in the organization
+	 */
+	public List<OrganizationMemberDTO> getUsers(Long organizationId, String username) {
+		if (username == null)
+			username = ""; // null is not accepted, but an empty string works just fine when a filter on the name is not desired
+		Organization organization = organizationRepository.getOne(organizationId); // retrieves the organization
+		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
+		if (!utils.userHasAdminRights() && !utils.userIsOwner(organization))
+			throw new AccessDeniedException("Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
+		
+		List<OrganizationMemberDTO> membersListDTO = new ArrayList<OrganizationMemberDTO>();
+		List<OrganizationMember> members = organizationMemberRepository.findByOrganizationAndUsernameIgnoreCaseContaining(organization, username);
+		Set<Role> memberRoles;
+		for (OrganizationMember m : members) {
+			memberRoles = roleRepository.findByOrganizationMember(m);
+			membersListDTO.add(new OrganizationMemberDTO(m, memberRoles));
+		}
+		return membersListDTO;
+	}
+	
+	/**
 	 * User is granted the roles listed in the request body. Previously granted roles not present in this new configuration
 	 * will be revoked.
 	 * 
@@ -88,18 +113,19 @@ public class OrganizationMemberService {
 				rolesToAdd.add(new Role(r, storedMember)); // converts the role from view to model
 			}
 		}
-		Set<Role> rolesToRemove = roleRepository.findByOrganizationMember(storedMember); // Roles prior to this new configuration
+		// Retrieves roles prior to this new configuration, to remove roles not present in the new configuration
+		Set<Role> rolesToRemove = roleRepository.findByOrganizationMemberAndRoleNotIgnoreCase(storedMember, OrgManagerUtils.ROLE_PROVIDER);
 		rolesToRemove.removeAll(rolesToAdd); // Roles not present in the new configuration
 		
-		// Checks that the authenticated user isn't trying to revoke owner role from themselves
 		String userId = utils.getUserId(storedMember.getUsername()); // ID used by the identity provider for the user
-		String authenticatedId = utils.getAuthenticatedUserId(); // ID used by the identity provider for the authenticated user
-		if (userId.equals(authenticatedId)) {
-			for (Role r : rolesToRemove)
-				if (r.getRoleId().getRole().equals(OrgManagerUtils.ROLE_PROVIDER))
-					throw new IllegalArgumentException("You cannot revoke the role " + r + " from yourself.");
-		}
 		
+		// Checks that the authenticated user isn't trying to revoke owner role from themselves
+//		String authenticatedId = utils.getAuthenticatedUserId(); // ID used by the identity provider for the authenticated user
+//		if (userId.equals(authenticatedId)) {
+//			for (Role r : rolesToRemove)
+//				if (r.getRoleId().getRole().equals(OrgManagerUtils.ROLE_PROVIDER))
+//					throw new IllegalArgumentException("You cannot revoke the role " + r + " from yourself.");
+//		}
 		roleRepository.saveAll(rolesToAdd); // Stores the member's new roles
 		roleRepository.deleteAll(rolesToRemove); // Removes the roles not present in the new configuration
 		
@@ -187,8 +213,8 @@ public class OrganizationMemberService {
 		HashSet<Role> roles = new HashSet<Role>();
 		if (owner == null) // owner user needs to be created
 			owner = new OrganizationMember(ownerName, organization);
-		else // owner user already exists, retrieve the list of their roles for output
-			roles = roleRepository.findByOrganizationMember(owner);
+		else // new owner is an existing user
+			roles = roleRepository.findByOrganizationMember(owner); // retrieve the roles for output
 		
 		Role ownerRole = new Role(OrgManagerUtils.ROOT_ORGANIZATIONS + "/" + organization.getSlug(), OrgManagerUtils.ROLE_PROVIDER, owner, null);
 		List<Role> rolesToAdd = new ArrayList<Role>();
@@ -227,13 +253,20 @@ public class OrganizationMemberService {
 		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
 		
 		// Checks if the user has permission to perform this action
-		if (!utils.userHasAdminRights() && !utils.userIsOwner(organization))
+		boolean userHasAdminRights = utils.userHasAdminRights();
+		if (!userHasAdminRights && !utils.userIsOwner(organization))
 			throw new AccessDeniedException("Access is denied: user does not have administrator rights.");
 		
 		OrganizationMember owner = organizationMemberRepository.findByIdAndOrganization(ownerId, organization); // retrieves the stored member
 		if (owner == null) // The input user does not belong to the organization
 			throw new EntityNotFoundException("There is no user in organization " + organization.getName() + " with ID " + ownerId);
+		
 		String ownerName = owner.getUsername();
+		String ownerIdpId = utils.getUserId(ownerName); // ID used by the identity provider
+		
+		if (!userHasAdminRights && utils.getAuthenticatedUserId().equals(ownerIdpId)) // authenticated user is trying to remove themselves
+			throw new IllegalArgumentException("You are owner of the organization and are trying to remove your own owner status.");
+		
 		Set<Role> roles = roleRepository.findByOrganizationMember(owner);
 		List<Role> rolesToRemove = new ArrayList<Role>();
 		Role ownerRole = new Role(OrgManagerUtils.ROOT_ORGANIZATIONS + "/" + organization.getSlug(), OrgManagerUtils.ROLE_PROVIDER, owner, null);
@@ -248,7 +281,6 @@ public class OrganizationMemberService {
 		roleRepository.deleteAll(rolesToRemove);
 		
 		// Updates roles in the identity provider
-		String ownerIdpId = utils.getUserId(ownerName);
 		utils.idpRemoveRoles(ownerIdpId, rolesToRemove);
 		
 		// Removes the owner for the components

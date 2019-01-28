@@ -82,6 +82,22 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 	
 	/**
+	 * An onbject involved in the requested operation is in a state that does not allow such operation.
+	 * 
+	 * @param e - Exception
+	 * @return - Response with error and proper status code
+	 */
+	@ExceptionHandler(IllegalStateException.class)
+	protected ResponseEntity<String> handleIllegalState(IllegalStateException e) {
+		JSONObject error = new JSONObject();
+		try {
+			error.put("error", "invalid_state");
+			error.put("error_description", e.getMessage());
+		} catch (JSONException je) {}
+		return buildResponseEntity(error, HttpStatus.BAD_REQUEST);
+	}
+	
+	/**
 	 * User does not have the necessary privileges to perform the operation.
 	 * 
 	 * @param e - Exception

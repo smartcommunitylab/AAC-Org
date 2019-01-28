@@ -1,5 +1,6 @@
 package it.smartcommunitylab.orgmanager.dto;
 
+import java.util.Collection;
 import java.util.HashSet;
 
 import it.smartcommunitylab.orgmanager.model.OrganizationMember;
@@ -18,7 +19,7 @@ public class OrganizationMemberDTO {
 		this.roles = roles;
 	}
 	
-	public OrganizationMemberDTO(OrganizationMember member, HashSet<Role> memberRoles) {
+	public OrganizationMemberDTO(OrganizationMember member, Collection<Role> memberRoles) {
 		this(member.getId(), member.getUsername(), convertRoles(memberRoles));
 	}
 	
@@ -52,7 +53,7 @@ public class OrganizationMemberDTO {
 	 * @param roles - Roles to convert
 	 * @return - A collection with the converted roles
 	 */
-	private static HashSet<RoleDTO> convertRoles(HashSet<Role> roles) {
+	private static HashSet<RoleDTO> convertRoles(Collection<Role> roles) {
 		HashSet<RoleDTO> rolesDTO = new HashSet<RoleDTO>();
 		if (roles != null) {
 			for (Role r : roles)

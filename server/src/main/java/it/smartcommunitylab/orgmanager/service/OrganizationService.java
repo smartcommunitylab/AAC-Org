@@ -148,6 +148,7 @@ public class OrganizationService {
 		if (organizationDTO == null)
 			return null; // nothing to update
 		Organization organization = organizationRepository.getOne(id); // finds the organization to change
+		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
 		
 		// Checks if the user has permission to perform this action
 		if (!utils.userHasAdminRights() && !utils.userIsOwner(organization))
@@ -231,31 +232,33 @@ public class OrganizationService {
 		
 		Organization organization = organizationRepository.getOne(id);
 		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
-		if (organization != null) {
-			// Retrieves the list of members belonging to the organization
-			List<OrganizationMember> members = organizationMemberRepository.findByOrganization(organization);
-			
-			// Maps each member, identified by their ID in the identity provider, to the roles they have in the organization
-			Map<String, Set<Role>> memberToRolesToRemove = new HashMap<String, Set<Role>>();
-			for (OrganizationMember m : members) {
-				String userId = utils.getUserId(m.getUsername()); // ID used by the identity provider
-				memberToRolesToRemove.put(userId, roleRepository.findByOrganizationMember(m));
-				roleRepository.deleteByOrganizationMember(m); // delete all roles within such organization
-			}
-			
-			tenantRepository.deleteByOrganization(organization); // delete all tenants within such organization
-			
-			organizationMemberRepository.deleteByOrganization(organization); // all members are removed from the organization
-			organizationRepository.delete(organization); // deletes the organization
-			
-			// Updates roles in the identity provider
-			for (String userId : memberToRolesToRemove.keySet())
-				utils.idpRemoveRoles(userId, memberToRolesToRemove.get(userId));
-			
-			// Deletes the organization in the components
-			Map<String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");
-			for (String s : componentMap.keySet())
-				componentMap.get(s).deleteOrganization(organization.getName());
+		
+		if (organization.getActive())
+			throw new IllegalStateException("Unable to delete organization with ID " + id + ": the organization must first be disabled.");
+		
+		// Retrieves the list of members belonging to the organization
+		List<OrganizationMember> members = organizationMemberRepository.findByOrganization(organization);
+		
+		// Maps each member, identified by their ID in the identity provider, to the roles they have in the organization
+		Map<String, Set<Role>> memberToRolesToRemove = new HashMap<String, Set<Role>>();
+		for (OrganizationMember m : members) {
+			String userId = utils.getUserId(m.getUsername()); // ID used by the identity provider
+			memberToRolesToRemove.put(userId, roleRepository.findByOrganizationMember(m));
+			roleRepository.deleteByOrganizationMember(m); // delete all roles within such organization
 		}
+		
+		tenantRepository.deleteByOrganization(organization); // delete all tenants within such organization
+		
+		organizationMemberRepository.deleteByOrganization(organization); // all members are removed from the organization
+		organizationRepository.delete(organization); // deletes the organization
+		
+		// Updates roles in the identity provider
+		for (String userId : memberToRolesToRemove.keySet())
+			utils.idpRemoveRoles(userId, memberToRolesToRemove.get(userId));
+		
+		// Deletes the organization in the components
+		Map<String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");
+		for (String s : componentMap.keySet())
+			componentMap.get(s).deleteOrganization(organization.getName());
 	}
 }

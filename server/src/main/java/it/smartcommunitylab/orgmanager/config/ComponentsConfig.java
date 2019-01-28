@@ -15,7 +15,7 @@ import it.smartcommunitylab.orgmanager.common.InvalidConfigurationException;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 
 /**
- * Fills its components field with data from the application-components.yml file.
+ * Reads configuration for the components from the application-components.yml file.
  */
 @Configuration
 @EnableConfigurationProperties
@@ -26,6 +26,7 @@ public class ComponentsConfig {
 	public static final String FIELD_SCOPE = "scope";
 	public static final String FIELD_FORMAT = "format";
 	public static final String FIELD_IMPLEMENTATION = "implementation";
+	public static final String FIELD_ROLES = "roles";
 	
 	private static final String DEFAULT_FORMAT = "^[a-z0-9]+$";
 	
@@ -44,14 +45,18 @@ public class ComponentsConfig {
 		Map<String, Component> componentMap = new HashMap<String, Component>();
 		
 		String missingFieldErr = "Organization Manager is not correctly configured: a component defined in application-components.yml is missing the following field: "; 
+		String componentId, implementation, roles, format;
 		for (Map<String, String> map : components) {
-			String componentId = map.get(FIELD_COMPONENT_ID);
-			if (componentId == null || componentId.equals("")) // component ID is required
+			componentId = map.get(FIELD_COMPONENT_ID);
+			if (componentId == null || componentId.equals("")) // componentId property is required
 				throw new InvalidConfigurationException(missingFieldErr + FIELD_COMPONENT_ID);
-			String implementation = map.get(FIELD_IMPLEMENTATION);
-			if (implementation == null || implementation.equals("")) // implementation is required
+			implementation = map.get(FIELD_IMPLEMENTATION);
+			if (implementation == null || implementation.equals("")) // implementation property is required
 				throw new InvalidConfigurationException(missingFieldErr + FIELD_IMPLEMENTATION);
-			String format = map.get(FIELD_FORMAT);
+			roles = map.get(FIELD_ROLES);
+			if (roles == null || roles.equals("")) // roles property is required
+				throw new InvalidConfigurationException(missingFieldErr + FIELD_ROLES);
+			format = map.get(FIELD_FORMAT);
 			if (format == null || format.equals("")) // when missing, format is given a default value
 				map.put(FIELD_FORMAT, DEFAULT_FORMAT);
 			Component component = (Component) context.getBean(implementation); // instantiates the component with a subclass

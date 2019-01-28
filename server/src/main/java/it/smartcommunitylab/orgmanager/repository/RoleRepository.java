@@ -16,6 +16,9 @@ public interface RoleRepository extends JpaRepository<Role, RoleId> {
 	
 	HashSet<Role> findByOrganizationMember(OrganizationMember organizationMember);
 	
+	@Query("select r from Role r where r.organizationMember=?1 and lower(r.roleId.role)!=lower(?2)")
+	HashSet<Role> findByOrganizationMemberAndRoleNotIgnoreCase(OrganizationMember organizationMember, String role);
+	
 	void deleteByOrganizationMember(OrganizationMember organizationMember);
 	
 	@Query("select r from Role r where r.roleId.contextSpace=?1")

@@ -64,15 +64,24 @@ public class ComponentService {
 	public Page<ComponentDTO> listComponents(Pageable pageable) {
 		List<ComponentDTO> componentListDTO = new ArrayList<ComponentDTO>();
 		List<Map<String, String>> componentProperties = componentsConfig.getComponentProperties();
-		String name, componentId, scope, format, implementation;
+		String name, componentId, scope, format, implementation, rolesString;
+		List<String> roles;
 		for (Map<String, String> map : componentProperties) { // Retrieves all properties used in the output
 			name = map.get(ComponentsConfig.FIELD_NAME);
 			componentId = map.get(ComponentsConfig.FIELD_COMPONENT_ID);
 			scope = map.get(ComponentsConfig.FIELD_SCOPE);
 			format = map.get(ComponentsConfig.FIELD_FORMAT);
 			implementation = map.get(ComponentsConfig.FIELD_IMPLEMENTATION);
+			rolesString = map.get(ComponentsConfig.FIELD_ROLES);
+			roles = new ArrayList<String>();
+			if (rolesString != null) { // builds a list from the comma-separated string
+				for (String s : rolesString.split(",")) {
+					if (!s.trim().equals(""))
+						roles.add(s.trim());
+				}
+			}
 			
-			componentListDTO.add(new ComponentDTO(name, componentId, scope, format, implementation)); // adds the component to the output list
+			componentListDTO.add(new ComponentDTO(name, componentId, scope, format, implementation, roles)); // adds the component to the output list
 		}
 		return new PageImpl<ComponentDTO>(componentListDTO, pageable, componentListDTO.size()); // returns as a page
 	}
