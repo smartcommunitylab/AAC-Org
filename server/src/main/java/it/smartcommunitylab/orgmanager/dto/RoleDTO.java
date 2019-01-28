@@ -5,7 +5,7 @@ import java.util.Objects;
 import it.smartcommunitylab.orgmanager.model.Role;
 
 public class RoleDTO {
-	private String contextSpace;
+	private String contextSpace; // contains both the context and the space of the domain
 	private String role;
 	
 	public RoleDTO() {}

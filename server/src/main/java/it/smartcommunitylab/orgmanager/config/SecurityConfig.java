@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
@@ -102,10 +101,6 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 		http.antMatcher("/**").authorizeRequests().antMatchers("/", "/login**", "/webjars/**", "/error**").permitAll()
-//				.antMatchers(HttpMethod.POST, "/api/organizations").access("#oauth2.hasScope('" + getOrganizationManagementScope() + "')")
-//				.antMatchers(HttpMethod.PUT, "/api/organizations/*/enable", "/api/organizations/*/disable").access("#oauth2.hasScope('" + getOrganizationManagementScope() + "')")
-//				.antMatchers(HttpMethod.DELETE, "/api/organizations/*").access("#oauth2.hasScope('" + getOrganizationManagementScope() + "')")
-//				.antMatchers(HttpMethod.POST, "/api/organizations/*/configuration").access("#oauth2.hasScope('" + getOrganizationManagementScope() + "')")
 				.anyRequest().authenticated().and().logout().logoutSuccessUrl("/").permitAll()
 				.and().csrf().disable();
 	}

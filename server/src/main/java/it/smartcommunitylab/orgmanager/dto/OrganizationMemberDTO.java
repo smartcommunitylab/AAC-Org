@@ -10,7 +10,7 @@ public class OrganizationMemberDTO {
 	private Long id;
 	private String username;
 	private HashSet<RoleDTO> roles;
-	private boolean owner;
+	private boolean owner; // true if the member is owner of the organization
 	
 	public OrganizationMemberDTO() {};
 	
@@ -74,6 +74,6 @@ public class OrganizationMemberDTO {
 	
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " [" + id + "]: Username=" + username;
+		return this.getClass().getSimpleName() + " [" + id + "]: Username=" + username + ", Owner=" + owner;
 	}
 }
