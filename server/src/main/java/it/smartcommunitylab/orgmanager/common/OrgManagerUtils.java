@@ -145,6 +145,22 @@ public class OrgManagerUtils {
 	}
 	
 	/**
+	 * Returns true if the input role collection includes a role that identifies ownership of the organization.
+	 * 
+	 * @param roles - Collection of roles that may include owner role
+	 * @param slug - Slug of the organization
+	 * @return - True if the owner role could be found, false otherwise
+	 */
+	public boolean containsOwnerRole(Collection<Role> roles, String slug) {
+		for (Role r : roles) {
+			if (r.getRoleId().getContextSpace().equals(ROOT_ORGANIZATIONS + "/" + slug) &&
+					r.getRoleId().getRole().equals(ROLE_PROVIDER))
+				return true; // authenticated user is owner
+		}
+		return false;
+	}
+	
+	/**
 	 * Returns the ID used by the identity provider to identify the currently authenticated user.
 	 * 
 	 * @return - ID used by the identity provider to identify the currently authenticated user

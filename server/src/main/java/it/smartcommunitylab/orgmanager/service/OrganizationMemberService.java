@@ -67,9 +67,11 @@ public class OrganizationMemberService {
 		List<OrganizationMemberDTO> membersListDTO = new ArrayList<OrganizationMemberDTO>();
 		List<OrganizationMember> members = organizationMemberRepository.findByOrganizationAndUsernameIgnoreCaseContaining(organization, username);
 		Set<Role> memberRoles;
+		boolean isOwner;
 		for (OrganizationMember m : members) {
 			memberRoles = roleRepository.findByOrganizationMember(m);
-			membersListDTO.add(new OrganizationMemberDTO(m, memberRoles));
+			isOwner = utils.containsOwnerRole(memberRoles, organization.getSlug());
+			membersListDTO.add(new OrganizationMemberDTO(m, memberRoles, isOwner));
 		}
 		return membersListDTO;
 	}
@@ -151,7 +153,10 @@ public class OrganizationMemberService {
 					componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), storedMember.getUsername());
 			}
 		}
-		return new OrganizationMemberDTO(storedMember, roleRepository.findByOrganizationMember(storedMember)); // converts to view format
+		
+		Set<Role> updatedRoles = roleRepository.findByOrganizationMember(storedMember);
+		boolean isOwner = utils.containsOwnerRole(updatedRoles, organization.getSlug());
+		return new OrganizationMemberDTO(storedMember, updatedRoles, isOwner); // converts to view format
 	}
 	
 	/**
@@ -239,7 +244,7 @@ public class OrganizationMemberService {
 		}
 		
 		roles.addAll(rolesToAdd); // adds all new roles to the output roles
-		return new OrganizationMemberDTO(owner, roles);
+		return new OrganizationMemberDTO(owner, roles, true);
 	}
 	
 	/**
