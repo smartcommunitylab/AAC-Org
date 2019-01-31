@@ -140,10 +140,8 @@ public class ComponentService {
 		
 		// Updates roles on the identity provider
 		if (!rolesToAdd.isEmpty()) {
-			String ownerId;
 			for (OrganizationMember owner : owners) {
-				ownerId = utils.getUserId(owner.getUsername()); // ID used by the identity provider for the organization owner
-				utils.idpAddRoles(ownerId, rolesToAdd); // owner is given authority on all created tenants
+				utils.idpAddRoles(owner.getIdpId(), rolesToAdd); // owner is given authority on all created tenants
 			}
 		}
 		
@@ -159,10 +157,8 @@ public class ComponentService {
 			}
 			roles.add(r);
 		}
-		for (OrganizationMember m : memberToRolesToRemove.keySet()) {
-			String userId = utils.getUserId(m.getUsername()); // ID used by the identity provider for the user
-			utils.idpRemoveRoles(userId, memberToRolesToRemove.get(m)); // revokes roles in the identity provider
-		}
+		for (OrganizationMember m : memberToRolesToRemove.keySet())
+			utils.idpRemoveRoles(m.getIdpId(), memberToRolesToRemove.get(m)); // revokes roles in the identity provider
 		
 		// Updates tenants in the components
 		Map<String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");

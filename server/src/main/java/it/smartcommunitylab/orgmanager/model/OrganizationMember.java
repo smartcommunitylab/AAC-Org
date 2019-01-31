@@ -1,6 +1,7 @@
 package it.smartcommunitylab.orgmanager.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -11,8 +12,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
-
-import it.smartcommunitylab.orgmanager.dto.OrganizationMemberDTO;
 
 @Entity
 @Table(uniqueConstraints = { @UniqueConstraint(columnNames = {"username", "organization_id"}) })
@@ -30,15 +29,15 @@ public class OrganizationMember implements Serializable {
 	@JoinColumn(name = "organization_id")
 	private Organization organization;
 	
+	@NotNull
+	private Long idpId; // ID used by the identity provider to identify the user
+	
 	public OrganizationMember() {}
 	
-	public OrganizationMember(String username, Organization organization) {
+	public OrganizationMember(String username, Organization organization, Long idpId) {
 		this.username = username;
 		this.organization = organization;
-	}
-	
-	public OrganizationMember(OrganizationMemberDTO memberDTO) {
-		this(memberDTO.getUsername(), null);
+		this.idpId = idpId;
 	}
 	
 	public Long getId() {
@@ -65,8 +64,31 @@ public class OrganizationMember implements Serializable {
 		this.organization = organization;
 	}
 	
+	public Long getIdpId() {
+		return idpId;
+	}
+	
+	public void setIdpId(Long idpId) {
+		this.idpId = idpId;
+	}
+	
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " [" + id + "]: Username=" + username;
+		return this.getClass().getSimpleName() + " [" + id + "]: Username=" + username + ", Identity Provider ID=" + idpId;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o != null && (o instanceof OrganizationMember)) {
+			OrganizationMember m = (OrganizationMember) o;
+			if (username.equals(m.username) && organization.getId() == m.getOrganization().getId())
+				return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(username, organization.getId());
 	}
 }

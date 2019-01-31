@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -27,6 +29,7 @@ import it.smartcommunitylab.aac.AACService;
 import it.smartcommunitylab.aac.model.TokenData;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.model.Organization;
+import it.smartcommunitylab.orgmanager.model.OrganizationMember;
 import it.smartcommunitylab.orgmanager.model.Role;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -207,7 +210,7 @@ public class OrgManagerUtils {
 	 * @param userName - Name of the user whose ID will be returned
 	 * @return - ID of the input user
 	 */
-	public String getUserId(String userName) {
+	public Long getUserId(String userName) {
 		if (userName == null || userName.equals("")) // invalid request
 			return null;
 		String urlString = securityConfig.getUserProfilesUri() + "?username=" + userName;
@@ -220,10 +223,26 @@ public class OrgManagerUtils {
 			if (profiles.size() > 1) // Multiple users found, cannot determine which one is the right one
 				throw new AmbiguousIdentifierException("The identity provider returned multiple profiles, cannot determine the correct user. Unable to continue.");
 			JSONObject profile = (JSONObject) profiles.get(0);
-			return profile.getAsString("userId"); // ID used by the identity provider
+			return new Long(profile.getAsString("userId")); // ID used by the identity provider
 		} catch (ParseException e) {
 			throw new IdentityProviderAPIException("API call to the identity provider to find " + userName + "'s ID returned an unexpected response: " + e.getMessage());
 		}
+	}
+	
+	public Map<OrganizationMember, List<Role>> createMemberToRolesMap(List<Object[]> memberRolesList) {
+		Map<OrganizationMember, List<Role>> memberRolesMap = new HashMap<OrganizationMember, List<Role>>();
+		List<Role> roles;
+		OrganizationMember member;
+		for (Object[] a : memberRolesList) { // builds a (member -> roles) map
+			member = (OrganizationMember) a[0];
+			roles = memberRolesMap.get(member);
+			if (roles == null) { // member doesn't have a list of roles assigned yet
+				roles = new ArrayList<Role>();
+				memberRolesMap.put(member, roles);
+			}
+			roles.add((Role) a[1]);
+		}
+		return memberRolesMap;
 	}
 	
 	/**
@@ -232,7 +251,7 @@ public class OrgManagerUtils {
 	 * @param userId - ID of the user
 	 * @param role - Role to add
 	 */
-	public void idpAddRole(String userId, Role role) {
+	public void idpAddRole(Long userId, Role role) {
 		List<Role> roles = new ArrayList<Role>();
 		roles.add(role); // list with just 1 element
 		idpAddRoles(userId, roles); // calls method on the single-element list
@@ -244,7 +263,7 @@ public class OrgManagerUtils {
 	 * @param userId - ID of the user
 	 * @param roles - Roles to add
 	 */
-	public void idpAddRoles(String userId, Collection<Role> roles) {
+	public void idpAddRoles(Long userId, Collection<Role> roles) {
 		idpHandleRoles(userId, roles, HTTPRequest.Method.PUT);
 	}
 	
@@ -254,7 +273,7 @@ public class OrgManagerUtils {
 	 * @param userId - ID of the user
 	 * @param roles - Roles to remove
 	 */
-	public void idpRemoveRoles(String userId, Collection<Role> roles) {
+	public void idpRemoveRoles(Long userId, Collection<Role> roles) {
 		idpHandleRoles(userId, roles, HTTPRequest.Method.DELETE);
 	}
 	
@@ -265,7 +284,7 @@ public class OrgManagerUtils {
 	 * @param roles - Roles to add/remove
 	 * @param method - PUT or DELETE
 	 */
-	private void idpHandleRoles(String userId, Collection<Role> roles, HTTPRequest.Method method) {
+	private void idpHandleRoles(Long userId, Collection<Role> roles, HTTPRequest.Method method) {
 		if (roles == null || roles.isEmpty())
 			return;
 		String urlString = securityConfig.getManageRolesUri() + "/" + userId + "?roles=";

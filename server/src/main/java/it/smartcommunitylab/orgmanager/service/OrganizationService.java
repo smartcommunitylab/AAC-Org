@@ -1,6 +1,7 @@
 package it.smartcommunitylab.orgmanager.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -118,13 +119,14 @@ public class OrganizationService {
 		organization = organizationRepository.save(new Organization(organizationDTO)); // converts the organization in a format for storing and stores it
 		
 		// Creates the owner and gives them the ROLE_PROVIDER role
-		OrganizationMember owner = new OrganizationMember(organization.getContactsEmail(), organization);
+		String ownerName = organization.getContactsEmail();
+		Long userId = utils.getUserId(ownerName); // ID used by the identity provider for the owner
+		OrganizationMember owner = new OrganizationMember(ownerName, organization, userId);
 		owner = organizationMemberRepository.save(owner); // stores the owner
 		Role role = new Role(OrgManagerUtils.ROOT_ORGANIZATIONS + "/" + organization.getSlug(), OrgManagerUtils.ROLE_PROVIDER, owner, null);
 		roleRepository.save(role); // stores the owner's role
 		
 		// Updates the identity provider
-		String userId = utils.getUserId(owner.getUsername()); // ID used by the identity provider for the owner
 		utils.idpAddRole(userId, role); // updates the owner's role in the identity provider as well
 		
 		// Performs the operation in the components
@@ -237,24 +239,22 @@ public class OrganizationService {
 			throw new IllegalStateException("Unable to delete organization with ID " + id + ": the organization must first be disabled.");
 		
 		// Retrieves the list of members belonging to the organization
-		List<OrganizationMember> members = organizationMemberRepository.findByOrganization(organization);
+//		List<OrganizationMember> members = organizationMemberRepository.findByOrganization(organization);
 		
-		// Maps each member, identified by their ID in the identity provider, to the roles they have in the organization
-		Map<String, Set<Role>> memberToRolesToRemove = new HashMap<String, Set<Role>>();
-		for (OrganizationMember m : members) {
-			String userId = utils.getUserId(m.getUsername()); // ID used by the identity provider
-			memberToRolesToRemove.put(userId, roleRepository.findByOrganizationMember(m));
-			roleRepository.deleteByOrganizationMember(m); // delete all roles within such organization
-		}
-		
+		// Maps each member to the roles they have in the organization
+		List<Object[]> memberRolesList = roleRepository.findOrganizationMembersWithRoles(organization.getId(), "");
+		Map<OrganizationMember, List<Role>> memberRolesMap = utils.createMemberToRolesMap(memberRolesList);
+		List<Role> rolesToRemove = new ArrayList<Role>();
+		for (OrganizationMember m : memberRolesMap.keySet())
+			rolesToRemove.addAll(memberRolesMap.get(m));
+		roleRepository.deleteAll(rolesToRemove);
 		tenantRepository.deleteByOrganization(organization); // delete all tenants within such organization
-		
 		organizationMemberRepository.deleteByOrganization(organization); // all members are removed from the organization
 		organizationRepository.delete(organization); // deletes the organization
 		
 		// Updates roles in the identity provider
-		for (String userId : memberToRolesToRemove.keySet())
-			utils.idpRemoveRoles(userId, memberToRolesToRemove.get(userId));
+		for (OrganizationMember m : memberRolesMap.keySet())
+			utils.idpRemoveRoles(m.getIdpId(), memberRolesMap.get(m));
 		
 		// Deletes the organization in the components
 		Map<String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");
