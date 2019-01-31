@@ -44,7 +44,9 @@ public class NiFiConnectorUtils {
 	
 	// Names of properties to retrieve during initialization
 	private static final String PROPERTY_COMPONENT_ID = "componentId";
+	static final String PROPERTY_IMPLEMENTATION = "implementation";
 	private static final String PROPERTY_HOST = "host";
+	private static final String PROPERTY_ACCESS_API = "accessApi";
 	private static final String PROPERTY_LIST_USERS_API = "listUsersApi";
 	private static final String PROPERTY_CREATE_USER_API = "createUserApi";
 	private static final String PROPERTY_DELETE_USER_API = "deleteUserApi";
@@ -75,7 +77,9 @@ public class NiFiConnectorUtils {
 	
 	// Properties
 	private static String componentId; // component ID
+	private static String implementation; // connector class
 	private static String host; // NiFi instance host
+	private static String accessApi; // used to check if NiFi is running
 	private static String listUsersApi; // list all users
 	private static String createUserApi; // create a user
 	private static String deleteUserApi; // delete a user
@@ -114,7 +118,9 @@ public class NiFiConnectorUtils {
 			throw new ComponentException("No properties specified.");
 		
 		componentId = properties.get(PROPERTY_COMPONENT_ID);
+		implementation = properties.get(PROPERTY_IMPLEMENTATION);
 		host = properties.get(PROPERTY_HOST);
+		accessApi = properties.get(PROPERTY_ACCESS_API);
 		listUsersApi = properties.get(PROPERTY_LIST_USERS_API);
 		createUserApi = properties.get(PROPERTY_CREATE_USER_API);
 		deleteUserApi = properties.get(PROPERTY_DELETE_USER_API);
@@ -158,13 +164,31 @@ public class NiFiConnectorUtils {
 		}
 	}
 	
-	// Returns the component ID
+	/**
+	 * Returns the component ID.
+	 * @return - The component ID
+	 */
 	static String getComponentId() {
 		checkValid(PROPERTY_COMPONENT_ID, componentId);
 		return componentId;
 	}
 	
+	/**
+	 * Returns the name of the connector class.
+	 * @return - the name of the connector class
+	 */
+	static String getImplementation() {
+		checkValid(PROPERTY_IMPLEMENTATION, implementation);
+		return implementation;
+	}
+	
 	// Each of the following methods creates a URL from the host and API end-point, sometimes using parameters to build it.
+	
+	public static String accessUrl() {
+		checkValid(PROPERTY_HOST, host);
+		checkValid(PROPERTY_ACCESS_API, accessApi);
+		return host + accessApi; // use with GET
+	}
 	
 	public static String listUsersUrl() {
 		checkValid(PROPERTY_HOST, host);

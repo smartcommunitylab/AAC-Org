@@ -54,7 +54,7 @@ public class OrgManagerUtils {
 	private void init() {
 		// Generates the service to obtain the proper client tokens needed for certain calls to the identity provider's APIs
 		aacService = securityConfig.getAACService();
-//		TokenData td; // TODO from here everything in this method is to quickly get a token for testing purposes
+//		TokenData td; // from here everything in this method is to quickly get a token for testing purposes
 //		try {
 //			td = aacService.generateUserToken("admin", "admin", "profile,email,profile.basicprofile.me,profile.accountprofile.me,user.roles.me");
 //			System.out.println(td.getToken_type() + " " + td.getAccess_token());

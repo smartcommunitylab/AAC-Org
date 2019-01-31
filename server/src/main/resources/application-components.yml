@@ -29,6 +29,7 @@ components:
     getProcessGroupApi		: /nifi-api/process-groups/
     createProcessGroupApi	: /nifi-api/process-groups/
     deleteProcessGroupApi	: /nifi-api/process-groups/
+    accessApi				: /nifi-api/access
     keystorePath			: C:/certs/admin.p12
     keystoreType			: PKCS12
     keystoreExportPassword	: password
