@@ -19,11 +19,12 @@ public interface RoleRepository extends JpaRepository<Role, RoleId> {
 	@Query("select r from Role r where r.organizationMember=?1 and lower(r.roleId.role)!=lower(?2)")
 	HashSet<Role> findByOrganizationMemberAndRoleNotIgnoreCase(OrganizationMember organizationMember, String role);
 	
-	void deleteByOrganizationMember(OrganizationMember organizationMember);
-	
 	@Query("select r from Role r where r.roleId.contextSpace=?1")
 	List<Role> findByContextSpace(String contextSpace);
 	
 	@Query("select r from Role r where r.roleId.contextSpace=?1 and r.roleId.role=?2")
 	List<Role> findByContextSpaceAndRole(String contextSpace, String role);
+	
+	@Query("select r.organizationMember, r from Role r where r.organizationMember.organization.id=?1 and lower(r.organizationMember.username) like lower('%' || ?2 || '%')")
+	List<Object[]> findOrganizationMembersWithRoles(Long organizationId, String username);
 }

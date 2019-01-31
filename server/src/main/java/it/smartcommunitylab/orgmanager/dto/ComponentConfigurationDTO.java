@@ -3,7 +3,7 @@ package it.smartcommunitylab.orgmanager.dto;
 import java.util.HashSet;
 
 public class ComponentConfigurationDTO {
-	private String componentId;
+	private String componentId; // identifies the component this configuration is for
 	private HashSet<String> tenants;
 	
 	public ComponentConfigurationDTO() {}
@@ -30,14 +30,14 @@ public class ComponentConfigurationDTO {
 	}
 	
 	/**
-	 * Adds a tenant to the list of tenants.
+	 * Adds a tenant to the tenants set.
 	 * 
 	 * @param tenant - The tenant to add
 	 */
 	public void addTenant(String tenant) {
 		if (tenants == null)
-			tenants = new HashSet<String>();
-		tenants.add(tenant);
+			tenants = new HashSet<String>(); // initializes the set
+		tenants.add(tenant); // adds the tenant
 	}
 	
 	public String toString() {

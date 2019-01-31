@@ -10,17 +10,19 @@ public class OrganizationMemberDTO {
 	private Long id;
 	private String username;
 	private HashSet<RoleDTO> roles;
+	private boolean owner; // true if the member is owner of the organization
 	
 	public OrganizationMemberDTO() {};
 	
-	public OrganizationMemberDTO(Long id, String username, HashSet<RoleDTO> roles) {
+	public OrganizationMemberDTO(Long id, String username, HashSet<RoleDTO> roles, boolean owner) {
 		this.id = id;
 		this.username = username;
 		this.roles = roles;
+		this.owner = owner;
 	}
 	
-	public OrganizationMemberDTO(OrganizationMember member, Collection<Role> memberRoles) {
-		this(member.getId(), member.getUsername(), convertRoles(memberRoles));
+	public OrganizationMemberDTO(OrganizationMember member, Collection<Role> memberRoles, boolean owner) {
+		this(member.getId(), member.getUsername(), convertRoles(memberRoles), owner);
 	}
 	
 	public Long getId() {
@@ -47,6 +49,14 @@ public class OrganizationMemberDTO {
 		this.roles = roles;
 	}
 	
+	public boolean getOwner() {
+		return owner;
+	}
+	
+	public void setOwner(boolean owner) {
+		this.owner = owner;
+	}
+	
 	/**
 	 * Converts roles from model to view.
 	 * 
@@ -64,6 +74,6 @@ public class OrganizationMemberDTO {
 	
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " [" + id + "]: Username=" + username;
+		return this.getClass().getSimpleName() + " [" + id + "]: Username=" + username + ", Owner=" + owner;
 	}
 }

@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.ComponentException;
+import it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
@@ -55,6 +56,16 @@ public class NiFiConnector implements Component {
 	 */
 	public void init(Map<String, String> properties) {
 		NiFiConnectorUtils.init(properties);
+		try {
+			String errMessage = "Unable to verify if component " + NiFiConnectorUtils.getComponentId() + " is running.";
+			callAPI(NiFiConnectorUtils.METHOD_GET, NiFiConnectorUtils.accessUrl(), null, errMessage);
+		} catch (ComponentException e) {
+			throw new ComponentException("Initialization of " + NiFiConnectorUtils.getComponentId() + " connector failed. "
+					+ "The component may not be running, or the connector's configuration is incorrect. If you want to "
+					+ "disable the connector, replace the value " + NiFiConnectorUtils.getImplementation() + " from the "
+					+ NiFiConnectorUtils.PROPERTY_IMPLEMENTATION + " property with " + DefaultComponentImpl.class.getName()
+					+ ". Error: " +  e);
+		}
 	}
 	
 	/**

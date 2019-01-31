@@ -4,11 +4,11 @@ import java.util.List;
 
 public class ComponentDTO {
 	private String name;
-	private String componentId;
+	private String componentId; // identifies the component
 	private String scope;
 	private String format;
-	private String implementation;
-	private List<String> roles;
+	private String implementation; // full name of the class that takes care of tenant-providing for this component
+	private List<String> roles; // roles that may be assigned within the component
 	
 	public ComponentDTO() {}
 	

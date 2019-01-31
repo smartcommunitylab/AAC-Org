@@ -9,11 +9,11 @@ import it.smartcommunitylab.orgmanager.model.Organization;
 public class OrganizationDTO {
 	private Long id;
 	private String name;
-	private String slug;
+	private String slug; // domain of the organization
 	private String description;
 	private Contacts contacts;
 	private String[] tag;
-	private boolean active;
+	private boolean active; // only disabled organizations may be deleted
 	
 	public OrganizationDTO() {
 		this(null, null, null, new Contacts());
@@ -110,11 +110,11 @@ public class OrganizationDTO {
 	@Override
 	public String toString() {
 		String enabled = active ? "enabled" : "disabled";
-		return this.getClass().getSimpleName() + " [" + id + "] (" + enabled + "): Name=" + name + ", Slug=" + slug + ", Description=" + description;
+		return this.getClass().getSimpleName() + " [" + id + "] (" + enabled + "): Name=" + name + ", Slug=" + slug + ", Description=" + description + ", Contacts=" + contacts;
 	}
 	
 	public static class Contacts {
-		private String email;
+		private String email; // at creation of the organization, email will be interpreted as the owner of the organization
 		private String name;
 		private String surname;
 		private URL web;
@@ -190,7 +190,7 @@ public class OrganizationDTO {
 		
 		@Override
 		public String toString() {
-			return this.getClass().getSimpleName() + ": Name=" + name + ", Surname=" + surname;
+			return "[E-mail" + email + ", Name=" + name + ", Surname=" + surname + "]";
 		}
 	}
 }

@@ -15,11 +15,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.nimbusds</groupId>
-			<artifactId>oauth2-oidc-sdk</artifactId>
-			<version>5.34.2</version>
-		</dependency>
-		<dependency>
 			<groupId>net.minidev</groupId>
 			<artifactId>json-smart</artifactId>
 			<version>2.3</version>

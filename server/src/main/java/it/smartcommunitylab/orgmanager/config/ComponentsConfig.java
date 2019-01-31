@@ -44,18 +44,19 @@ public class ComponentsConfig {
 	public Map<String, Component> getComponents() {
 		Map<String, Component> componentMap = new HashMap<String, Component>();
 		
-		String missingFieldErr = "Organization Manager is not correctly configured: a component defined in application-components.yml is missing the following field: "; 
+		String missingComponentIdErr = "The application-components.yml configuration file is invalid: one of the components is missing the following required property: ";
+		String missingFieldErr = "The application-components.yml configuration file is invalid: component %s is missing the following required property: %s";
 		String componentId, implementation, roles, format;
 		for (Map<String, String> map : components) {
 			componentId = map.get(FIELD_COMPONENT_ID);
 			if (componentId == null || componentId.equals("")) // componentId property is required
-				throw new InvalidConfigurationException(missingFieldErr + FIELD_COMPONENT_ID);
+				throw new InvalidConfigurationException(missingComponentIdErr + FIELD_COMPONENT_ID);
 			implementation = map.get(FIELD_IMPLEMENTATION);
 			if (implementation == null || implementation.equals("")) // implementation property is required
-				throw new InvalidConfigurationException(missingFieldErr + FIELD_IMPLEMENTATION);
+				throw new InvalidConfigurationException(String.format(missingFieldErr, componentId, FIELD_IMPLEMENTATION));
 			roles = map.get(FIELD_ROLES);
 			if (roles == null || roles.equals("")) // roles property is required
-				throw new InvalidConfigurationException(missingFieldErr + FIELD_ROLES);
+				throw new InvalidConfigurationException(String.format(missingFieldErr, componentId, FIELD_ROLES));
 			format = map.get(FIELD_FORMAT);
 			if (format == null || format.equals("")) // when missing, format is given a default value
 				map.put(FIELD_FORMAT, DEFAULT_FORMAT);
