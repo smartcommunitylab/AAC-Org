@@ -1,3 +1,4 @@
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleManageOrg'">List of Component</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyOrg'">Update Organization information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateProviderConfig'">Create New Provider Configuration</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyProviderConfig'">Update Provider Configuration</h2>
@@ -5,6 +6,36 @@
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyUser'">Update User Information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDeleteUser'">Delete User</h2>
 <mat-dialog-content>
+    <!-- Manage Organization  -->
+    <div *ngIf="data.dialogStatus=='TitleManageOrg'" class="manageOrg">
+        <mat-expansion-panel>
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    Component 1
+                </mat-panel-title>
+                <mat-panel-description>
+                    Add your Tenants
+                </mat-panel-description>
+            </mat-expansion-panel-header>
+            <mat-form-field>
+                <input matInput placeholder="Tenants">
+            </mat-form-field>
+        </mat-expansion-panel>
+        <mat-expansion-panel>
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    Component 2
+                </mat-panel-title>
+                <mat-panel-description>
+                    Add your Tenants
+                </mat-panel-description>
+            </mat-expansion-panel-header>
+            <mat-form-field>
+                <input matInput placeholder="Tenants">
+            </mat-form-field>
+        </mat-expansion-panel>
+    </div>
+        
     <!-- Modify Organization Information -->
     <div *ngIf="data.dialogStatus=='TitleModifyOrg'">
         <!-- Organization Name -->
@@ -73,6 +104,7 @@
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
     </div>
+
     <!-- Create A Provider Configuration -->
     <div *ngIf="data.dialogStatus=='TitleCreateProviderConfig'">
         <mat-label class="mat-h4">Please provide this information</mat-label>
@@ -88,6 +120,7 @@
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
     </div>
+
     <!-- Modify A Provider Configuration -->
     <div *ngIf="data.dialogStatus=='TitleModifyProviderConfig'">
         <mat-label class="mat-h4">Please Update this information</mat-label>
@@ -97,6 +130,7 @@
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
     </div>
+
     <!-- Create A New User -->
     <div *ngIf="data.dialogStatus=='TitleAddUser'">
         <mat-label class="mat-h4">Please provide this information</mat-label>
@@ -105,6 +139,16 @@
             <input matInput  placeholder="Username"  required >
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
+        <mat-radio-group class="example-radio-group" [(ngModel)]="selectedCat">
+            <mat-radio-button class="example-radio-button" *ngFor="let cat of category"  [value]="cat.name" [checked]="cat.checked">
+                {{cat.name}}&nbsp;
+            </mat-radio-button>
+        </mat-radio-group>
+        <div class="example-selected-value">Your favorite season is: {{selectedCat}}</div>
+        <!-- <mat-radio-group>
+            <mat-radio-button [checked]="true" value="1">Owner</mat-radio-button>
+            <mat-radio-button [checked]="false" value="2">User</mat-radio-button>
+        </mat-radio-group> -->
         <!-- Select Role  -->
         <!-- <mat-form-field class="dialog-container-form-field">
             <mat-select placeholder="Role">
@@ -142,6 +186,7 @@
             </mat-chip-list>
         </mat-form-field>
     </div>
+
     <!-- Modify A User -->
     <div *ngIf="data.dialogStatus=='TitleModifyUser'">
         <mat-label class="mat-h4">Please Update this information</mat-label>
@@ -159,6 +204,7 @@
             </mat-select>
         </mat-form-field>
     </div>
+
     <!-- Delete A User -->
     <div *ngIf="data.dialogStatus=='TitleDeleteUser'">
         <mat-label class="mat-h4">Are you sure to delete this user?</mat-label>

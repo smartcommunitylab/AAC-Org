@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 // import {MatChipInputEvent} from '@angular/material';
+import {ComponentsService} from '../../services/components.service';
 
 @Component({
   selector: 'app-details-org',
@@ -13,12 +14,25 @@ import {COMMA, ENTER} from '@angular/cdk/keycodes';
 })
 export class DetailsOrgComponent implements OnInit {
   panelOpenState: boolean = false;
-  constructor(public dialog: MatDialog) { }
-
+  constructor(public dialog: MatDialog, private componentsService:ComponentsService) { }
+  
   ngOnInit() {
+    this.componentsService.getComponents();
   }
 
- 
+ /**
+   * Manage Organization
+   */
+  openDialog4ManageOrg(): void {
+    let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
+      width: '40%',
+      data: { name: "", dialogStatus:"TitleManageOrg"  }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed from openDialog4ManageOrg()');
+    });
+  }
   /**
    * Modify Organization
    */
@@ -60,7 +74,7 @@ export class DetailsOrgComponent implements OnInit {
       width: '350px',
       data: { name: "", dialogStatus:"TitleAddUser"  }
     });
-
+    
     dialogRef.afterClosed().subscribe(result => {
       console.log('The dialog was closed from openDialog4AddUser()');
     });
@@ -101,7 +115,10 @@ export class DetailsOrgComponent implements OnInit {
 })
 export class detailsOrganizationDialogComponent {
   constructor(public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any) { }
-
+  selectedCat: string;
+  category: any = [ {"name": "Owner", "ID": "C1", "checked": true},
+              {"name": "User", "ID": "C2", "checked": false}];
+  
   onNoClick(): void {
     this.dialogRef.close();
   }

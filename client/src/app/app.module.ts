@@ -9,6 +9,8 @@ import {MatDialogModule} from '@angular/material/dialog';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatChipsModule} from '@angular/material/chips';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
+import {MatRadioModule} from '@angular/material/radio';
 
 import {  AuthGuard, AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -19,6 +21,10 @@ import { DeactivateOrgComponent } from './components/deactivate-org/deactivate-o
 import { BlockOrgComponent } from './components/block-org/block-org.component';
 import { DetailsOrgComponent, detailsOrganizationDialogComponent, ChipsInputExamples} from './components/details-org/details-org.component';
 import { InputFileComponent } from './components/input-file/input-file.component';
+
+import { ConfigService } from './services/config.service';
+import { ComponentsService } from './services/components.service';
+import { HttpModule } from '@angular/http';
 
 @NgModule({
   declarations: [
@@ -62,9 +68,14 @@ import { InputFileComponent } from './components/input-file/input-file.component
     MatSlideToggleModule,
     MatExpansionModule,
     MatSelectModule,
-    MatChipsModule
+    MatChipsModule,
+    MatAutocompleteModule,
+    MatRadioModule,
+    HttpModule
   ],
-  providers: [AuthGuard],
+  providers: [AuthGuard,
+    ConfigService,
+    ComponentsService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
