@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpHeaders } from '@angular/common/http';
+import { RequestOptions, Headers }  from '@angular/http';
 
 @Injectable()
 export class ConfigService {
@@ -19,12 +20,13 @@ export class ConfigService {
   }
 
   public getHttpOptions(): any{
-    return new HttpHeaders({
-      "Access-Control-Allow-Credentials" : "true",
-      "Access-Control-Allow-Origin" : "*",
+    let httpHeaders = new Headers({
+      'Access-Control-Allow-Credentials' : 'true',
+      'Access-Control-Allow-Origin' : '*',
       'Content-Type': 'application/json',
-      "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept",
-      'Authorization': "bearer b65149d3-6aed-453c-8cf7-0f3aca0efe47"
-   });
+      'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
+      'Authorization': 'bearer 3711b632-c764-470c-9664-5eb7a591e318'
+    });
+    return new RequestOptions({ headers: httpHeaders });
   }
 }

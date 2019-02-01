@@ -102,7 +102,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	public void configure(HttpSecurity http) throws Exception {
 		http.antMatcher("/**").authorizeRequests().antMatchers("/", "/login**", "/webjars/**", "/error**").permitAll()
 				.anyRequest().authenticated().and().logout().logoutSuccessUrl("/").permitAll()
-				.and().csrf().disable();
+				.and().cors().and().csrf().disable();
 	}
 	
 	/**

@@ -16,7 +16,7 @@ export class ComponentsService {
   getComponents(): any{
     console.log("Headers:",this.config.getHttpOptions());
     return this.http.get(`${ this.config.get('locUrl') }`,this.config.getHttpOptions()).subscribe(data => {
-      console.log("Return Data from put(edit): " + data);
+      console.log("Return Data from put(edit): " + data.text());
     },
     (err: HttpErrorResponse) => {
       if (err.error instanceof Error) {
