@@ -1,8 +1,6 @@
 package it.smartcommunitylab.orgmanager.service;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -130,7 +128,7 @@ public class OrganizationService {
 		utils.idpAddRole(userId, role); // updates the owner's role in the identity provider as well
 		
 		// Performs the operation in the components
-		Map<String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");
+		Map<String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
 		for (String s : componentMap.keySet()) {
 			componentMap.get(s).createUser(owner.getUsername());
 			componentMap.get(s).createOrganization(name, owner.getUsername());
@@ -257,7 +255,7 @@ public class OrganizationService {
 			utils.idpRemoveRoles(m.getIdpId(), memberRolesMap.get(m));
 		
 		// Deletes the organization in the components
-		Map<String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");
+		Map<String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
 		for (String s : componentMap.keySet())
 			componentMap.get(s).deleteOrganization(organization.getName());
 	}

@@ -86,6 +86,10 @@
 			<artifactId>aac.client</artifactId>
 			<version>2.2.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

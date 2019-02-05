@@ -14,7 +14,7 @@ components:
     scope					: components/nifi
     implementation			: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
     roles					: ROLE_MANAGER,ROLE_MONITOR
-    host					: https://localhost:8443
+    host					: https://192.168.83.31:8443
     listUsersApi			: /nifi-api/tenants/users
     createUserApi			: /nifi-api/tenants/users
     deleteUserApi			: /nifi-api/tenants/users/
@@ -30,10 +30,10 @@ components:
     createProcessGroupApi	: /nifi-api/process-groups/
     deleteProcessGroupApi	: /nifi-api/process-groups/
     accessApi				: /nifi-api/access
-    keystorePath			: C:/certs/admin.p12
+    keystorePath			: /certs/admin.p12
     keystoreType			: PKCS12
     keystoreExportPassword	: password
-    truststorePath			: C:/certs/truststore.jks
+    truststorePath			: /certs/truststore.jks
     truststoreType			: JKS
     truststorePassword		: password
     adminName				: admin

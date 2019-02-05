@@ -1,59 +1,56 @@
 # SERVER ENDPOINT
 server:
-  port: 7979
+  port: ${OMC_SERVER_PORT:7979}
   servlet:
     session:
       cookie:
-        name: ORGMANAGERSESSIONID
+        name: ${OMC_SERVER_SERVLET_SESSION_COOKIE_NAME:ORGMANAGERSESSIONID}
 
 # SPRING CONFIGURATION
 spring:
   datasource:
-    url: "jdbc:postgresql://localhost:5432/orgmanager"
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
+    url: ${OMC_SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/orgmanager}
+    username: ${OMC_SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${OMC_SPRING_DATASOURCE_PASSWORD:password}
+    driver-class-name: ${OMC_SPRING_DATASOURCE_DRIVERCLASSNAME:org.postgresql.Driver}
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    generate-ddl: true
+    database-platform: ${OMC_SPRING_JPA_DATABASEPLATFORM:org.hibernate.dialect.PostgreSQLDialect}
+    generate-ddl: ${OMC_SPRING_JPA_GENERATEDDL:true}
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${OMC_SPRING_JPA_HIBERNATE_DDLAUTO:update}
     properties:
       hibernate:
         jdbc:
           lob:
-            non_contextual_creation: true
-  profiles:
-    include:
-      - components
+            non_contextual_creation: ${OMC_SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_LOB_NONCONTEXTUALCREATION:true}
 
 # OAUTH INTEGRATION
 security:
   oauth2:
     client:
-      clientId: b24e4974-6a9b-404a-a6df-aafc3172f6e8
-      clientSecret: a4da64d0-8191-4ee9-9f59-316cdb3d07d2
-      accessTokenUri: http://localhost:8080/aac/oauth/token
-      userAuthorizationUri: http://localhost:8080/aac/oauth/authorize
-      tokenInfoUri: http://localhost:8080/aac/token_introspection
-      tokenName: token
-      userIdField: aac_user_id
-      authenticationScheme: query
-      clientAuthenticationScheme: form
-      organizationManagementScope: organization.mgmt
+      clientId: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTID:b24e4974-6a9b-404a-a6df-aafc3172f6e8}
+      clientSecret: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTSECRET:a4da64d0-8191-4ee9-9f59-316cdb3d07d2}
+      accessTokenUri: ${OMC_SECURITY_OAUTH2_CLIENT_ACCESSTOKENURI:http://localhost:8080/aac/oauth/token}
+      userAuthorizationUri: ${OMC_SECURITY_OAUTH2_CLIENT_USERAUTHORIZATIONURI:http://localhost:8080/aac/oauth/authorize}
+      tokenInfoUri: ${OMC_SECURITY_OAUTH2_CLIENT_TOKENINFOURI:http://localhost:8080/aac/token_introspection}
+      tokenName: ${OMC_SECURITY_OAUTH2_CLIENT_TOKENNAME:token}
+      userIdField: ${OMC_SECURITY_OAUTH2_CLIENT_USERIDFIELD:aac_user_id}
+      authenticationScheme: ${OMC_SECURITY_OAUTH2_CLIENT_AUTHENTICATIONSCHEME:query}
+      clientAuthenticationScheme: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTAUTHENTICATIONSCHEME:form}
+      organizationManagementScope: ${OMC_SECURITY_OAUTH2_CLIENT_ORGANIZATIONMANAGEMENTSCOPE:organization.mgmt}
     resource:
-      userInfoUri: profile.basicprofile.me
+      userInfoUri: ${OMC_SECURITY_OAUTH2_RESOURCE_USERINFOURI:profile.basicprofile.me}
 
 # AAC APIS
 aac:
-  uri: http://localhost:8080/aac/
+  uri: ${OMC_AAC_URI:http://localhost:8080/aac/}
   apis:
-    manageRolesApi: userroles/user
-    userProfilesApi: basicprofile/all
-    currentUserRolesApi: userroles/me
-    currentUserProfileApi: basicprofile/me
+    manageRolesApi: ${OMC_AAC_APIS_MANAGEROLESAPI:userroles/user}
+    userProfilesApi: ${OMC_AAC_APIS_USERPROFILESAPI:basicprofile/all}
+    currentUserRolesApi: ${OMC_AAC_APIS_CURRENTUSERROLESAPI:userroles/me}
+    currentUserProfileApi: ${OMC_AAC_APIS_CURRENTUSERPROFILEAPI:basicprofile/me}
 
 # LOGGING
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.security: ${OMC_LOGGING_LEVEL_ORGSPRINGFRAMEWORKSECURITY:DEBUG}

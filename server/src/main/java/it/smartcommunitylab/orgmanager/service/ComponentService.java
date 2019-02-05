@@ -161,7 +161,7 @@ public class ComponentService {
 			utils.idpRemoveRoles(m.getIdpId(), memberToRolesToRemove.get(m)); // revokes roles in the identity provider
 		
 		// Updates tenants in the components
-		Map<String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");
+		Map<String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
 		for (String s : componentMap.keySet()) {
 			for (Tenant t : newTenants) {
 				if (t.getTenantId().getComponentId().equals(s)) {

@@ -39,6 +39,8 @@ public class OrgManagerUtils {
 	public static final String ROLE_PROVIDER = "ROLE_PROVIDER";
 	public static final String ROOT_COMPONENTS = "components";
 	public static final String ROOT_ORGANIZATIONS = "organizations";
+	public static final String BEAN_COMPONENTS_MAP = "getComponentsMap";
+	public static final String PATH_COMPONENTS_CONFIG = "/config/components.yml";
 	private static final String SCOPE_USER_PROFILES = "profile.basicprofile.all,profile.accountprofile.all";
 	private static final String SCOPE_MANAGE_ROLES = "user.roles.write,user.roles.read,user.roles.read.all,client.roles.read.all";
 	
@@ -54,7 +56,7 @@ public class OrgManagerUtils {
 	private void init() {
 		// Generates the service to obtain the proper client tokens needed for certain calls to the identity provider's APIs
 		aacService = securityConfig.getAACService();
-//		TokenData td; // from here everything in this method is to quickly get a token for testing purposes
+//		TokenData td; // this commented part is to get a token easily, for testing purposes
 //		try {
 //			td = aacService.generateUserToken("admin", "admin", "profile,email,profile.basicprofile.me,profile.accountprofile.me,user.roles.me");
 //			System.out.println(td.getToken_type() + " " + td.getAccess_token());

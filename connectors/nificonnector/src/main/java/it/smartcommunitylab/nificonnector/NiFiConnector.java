@@ -35,20 +35,6 @@ import net.minidev.json.parser.JSONParser;
 @Service("it.smartcommunitylab.nificonnector.NiFiConnector")
 public class NiFiConnector implements Component {
 	
-	static { // TODO remove this piece
-		// For localhost testing only
-		javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
-				new javax.net.ssl.HostnameVerifier() {
-					public boolean verify(String hostname,
-							javax.net.ssl.SSLSession sslSession) {
-						if (hostname.equals("localhost")) {
-							return true;
-						}
-						return false;
-					}
-				});
-	}
-	
 	/**
 	 * Initializes several properties.
 	 * 
@@ -852,7 +838,6 @@ public class NiFiConnector implements Component {
 			keyStore.load(new FileInputStream(NiFiConnectorUtils.getKeyStorePath()), NiFiConnectorUtils.getKeystoreExportPassword().toCharArray());
 			KeyStore trustStore = KeyStore.getInstance(NiFiConnectorUtils.getTruststoreType()); // retrieves NiFi's truststore
 			trustStore.load(new FileInputStream(NiFiConnectorUtils.getTruststorePath()), NiFiConnectorUtils.getTruststorePassword().toCharArray());
-			
 			return SSLContexts.custom().loadTrustMaterial(trustStore, null).loadKeyMaterial(keyStore, NiFiConnectorUtils.getKeystoreExportPassword().toCharArray()).build();
 		} catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException | UnrecoverableKeyException | KeyManagementException e) {
 			throw new ComponentException(NiFiConnectorUtils.getComponentId() + ": error while retrieving NiFi administrator's certificate: " + e);

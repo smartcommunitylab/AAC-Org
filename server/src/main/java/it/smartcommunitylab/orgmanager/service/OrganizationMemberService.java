@@ -131,7 +131,7 @@ public class OrganizationMemberService {
 		utils.idpRemoveRoles(userId, rolesToRemove);
 		
 		// Creates user in the components
-		Map<String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");
+		Map<String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
 		boolean userCreated = false;
 		for (String s : componentMap.keySet()) {
 			for (Role r : rolesToAdd) {
@@ -186,7 +186,7 @@ public class OrganizationMemberService {
 		utils.idpRemoveRoles(memberIdpId, rolesToRemove);
 		
 		// Removes the user for the components
-		Map<String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");
+		Map<String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
 		for (String s : componentMap.keySet())
 			componentMap.get(s).removeUserFromOrganization(member.getUsername(), organization.getName());
 	}
@@ -235,7 +235,7 @@ public class OrganizationMemberService {
 		utils.idpAddRoles(ownerId, rolesToAdd);
 		
 		// Adds the owner for the components
-		Map <String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");
+		Map <String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
 		for (String s : componentMap.keySet()) {
 			componentMap.get(s).createUser(ownerName);
 			componentMap.get(s).addOwner(ownerName, organization.getName());
@@ -287,7 +287,7 @@ public class OrganizationMemberService {
 		utils.idpRemoveRoles(ownerIdpId, rolesToRemove);
 		
 		// Removes the owner for the components
-		Map <String, Component> componentMap = (Map<String, Component>) context.getBean("getComponents");
+		Map <String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
 		for (String s : componentMap.keySet())
 			componentMap.get(s).removeOwner(ownerName, organization.getName());
 	}
