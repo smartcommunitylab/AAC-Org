@@ -6,6 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 // import {MatChipInputEvent} from '@angular/material';
 import {ComponentsService} from '../../services/components.service';
+import { ComponentsProfile, BodyAuth } from '../../models/profile';
 
 @Component({
   selector: 'app-details-org',
@@ -14,10 +15,13 @@ import {ComponentsService} from '../../services/components.service';
 })
 export class DetailsOrgComponent implements OnInit {
   panelOpenState: boolean = false;
+  components: ComponentsProfile[];
   constructor(public dialog: MatDialog, private componentsService:ComponentsService) { }
   
   ngOnInit() {
-    this.componentsService.getComponents();
+    this.componentsService.getComponents().then(components =>{
+      this.components=components;
+    });
   }
 
  /**

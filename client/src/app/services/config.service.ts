@@ -23,9 +23,9 @@ export class ConfigService {
     let httpHeaders = new Headers({
       'Access-Control-Allow-Credentials' : 'true',
       'Access-Control-Allow-Origin' : '*',
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json;charset=UTF-8',
       'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
-      'Authorization': 'bearer 3711b632-c764-470c-9664-5eb7a591e318'
+      'Authorization': 'bearer 487a151e-47dd-4949-be9d-0f6aea95f568'
     });
     return new RequestOptions({ headers: httpHeaders });
   }

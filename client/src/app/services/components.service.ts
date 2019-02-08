@@ -13,17 +13,23 @@ export class ComponentsService {
   /**
    * Return componentList
    */
-  getComponents(): any{
+  // getComponents(): any{
+  //   console.log("Headers:",this.config.getHttpOptions());
+  //   return this.http.get(`${ this.config.get('locUrl') }`,this.config.getHttpOptions()).subscribe(data => {
+  //     console.log("Return Data from put(edit): " + data.text());
+  //   },
+  //   (err: HttpErrorResponse) => {
+  //     if (err.error instanceof Error) {
+  //       console.log("Client-side error occured.");
+  //     } else {
+  //       console.log("Server-side error occured.");
+  //     }
+  //   });
+  // }
+  getComponents(): Promise<ComponentsProfile[]> {
     console.log("Headers:",this.config.getHttpOptions());
-    return this.http.get(`${ this.config.get('locUrl') }`,this.config.getHttpOptions()).subscribe(data => {
-      console.log("Return Data from put(edit): " + data.text());
-    },
-    (err: HttpErrorResponse) => {
-      if (err.error instanceof Error) {
-        console.log("Client-side error occured.");
-      } else {
-        console.log("Server-side error occured.");
-      }
-    });
+    return this.http.get(`${ this.config.get('locUrl') }components/`,this.config.getHttpOptions())
+    .map(response => response.json() as ComponentsProfile[])
+    .toPromise();
   }
 }

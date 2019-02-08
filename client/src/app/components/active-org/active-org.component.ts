@@ -2,6 +2,8 @@ import { Component, OnInit, Inject } from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource} from '@angular/material';
 import {ActivatedRoute} from '@angular/router';
 import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
+import {OrganizationService} from '../../services/organization.service';
+import { OrganizationProfile, contentOrg } from '../../models/profile';
 
 @Component({
   selector: 'app-active-org',
@@ -10,14 +12,22 @@ import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
 })
 export class ActiveOrgComponent implements OnInit {
 
-  constructor(private route: ActivatedRoute, public dialog: MatDialog) { }
+  constructor(private organizationService: OrganizationService, private route: ActivatedRoute, public dialog: MatDialog) { }
+  orgProfile: OrganizationProfile[];
+  contentOrg: contentOrg;
   dataSource: any;
   displayedColumns: any;
   
   
   ngOnInit() {
-    this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details'];
-    this.dataSource =new MatTableDataSource<Element>(ELEMENT_DATA);
+    this.organizationService.getOrganizations().then(response => {
+      console.log("organizationService:",response["content"]);
+      this.orgProfile = response;
+      this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details'];
+      this.dataSource =new MatTableDataSource<contentOrg>(response["content"]);
+    });
+    // this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details'];
+    // this.dataSource =new MatTableDataSource<Element>(ELEMENT_DATA);
   }
   
 
@@ -28,11 +38,19 @@ export class ActiveOrgComponent implements OnInit {
     let dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
       width: '40%',
       height:'60%',
-      data: { name: "", dialogStatus:"TitleCreate"  }
+      data: { org_name: "", org_domain:"", org_description:"", dialogStatus:"TitleCreate"  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed and result: ',result);
+      if(result){
+        console.log("Result: ",result);
+        // this.contentOrg.name=result.username;
+        // this.contentOrg.slug=result.domain;
+        this.organizationService.setOrganization(result);
+        //console.log('globalData in session:',sessionStorage.getItem('currentDomain'));
+        //for reload the table
+        // setTimeout(()=>{  this.ngOnInit();},1000);
+      }
     });
   }
 
@@ -50,9 +68,15 @@ export class CreateOrganizationDialogComponent {
   checkedProvider= false;
   orgNameControl = new FormControl('', [Validators.required]);
   ownerNameControl = new FormControl('', [Validators.required]);
+  ownerSurnameControl = new FormControl('', [Validators.required]);
   ownerEmailControl= new FormControl('', [Validators.required, Validators.email]);
   orgDescriptionControl= new FormControl('', [Validators.required]);
-  orgDomainControl= new FormControl('', [Validators.required]);
+  orgDomainControl= new FormControl('');
+  webAddressControl= new FormControl('');
+  logoControl= new FormControl('');
+  mobileControl= new FormControl('');
+  tagControl= new FormControl('');
+  statusControl= new FormControl(true);
   formDoc: FormGroup;
   ngOnInit() {
     this.formDoc = this._fb.group({
@@ -71,6 +95,9 @@ export class CreateOrganizationDialogComponent {
     return this.ownerNameControl.hasError('required') ? 'You must enter a Name of the Owner.' :
         //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
+  }
+  getErrorMessage4ownerSurname(){
+    return this.ownerNameControl.hasError('required') ? 'You must enter a Name of the Owner.' : '';
   }
   getErrorMessage4ownerEmail(){
     return this.ownerEmailControl.hasError('required') ? 'You must enter a valid email of the owner.' :
