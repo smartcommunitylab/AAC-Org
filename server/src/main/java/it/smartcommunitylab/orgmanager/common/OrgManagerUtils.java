@@ -57,13 +57,13 @@ public class OrgManagerUtils {
 	private void init() {
 		// Generates the service to obtain the proper client tokens needed for certain calls to the identity provider's APIs
 		aacService = securityConfig.getAACService();
-//		TokenData td; // this commented part is to get a token easily, for testing purposes
-//		try {
-//			td = aacService.generateUserToken("admin", "admin", "profile,email,profile.basicprofile.me,profile.accountprofile.me,user.roles.me");
-//			System.out.println(td.getToken_type() + " " + td.getAccess_token());
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
+		TokenData td; // this commented part is to get a token easily, for testing purposes
+		try {
+			td = aacService.generateUserToken("admin", "admin", "profile,email,profile.basicprofile.me,profile.accountprofile.me,user.roles.me");
+			System.out.println(td.getToken_type() + " " + td.getAccess_token());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
