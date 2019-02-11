@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Service;
 
 import com.nimbusds.oauth2.sdk.ParseException;
@@ -332,6 +333,9 @@ public class OrgManagerUtils {
 				if (obj instanceof OAuth2AuthenticationDetails) {
 					OAuth2AuthenticationDetails det = (OAuth2AuthenticationDetails) obj;
 					accessToken = det.getTokenType() + " " + det.getTokenValue();
+				} else if (obj instanceof WebAuthenticationDetails) { // TODO obtain token value
+					WebAuthenticationDetails det = (WebAuthenticationDetails) obj;
+					accessToken = "";
 				}
 			}
 			httpRequest.setAuthorization(accessToken); // sets authorization header
