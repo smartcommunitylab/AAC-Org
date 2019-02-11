@@ -24,6 +24,7 @@ import { InputFileComponent } from './components/input-file/input-file.component
 
 import { ConfigService } from './services/config.service';
 import { ComponentsService } from './services/components.service';
+import { OrganizationService } from './services/organization.service';
 import { HttpModule } from '@angular/http';
 
 @NgModule({
@@ -75,7 +76,8 @@ import { HttpModule } from '@angular/http';
   ],
   providers: [AuthGuard,
     ConfigService,
-    ComponentsService],
+    ComponentsService,
+    OrganizationService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

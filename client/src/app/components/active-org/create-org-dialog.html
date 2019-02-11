@@ -6,15 +6,22 @@
             <form [formGroup]="formDoc" (ngSubmit)="onSubmit()" novalidate >
                 <!-- Organization Name -->
                 <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="Organization Name"  [formControl]="orgNameControl" required >
+                    <input matInput  placeholder="Organization Name"   [formControl]="orgNameControl" required >
                     <mat-icon matSuffix>mode_edit</mat-icon>
                     <mat-error *ngIf="orgNameControl.invalid">{{getErrorMessage4orgName()}}</mat-error>
                 </mat-form-field>
                 <!-- Domain name of the Provider Organization -->
                 <mat-form-field class="dialog-container-form-field">
-                    <input matInput  placeholder="Domain"  [formControl]="orgDomainControl" required >
+                    <!-- <input matInput  placeholder="Domain"  [formControl]="orgDomainControl"  required>
                     <mat-icon matSuffix>mode_edit</mat-icon>
-                    <mat-error *ngIf="orgDomainControl.invalid">{{getErrorMessage4orgDomain()}}</mat-error>
+                    <mat-error *ngIf="orgDomainControl.invalid">{{getErrorMessage4orgDomain()}}</mat-error> -->
+                    <input matInput  placeholder="Domain"   [formControl]="orgDomainControl" >
+                    <mat-icon matSuffix>mode_edit</mat-icon>
+                </mat-form-field>
+                <!-- Description of the Organization -->
+                <mat-form-field class="dialog-container-form-field"  >
+                    <textarea matInput  placeholder="Description"  [formControl]="orgDescriptionControl" required ></textarea>
+                    <mat-error *ngIf="orgDescriptionControl.invalid">{{getErrorMessage4orgDescription()}}</mat-error>
                 </mat-form-field>
                 <!-- Owner Email Address -->
                 <mat-form-field class="dialog-container-form-field" >
@@ -35,19 +42,15 @@
                         </td>
                         <td>
                             <mat-form-field class="nameInput-full-width">
-                                <input matInput placeholder="Surname" [formControl]="ownerNameControl" required>
+                                <input matInput placeholder="Surname" [formControl]="ownerSurnameControl" required>
                                 <mat-icon matSuffix>mode_edit</mat-icon>
-                                <mat-error *ngIf="ownerNameControl.invalid">{{getErrorMessage4ownerName()}}</mat-error>
+                                <mat-error *ngIf="ownerSurnameControl.invalid">{{getErrorMessage4ownerSurname()}}</mat-error>
                             </mat-form-field>
                         </td>
                     </tr>
                 </table>
                 
-                <!-- Description of the Organization -->
-                <mat-form-field class="dialog-container-form-field" >
-                    <textarea matInput  placeholder="Description"  [formControl]="orgDescriptionControl" required ></textarea>
-                    <mat-error *ngIf="orgDescriptionControl.invalid">{{getErrorMessage4orgDescription()}}</mat-error>
-                </mat-form-field>
+                
                 <!-- Provider check with boolean  -->
                 <!-- <mat-slide-toggle  color="primary"> Provider</mat-slide-toggle> -->
                 <!-- if provider yes then must entry domain, activity, tenant -->
@@ -69,7 +72,7 @@
                 </div> -->
                 <!-- Organization Web Address -->
                 <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="Web Address" >
+                    <input matInput  placeholder="Web Address" [formControl]="webAddressControl">
                     <mat-icon matSuffix>mode_edit</mat-icon>
                 </mat-form-field>
                 <!-- Logo upload of the Organization -->
@@ -78,25 +81,30 @@
                     <mat-icon matSuffix>attach_file</mat-icon>
                 </mat-form-field> -->
                 <mat-form-field class="dialog-container-form-field">
-                    <app-input-file formControlName="basicfile" placeholder="Logo Upload" ></app-input-file>
-                    <mat-icon matSuffix>attach_file</mat-icon>
+                    <!-- <app-input-file formControlName="basicfile" placeholder="Logo Upload" ></app-input-file> -->
+                    <!-- <mat-icon matSuffix>attach_file</mat-icon> -->
+                    <input matInput  placeholder="Logo URL" [formControl]="logoControl">
+                    <mat-icon matSuffix>mode_edit</mat-icon>
                 </mat-form-field>
                 <!-- Contact Email Address -->
-                <mat-form-field class="dialog-container-form-field" >
+                <!-- <mat-form-field class="dialog-container-form-field" >
                     <input matInput  placeholder="Contact Email"   >
                     <mat-icon matSuffix>email</mat-icon>
-                </mat-form-field>
+                </mat-form-field> -->
                 <!-- Contact Telephone -->
                 <mat-form-field class="dialog-container-form-field" >
-                    <span matPrefix>+39 &nbsp;</span>
-                    <input type="tel" matInput placeholder="Contact Telephone">
+                    <!-- <span matPrefix>+39 &nbsp;</span> -->
+                    <input type="tel" matInput placeholder="Contact Telephone" [formControl]="mobileControl">
                     <mat-icon matSuffix>phone</mat-icon>
                 </mat-form-field>
                 <!-- Tag -->
                 <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="Tag"   >
+                    <input matInput  placeholder="Tag"   [formControl]="tagControl">
                     <mat-icon matSuffix>mode_edit</mat-icon>
                 </mat-form-field>
+                <!-- Active or not the Org -->
+                <mat-slide-toggle  color="primary"  [formControl]="statusControl" [checked]="statusControl.value"> Activated</mat-slide-toggle>
+                
                 <!-- Add Members -->
                 <!-- <mat-form-field class="dialog-container-form-field" >
                     <input matInput  placeholder="Add Members"   >
@@ -116,10 +124,25 @@
             tabindex="1" 
             [disabled]="ownerEmailControl.invalid || orgNameControl.invalid || orgDescriptionControl.invalid">OK
         </button> -->
-        <button mat-button
-            [mat-dialog-close]="{}" 
+        <button mat-button 
             tabindex="1" 
-            [disabled]="orgNameControl.invalid || orgDomainControl.invalid || ownerEmailControl.invalid || ownerNameControl.invalid || orgDescriptionControl.invalid ">OK
+            [mat-dialog-close]=
+            "{
+                name:orgNameControl.value,
+                slug:orgDomainControl.value,
+                description:orgDescriptionControl.value,
+                contacts:{
+                    email:ownerEmailControl.value,
+                    name:ownerNameControl.value,
+                    surname:ownerSurnameControl.value,
+                    web:webAddressControl.value,
+                    logo:logoControl.value,
+                    phone:[mobileControl.value]
+                },
+                tag:[tagControl.value],
+                active:statusControl.value
+            }"
+            [disabled]="orgNameControl.invalid || ownerEmailControl.invalid || ownerNameControl.invalid || orgDescriptionControl.invalid ">OK
         </button>
         <span class="fill-remaining-space"></span>
         <button mat-button (click)="onNoClick()" tabindex="-1">Cancel</button>
