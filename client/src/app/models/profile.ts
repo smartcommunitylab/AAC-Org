@@ -1,8 +1,21 @@
 import { Injectable } from '@angular/core';
 
+export class ActivatedComponentsProfile{
+    componentId: string;
+    tenants:string[];
+}
 export class ComponentsProfile {
     content: ContentCompo[];
-    
+    pageable: Pageable;
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+    size: number;
+    number: number;
+    sort: Sort;
+    numberOfElements: number;
+    first: number;
+    empty: number;
 }
 export class ContentCompo {
     name: string;
@@ -14,13 +27,13 @@ export class ContentCompo {
 }
 export class OrganizationProfile{
     content: contentOrg[];
-    pageable: pageableOrg;
+    pageable: Pageable;
     totalElements: number;
     totalPages: number;
     last: boolean;
     size: number;
     number: number;
-    sort: sortOrg;
+    sort: Sort;
     numberOfElements: number;
     first: number;
     empty: number;
@@ -43,15 +56,15 @@ export class contactsOrg{
     logo: string;
 
 }
-export class pageableOrg{
-    sort: sortOrg;
+export class Pageable{
+    sort: Sort;
     offset: number;
     pageSize: number;
     pageNumber: number;
     unpaged: boolean;
     paged: boolean;
 }
-export class sortOrg{
+export class Sort{
     unsorted: string;
     sorted: string;
     empty: string;

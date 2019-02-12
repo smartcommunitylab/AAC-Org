@@ -1,4 +1,4 @@
-<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleManageOrg'">List of Component</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleManageComponent'">List of Component</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyOrg'">Update Organization information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateProviderConfig'">Create New Provider Configuration</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyProviderConfig'">Update Provider Configuration</h2>
@@ -6,12 +6,12 @@
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyUser'">Update User Information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDeleteUser'">Delete User</h2>
 <mat-dialog-content>
-    <!-- Manage Organization  -->
-    <div *ngIf="data.dialogStatus=='TitleManageOrg'" class="manageOrg">
-        <mat-expansion-panel>
+    <!-- Manage Component  -->
+    <div *ngIf="data.dialogStatus=='TitleManageComponent'" class="manageOrg">
+        <mat-expansion-panel *ngFor="let component of data.components">
             <mat-expansion-panel-header>
                 <mat-panel-title>
-                    Component 1
+                    {{component.name}}
                 </mat-panel-title>
                 <mat-panel-description>
                     Add your Tenants
@@ -20,20 +20,9 @@
             <mat-form-field>
                 <input matInput placeholder="Tenants">
             </mat-form-field>
+            
         </mat-expansion-panel>
-        <mat-expansion-panel>
-            <mat-expansion-panel-header>
-                <mat-panel-title>
-                    Component 2
-                </mat-panel-title>
-                <mat-panel-description>
-                    Add your Tenants
-                </mat-panel-description>
-            </mat-expansion-panel-header>
-            <mat-form-field>
-                <input matInput placeholder="Tenants">
-            </mat-form-field>
-        </mat-expansion-panel>
+        
     </div>
         
     <!-- Modify Organization Information -->

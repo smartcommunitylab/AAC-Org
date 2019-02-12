@@ -10,6 +10,9 @@ export class OrganizationService {
 
   constructor(private http: Http, private config: ConfigService) { }
 
+  /**
+   * Get Organizations 
+   */
   getOrganizations(): Promise<OrganizationProfile[]> {
     console.log("Headers:",this.config.getHttpOptions());
     return this.http.get(`${ this.config.get('locUrl') }organizations/`,this.config.getHttpOptions())
@@ -17,9 +20,13 @@ export class OrganizationService {
     .toPromise();
   }
 
+  /**
+   * Set Organizations
+   * param: list of Organizations information
+   */
   setOrganization(data:contentOrg):any{
-    console.log("come data here:",data);
-    return this.http.post(`${ this.config.get('locUrl') }organizations/`,data).subscribe(
+    // console.log("input data: ",data);
+    return this.http.post(`${ this.config.get('locUrl') }organizations/`,data,this.config.getHttpOptions()).subscribe(
       data => {
         console.log("Return Data from post(create): " + data);
       },

@@ -2,8 +2,8 @@
   <mat-toolbar>
     <span>Details Organization </span>
     <span class="fill-remaining-space"></span>
-    <button mat-raised-button color="primary" (click)="openDialog4ManageOrg()">
-      Manage Org
+    <button mat-raised-button color="primary" (click)="openDialog4ManageComponent()">
+      Manage Component
     </button>&nbsp;
     <a routerLink="/activeOrg">
       <button mat-raised-button color="primary">
@@ -112,7 +112,21 @@
       </mat-card-header>
       <mat-card-content>
         <mat-accordion>
-          <mat-expansion-panel [expanded]="false"   #matExpansionPanel1>
+            <mat-expansion-panel *ngFor="let component of activatedComponents">
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        {{component.componentId}}
+                    </mat-panel-title>
+                    <mat-panel-description>
+                        Add your Tenants
+                    </mat-panel-description>
+                </mat-expansion-panel-header>
+                <mat-form-field>
+                    <input matInput placeholder="Tenants">
+                </mat-form-field>
+                
+            </mat-expansion-panel>
+          <!-- <mat-expansion-panel [expanded]="false"   #matExpansionPanel1>
             <mat-expansion-panel-header >
               <mat-panel-title>
                 Component Name 
@@ -137,15 +151,12 @@
                 <mat-grid-list cols="2" rowHeight="8:1">
                   
                   <mat-grid-tile>Tenant</mat-grid-tile>
-                  <!-- <mat-grid-tile><mat-slide-toggle [checked]="true"  color="primary"> </mat-slide-toggle></mat-grid-tile> -->
                   <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>delete</mat-icon></button></mat-grid-tile>
                   
                   <mat-grid-tile>Tenant</mat-grid-tile>
-                  <!-- <mat-grid-tile><mat-slide-toggle [checked]="true"  color="primary"> </mat-slide-toggle></mat-grid-tile> -->
                   <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>delete</mat-icon></button></mat-grid-tile>
                   
                   <mat-grid-tile>Tenant</mat-grid-tile>
-                  <!-- <mat-grid-tile><mat-slide-toggle [checked]="true"  color="primary"> </mat-slide-toggle></mat-grid-tile> -->
                   <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>delete</mat-icon></button></mat-grid-tile>
                 </mat-grid-list>
               </div>
@@ -190,7 +201,7 @@
                 </mat-grid-list>
               </div>
             </div>
-          </mat-expansion-panel>
+          </mat-expansion-panel> -->
         
         </mat-accordion>          
       </mat-card-content>

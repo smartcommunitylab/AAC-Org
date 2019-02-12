@@ -25,7 +25,7 @@ export class ConfigService {
       'Access-Control-Allow-Origin' : '*',
       'Content-Type': 'application/json;charset=UTF-8',
       'Access-Control-Allow-Headers':'Origin, X-Requested-With, Content-Type, Accept',
-      'Authorization': 'bearer 487a151e-47dd-4949-be9d-0f6aea95f568'
+      'Authorization': 'bearer 70286d17-3e96-4479-a764-0864ba6a4413'
     });
     return new RequestOptions({ headers: httpHeaders });
   }

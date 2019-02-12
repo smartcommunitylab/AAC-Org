@@ -6,7 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 // import {MatChipInputEvent} from '@angular/material';
 import {ComponentsService} from '../../services/components.service';
-import { ComponentsProfile, BodyAuth } from '../../models/profile';
+import { ComponentsProfile, ActivatedComponentsProfile } from '../../models/profile';
 
 @Component({
   selector: 'app-details-org',
@@ -16,26 +16,34 @@ import { ComponentsProfile, BodyAuth } from '../../models/profile';
 export class DetailsOrgComponent implements OnInit {
   panelOpenState: boolean = false;
   components: ComponentsProfile[];
-  constructor(public dialog: MatDialog, private componentsService:ComponentsService) { }
+  activatedComponents:ActivatedComponentsProfile[];
+  constructor(public dialog: MatDialog, private componentsService:ComponentsService, private route: ActivatedRoute) { }
   
   ngOnInit() {
-    this.componentsService.getComponents().then(components =>{
-      this.components=components;
+    console.log("Org ID:",this.route.snapshot.paramMap.get('id'));
+    this.componentsService.getActivatedComponents(this.route.snapshot.paramMap.get('id')).then(response_activedComponents =>{
+      this.activatedComponents=response_activedComponents;
+      console.log("response_activedComponents:",response_activedComponents)
     });
   }
 
  /**
    * Manage Organization
    */
-  openDialog4ManageOrg(): void {
-    let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
-      width: '40%',
-      data: { name: "", dialogStatus:"TitleManageOrg"  }
+  openDialog4ManageComponent(): void {
+    this.componentsService.getComponents().then(response_components =>{
+      this.components=response_components["content"];
+      let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
+        width: '40%',
+        data: { name: "", components:this.components, dialogStatus:"TitleManageComponent"  }
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+        // have to set data for save the component in the Org
+        console.log('The dialog was closed from openDialog4ManageComponent() and result',result);
+      });
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed from openDialog4ManageOrg()');
-    });
+    
   }
   /**
    * Modify Organization
@@ -50,7 +58,9 @@ export class DetailsOrgComponent implements OnInit {
       console.log('The dialog was closed from openDialog4ModifyOrg()');
     });
   }
-
+  /**
+   * Create Provider Config
+   */
   openDialog4CreateProviderConfig(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '400px',
@@ -61,7 +71,9 @@ export class DetailsOrgComponent implements OnInit {
       console.log('The dialog was closed from openDialog4CreateProviderConfig()');
     });
   }
-
+  /**
+   * Modify Provider Config
+   */
   openDialog4ModifyProviderConfig(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
@@ -72,7 +84,9 @@ export class DetailsOrgComponent implements OnInit {
       console.log('The dialog was closed from openDialog4ModifyProviderConfig()');
     });
   }
-
+  /**
+   * Add a user
+   */
   openDialog4AddUser(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
@@ -83,7 +97,9 @@ export class DetailsOrgComponent implements OnInit {
       console.log('The dialog was closed from openDialog4AddUser()');
     });
   }
-
+  /**
+   * Modify A User
+   */
   openDialog4ModifyUser(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
@@ -94,7 +110,9 @@ export class DetailsOrgComponent implements OnInit {
       console.log('The dialog was closed from openDialog4ModifyUser()');
     });
   }
-
+  /**
+   * Delete A User
+   */
   openDialog4DeleteUser(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
