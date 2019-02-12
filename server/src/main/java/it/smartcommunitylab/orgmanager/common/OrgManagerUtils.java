@@ -19,7 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Service;
 
 import com.nimbusds.oauth2.sdk.ParseException;
@@ -57,13 +56,13 @@ public class OrgManagerUtils {
 	private void init() {
 		// Generates the service to obtain the proper client tokens needed for certain calls to the identity provider's APIs
 		aacService = securityConfig.getAACService();
-		TokenData td; // this commented part is to get a token easily, for testing purposes
-		try {
-			td = aacService.generateUserToken("admin", "admin", "profile,email,profile.basicprofile.me,profile.accountprofile.me,user.roles.me");
-			System.out.println(td.getToken_type() + " " + td.getAccess_token());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		TokenData td; // this commented part is to get a token easily, for testing purposes
+//		try {
+//			td = aacService.generateUserToken("admin", "admin", "profile,email,profile.basicprofile.me,profile.accountprofile.me,user.roles.me");
+//			System.out.println(td.getToken_type() + " " + td.getAccess_token());
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 	}
 	
 	/**
@@ -333,9 +332,6 @@ public class OrgManagerUtils {
 				if (obj instanceof OAuth2AuthenticationDetails) {
 					OAuth2AuthenticationDetails det = (OAuth2AuthenticationDetails) obj;
 					accessToken = det.getTokenType() + " " + det.getTokenValue();
-				} else if (obj instanceof WebAuthenticationDetails) { // TODO obtain token value
-					WebAuthenticationDetails det = (WebAuthenticationDetails) obj;
-					accessToken = "";
 				}
 			}
 			httpRequest.setAuthorization(accessToken); // sets authorization header
