@@ -87,6 +87,40 @@ public class ComponentService {
 	}
 	
 	/**
+	 * Returns the organization's configuration.
+	 * 
+	 * @param organizationId - ID of the organization
+	 * @return - The configuration of the organization
+	 */
+	public List<ComponentConfigurationDTO> getConfigurations(Long organizationId) {
+		Organization organization = organizationRepository.getOne(organizationId); // finds the organization
+		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
+		
+		// Checks if the user has permission to perform this action
+		if (!utils.userHasAdminRights() && !utils.userIsOwner(organization))
+			throw new AccessDeniedException("Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
+		
+		// Prepares the configuration, to show it as response. It will be a list with an element for each component.
+		List<ComponentConfigurationDTO> config = new ArrayList<ComponentConfigurationDTO>();
+		Map<String, ComponentConfigurationDTO> configMap = new HashMap<String, ComponentConfigurationDTO>();
+		List<Tenant> tenants = tenantRepository.findByOrganization(organization); // the organization's tenants
+		
+		for (Tenant t : tenants) {
+			String componentId = t.getTenantId().getComponentId();
+			ComponentConfigurationDTO conf = configMap.get(componentId);
+			if (conf == null) {
+				conf = new ComponentConfigurationDTO(componentId, null);
+				configMap.put(componentId, conf);
+			}
+			conf.addTenant(t.getTenantId().getName());
+		}
+		for (String s : configMap.keySet())
+			config.add(configMap.get(s));
+				
+		return config;
+	}
+	
+	/**
 	 * Updates the organization's configuration.
 	 * Input expects a list of component configurations. Each element must provide the component's ID
 	 * and an array of the tenants that will belong to such component. Tenants previously present, but
@@ -187,10 +221,10 @@ public class ComponentService {
 			}
 		}
 		
-		// Prepares the updated configuration, to show it as response. It will be a list with an element for each component
+		// Prepares the updated configuration, to show it as response. It will be a list with an element for each component.
 		List<ComponentConfigurationDTO> updatedConfig = new ArrayList<ComponentConfigurationDTO>();
-		Map<String, ComponentConfigurationDTO> updatedConfigMap= new HashMap<String, ComponentConfigurationDTO>();
-		List<Tenant> updatedTenants = tenantRepository.findByOrganization(organization); // The organization's tenants after the update
+		Map<String, ComponentConfigurationDTO> updatedConfigMap = new HashMap<String, ComponentConfigurationDTO>();
+		List<Tenant> updatedTenants = tenantRepository.findByOrganization(organization); // the organization's tenants after the update
 		for (Tenant t : updatedTenants) {
 			String componentId = t.getTenantId().getComponentId();
 			ComponentConfigurationDTO conf = updatedConfigMap.get(componentId);

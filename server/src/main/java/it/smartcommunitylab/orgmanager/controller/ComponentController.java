@@ -25,6 +25,11 @@ public class ComponentController {
 		return componentService.listComponents(pageable);
 	}
 	
+	@GetMapping("/api/organizations/{id}/configuration")
+	public List<ComponentConfigurationDTO> showConfigurations(@PathVariable Long id) {
+		return componentService.getConfigurations(id);
+	}
+	
 	@PostMapping("/api/organizations/{id}/configuration")
 	public List<ComponentConfigurationDTO> updateConfigurations(@PathVariable Long id, @RequestBody List<ComponentConfigurationDTO> configurationDTO) {
 		return componentService.updateConfigurations(id, configurationDTO);
