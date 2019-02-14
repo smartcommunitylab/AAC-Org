@@ -17,30 +17,54 @@ export class DetailsOrgComponent implements OnInit {
   panelOpenState: boolean = false;
   components: ComponentsProfile[];
   activatedComponents:ActivatedComponentsProfile[];
+  mergeActivatedComponents:Array<ActivatedComponentsProfile>=[];
   constructor(public dialog: MatDialog, private componentsService:ComponentsService, private route: ActivatedRoute) { }
   
   ngOnInit() {
     console.log("Org ID:",this.route.snapshot.paramMap.get('id'));
     this.componentsService.getActivatedComponents(this.route.snapshot.paramMap.get('id')).then(response_activedComponents =>{
       this.activatedComponents=response_activedComponents;
-      console.log("response_activedComponents:",response_activedComponents)
+      console.log("response_activedComponents:",response_activedComponents);
     });
   }
-
+  removeTenants(index: number): number {
+    console.log("index: ",index);
+    return index;
+  }
+  
  /**
    * Manage Organization
    */
   openDialog4ManageComponent(): void {
     this.componentsService.getComponents().then(response_components =>{
       this.components=response_components["content"];
+      this.mergeActivatedComponents=[];
+      for(var i=0; i<this.components.length; i++){
+        // var ten=this.activatedComponents.find(x=>x.componentId==this.components[i]["componentId"]).tenants;
+        if(this.activatedComponents.find(x=>x.componentId==this.components[i]["componentId"])){
+          this.mergeActivatedComponents.push({
+            'componentId': this.components[i]["componentId"],
+            'componentName': this.components[i]["name"],
+            'tenants':this.activatedComponents.find(x=>x.componentId==this.components[i]["componentId"]).tenants
+          });
+        }else{
+          this.mergeActivatedComponents.push({
+            'componentId': this.components[i]["componentId"],
+            'componentName': this.components[i]["name"],
+            'tenants':[]
+          });
+        }
+        
+      }
+      console.log("mergeActivatedComponents:",this.mergeActivatedComponents);
       let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
         width: '40%',
-        data: { name: "", components:this.components, dialogStatus:"TitleManageComponent"  }
+        data: { name: "", components:this.mergeActivatedComponents, dialogStatus:"TitleManageComponent"  }
       });
-  
+      // this.addTenant();
       dialogRef.afterClosed().subscribe(result => {
         // have to set data for save the component in the Org
-        console.log('The dialog was closed from openDialog4ManageComponent() and result',result);
+        console.log('The dialog was closed from openDialog4ManageComponent() and this.mergeActivatedComponents',this.mergeActivatedComponents);
       });
     });
     
@@ -138,6 +162,7 @@ export class DetailsOrgComponent implements OnInit {
 export class detailsOrganizationDialogComponent {
   constructor(public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any) { }
   selectedCat: string;
+  addTenant(){}
   category: any = [ {"name": "Owner", "ID": "C1", "checked": true},
               {"name": "User", "ID": "C2", "checked": false}];
   

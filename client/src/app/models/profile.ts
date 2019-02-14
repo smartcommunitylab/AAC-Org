@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 export class ActivatedComponentsProfile{
     componentId: string;
+    componentName: string;
     tenants:string[];
 }
 export class ComponentsProfile {

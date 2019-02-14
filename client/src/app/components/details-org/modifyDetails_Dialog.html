@@ -8,18 +8,32 @@
 <mat-dialog-content>
     <!-- Manage Component  -->
     <div *ngIf="data.dialogStatus=='TitleManageComponent'" class="manageOrg">
-        <mat-expansion-panel *ngFor="let component of data.components">
+        <mat-expansion-panel *ngFor="let component of data.components; let i = index;">
             <mat-expansion-panel-header>
                 <mat-panel-title>
-                    {{component.name}}
+                    {{component.componentName}}
                 </mat-panel-title>
                 <mat-panel-description>
                     Add your Tenants
                 </mat-panel-description>
             </mat-expansion-panel-header>
-            <mat-form-field>
-                <input matInput placeholder="Tenants">
-            </mat-form-field>
+            
+                <div *ngIf="component.tenants == 0">
+                    <mat-form-field>
+                        <input matInput [(ngModel)]="component.tenants[0]" name="tenant" placeholder="Tenants">
+                    </mat-form-field>
+                </div>
+                <div *ngIf="component.tenants != 0">
+                    <div *ngFor="let tenant of component.tenants; let in = index; ">
+                        <mat-form-field>
+                            <input matInput [(ngModel)]="component.tenants[in]" name="tenant_{{in}}" placeholder="Tenants">
+                        </mat-form-field>
+                        <button mat-button >X</button>
+                    </div>
+                    <button mat-button >Add Tenant</button>
+                </div>
+                <!-- <input matInput [(ngModel)]="component.tenants" name="tenant_{{i}}" placeholder="Tenants"> -->
+            
             
         </mat-expansion-panel>
         
@@ -201,7 +215,14 @@
 </mat-dialog-content>
 
 <mat-dialog-actions>
-    <button mat-button
+    
+    <button mat-button *ngIf="data.dialogStatus=='TitleManageComponent'"
+            [mat-dialog-close]="{}" 
+            tabindex="1"        
+            >OK
+            <!-- [disabled]="ownerEmailControl.invalid || orgNameControl.invalid || orgDescriptionControl.invalid" -->
+        </button>
+    <button mat-button *ngIf="data.dialogStatus=='!TitleManageComponent'"
         [mat-dialog-close]="{}" 
         tabindex="1">OK
     </button>
