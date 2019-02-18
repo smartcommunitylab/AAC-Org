@@ -2,9 +2,7 @@
   <mat-toolbar>
     <span>Details Organization </span>
     <span class="fill-remaining-space"></span>
-    <button mat-raised-button color="primary" (click)="openDialog4ManageComponent()">
-      Manage Component
-    </button>&nbsp;
+    
     <a routerLink="/activeOrg">
       <button mat-raised-button color="primary">
         Back
@@ -109,6 +107,11 @@
       <mat-card-header>
         <mat-card-title>Organization Name</mat-card-title>
         <mat-card-subtitle>Configuration of the Organization</mat-card-subtitle>
+        <span class="fill-remaining-space"></span>
+        <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4ManageComponent()">
+          <mat-icon matSuffix>mode_edit</mat-icon>
+          Manage Component
+        </button>&nbsp;
       </mat-card-header>
       <mat-card-content>
         <mat-accordion>
@@ -213,7 +216,7 @@
         <mat-card-title>Users of the Organization</mat-card-title>
         <mat-card-subtitle>List of Users in the Organization</mat-card-subtitle>
         <span class="fill-remaining-space"></span>
-        <button mat-raised-button color="primary" (click)="openDialog4AddUser()">
+        <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4AddUser()">
           <i class="material-icons">add_circle_outline</i>
           Add User
         </button>

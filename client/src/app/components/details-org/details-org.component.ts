@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, Input } from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource, MatChipInputEvent} from '@angular/material';
 import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -19,17 +19,13 @@ export class DetailsOrgComponent implements OnInit {
   activatedComponents:ActivatedComponentsProfile[];
   mergeActivatedComponents:Array<ActivatedComponentsProfile>=[];
   constructor(public dialog: MatDialog, private componentsService:ComponentsService, private route: ActivatedRoute) { }
-  
+
   ngOnInit() {
     console.log("Org ID:",this.route.snapshot.paramMap.get('id'));
     this.componentsService.getActivatedComponents(this.route.snapshot.paramMap.get('id')).then(response_activedComponents =>{
       this.activatedComponents=response_activedComponents;
       console.log("response_activedComponents:",response_activedComponents);
     });
-  }
-  removeTenants(index: number): number {
-    console.log("index: ",index);
-    return index;
   }
   
  /**
@@ -56,15 +52,17 @@ export class DetailsOrgComponent implements OnInit {
         }
         
       }
+      this.componentsService.setMergeActivatedComponents(this.mergeActivatedComponents);
+      
       console.log("mergeActivatedComponents:",this.mergeActivatedComponents);
       let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
         width: '40%',
-        data: { name: "", components:this.mergeActivatedComponents, dialogStatus:"TitleManageComponent"  }
+        data: { name: "", components:this.componentsService.getMergeActivatedComponents(), dialogStatus:"TitleManageComponent"  }
       });
-      // this.addTenant();
+      
       dialogRef.afterClosed().subscribe(result => {
         // have to set data for save the component in the Org
-        console.log('The dialog was closed from openDialog4ManageComponent() and this.mergeActivatedComponents',this.mergeActivatedComponents);
+        console.log('The dialog was closed from openDialog4ManageComponent() and this.mergeActivatedComponents',this.componentsService.getMergeActivatedComponents());
       });
     });
     
@@ -160,15 +158,25 @@ export class DetailsOrgComponent implements OnInit {
   styleUrls: ['./details-org.component.css']
 })
 export class detailsOrganizationDialogComponent {
-  constructor(public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any) { }
+  constructor(private componentsService:ComponentsService,public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any) { }
   selectedCat: string;
-  addTenant(){}
+  
   category: any = [ {"name": "Owner", "ID": "C1", "checked": true},
               {"name": "User", "ID": "C2", "checked": false}];
   
   onNoClick(): void {
     this.dialogRef.close();
   }
+  addTenant(indexComponent:number):void{
+    console.log("pls add a tenant",indexComponent);
+    this.componentsService.addTenant(indexComponent);
+  }
+  removeTenants(indexComponent:number, indexTenant: number): any {
+    console.log("index of Components: ",indexComponent,",index of tenant",indexTenant);
+    // console.log("array",this.mergeActivatedComponents[index])
+    return this.componentsService.modifyComponent(indexComponent,indexTenant);
+  }
+
 }
 
 ///////////////////////////////////// for test
@@ -191,6 +199,7 @@ export class ChipsInputExamples {
   onNoClick(): void {
     this.dialogRef.close();
   }
+  
   visible = true;
   selectable = true;
   removable = true;

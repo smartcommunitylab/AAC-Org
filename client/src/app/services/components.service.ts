@@ -9,7 +9,7 @@ import 'rxjs/add/operator/map';
 export class ComponentsService {
 
   constructor(private http: Http, private config: ConfigService) {}
-
+  mergeActivatedComponent:ActivatedComponentsProfile[];
   /**
    * Get Component List
    */
@@ -45,5 +45,24 @@ export class ComponentsService {
         }
       }
     );
+  }
+
+  setMergeActivatedComponents(data:ActivatedComponentsProfile[]):boolean{
+    if(data){
+      // this.mergeActivatedComponents.push(data);
+      this.mergeActivatedComponent=data;
+      return true;
+    }else{
+      return false;
+    }
+  }
+  getMergeActivatedComponents():ActivatedComponentsProfile[]{
+    return this.mergeActivatedComponent;
+  }
+  modifyComponent(indexComponent:number, indexTenant: number){
+    this.mergeActivatedComponent[indexComponent].tenants.splice(indexTenant,1);
+  }
+  addTenant(indexComponent:number){
+    this.mergeActivatedComponent[indexComponent].tenants.push("");
   }
 }

@@ -8,7 +8,7 @@
 <mat-dialog-content>
     <!-- Manage Component  -->
     <div *ngIf="data.dialogStatus=='TitleManageComponent'" class="manageOrg">
-        <mat-expansion-panel *ngFor="let component of data.components; let i = index;">
+        <mat-expansion-panel *ngFor="let component of data.components; let indexComponent = index;">
             <mat-expansion-panel-header>
                 <mat-panel-title>
                     {{component.componentName}}
@@ -20,17 +20,18 @@
             
                 <div *ngIf="component.tenants == 0">
                     <mat-form-field>
-                        <input matInput [(ngModel)]="component.tenants[0]" name="tenant" placeholder="Tenants">
+                        <input matInput [(ngModel)]="component.tenants[0]" name="tenant" placeholder="Add Tenants">
                     </mat-form-field>
+                    <!-- <button mat-raised-button (click)="addTenant(indexComponent)">Add Tenant</button> -->
                 </div>
                 <div *ngIf="component.tenants != 0">
-                    <div *ngFor="let tenant of component.tenants; let in = index; ">
+                    <div *ngFor="let tenant of component.tenants; let indexTenant = index; ">
                         <mat-form-field>
-                            <input matInput [(ngModel)]="component.tenants[in]" name="tenant_{{in}}" placeholder="Tenants">
+                            <input matInput [(ngModel)]="component.tenants[indexTenant]" name="tenant_{{indexTenant}}" placeholder="Tenants">
                         </mat-form-field>
-                        <button mat-button >X</button>
+                        <button mat-raised-button color="warn" (click)="removeTenants(indexComponent,indexTenant)">Delete</button>
                     </div>
-                    <button mat-button >Add Tenant</button>
+                    <button mat-raised-button (click)="addTenant(indexComponent)">Add Tenant</button>
                 </div>
                 <!-- <input matInput [(ngModel)]="component.tenants" name="tenant_{{i}}" placeholder="Tenants"> -->
             
