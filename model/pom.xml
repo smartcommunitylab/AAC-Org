@@ -3,8 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>it.smartcommunitylab.orgmanager</groupId>
-	<artifactId>componentsmodel</artifactId>
-	<version>1.0.0</version>
+	<artifactId>orgmanager-componentsmodel</artifactId>
+	<version>1.0.0.RELEASE</version>
 	<packaging>jar</packaging>
 
 	<name>componentsmodel</name>
@@ -27,4 +27,32 @@
 			<version>5.1.4.RELEASE</version>
 		</dependency>
 	</dependencies>
+	
+	 <repositories>
+    <repository>
+      <id>SmartCommunity</id>
+      <url>http://repository.smartcommunitylab.it/content/groups/public</url>
+    </repository>
+    <repository>
+      <id>spring-milestone</id>
+      <name>Spring Maven MILESTONE Repository</name>
+      <url>http://maven.springframework.org/milestone</url>
+    </repository>
+    <repository>
+      <id>spring-snnapshot</id>
+      <name>Spring Maven SNAPSHOT Repository</name>
+      <url>http://maven.springframework.org/snapshot</url>
+    </repository>
+  </repositories>
+	
+	 <distributionManagement>
+    <repository>
+      <id>SmartCommunityLab-releases</id>
+      <url>http://repository.smartcommunitylab.it/content/repositories/releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>SmartCommunityLab-snapshots</id>
+      <url>http://repository.smartcommunitylab.it/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 </project>

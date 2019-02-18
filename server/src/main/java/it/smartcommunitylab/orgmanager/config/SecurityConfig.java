@@ -1,7 +1,5 @@
 package it.smartcommunitylab.orgmanager.config;
 
-import java.security.Principal;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +9,6 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.smartcommunitylab.aac.AACService;
@@ -20,12 +17,7 @@ import it.smartcommunitylab.aac.AACService;
 @EnableResourceServer
 @RestController
 public class SecurityConfig extends ResourceServerConfigurerAdapter {
-	
-	@RequestMapping("/user")
-	public Principal user(Principal principal) {
-		return principal;
-	}
-	
+		
 	@Value("${security.oauth2.client.organizationManagementScope}")
 	private String orgMgmtScope;
 	
@@ -100,7 +92,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	 */
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
-		http.antMatcher("/**").authorizeRequests().antMatchers("/", "/login**", "/webjars/**", "/error**").permitAll()
+		http.antMatcher("/**").authorizeRequests().antMatchers("/", "/login**", "/webjars/**", "/error**", "/swagger*", "/v2/api-docs**").permitAll()
 				.anyRequest().authenticated().and().logout().logoutSuccessUrl("/").permitAll()
 				.and().cors().and().csrf().disable();
 	}
