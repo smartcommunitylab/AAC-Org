@@ -1,22 +1,20 @@
 import { Injectable } from '@angular/core';
-import {Http, RequestOptions, BaseRequestOptions, Headers}  from '@angular/http';
 import { ConfigService } from './config.service';
-import {HttpErrorResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpClient} from '@angular/common/http';
 import { OrganizationProfile, contentOrg } from '../models/profile';
 import 'rxjs/add/operator/map';
 
 @Injectable()
 export class OrganizationService {
 
-  constructor(private http: Http, private config: ConfigService) { }
+  constructor(private http: HttpClient, private config: ConfigService) { }
 
   /**
-   * Get Organizations 
+   * Get Organizations
    */
   getOrganizations(): Promise<OrganizationProfile[]> {
-    console.log("Headers:",this.config.getHttpOptions());
-    return this.http.get(`${ this.config.get('locUrl') }organizations/`,this.config.getHttpOptions())
-    .map(response => response.json() as OrganizationProfile[])
+    return this.http.get(`${ this.config.get('locUrl') }organizations/`)
+    .map(response => response as OrganizationProfile[])
     .toPromise();
   }
 
@@ -24,17 +22,17 @@ export class OrganizationService {
    * Set Organizations
    * param: list of Organizations information
    */
-  setOrganization(data:contentOrg):any{
-    // console.log("input data: ",data);
-    return this.http.post(`${ this.config.get('locUrl') }organizations/`,data,this.config.getHttpOptions()).subscribe(
-      data => {
-        console.log("Return Data from post(create): " + data);
+  setOrganization(data: contentOrg): any {
+    // console.log('input data: ',data);
+    return this.http.post(`${ this.config.get('locUrl') }organizations/`, data).subscribe(
+      res => {
+        console.log('Return Data from post(create): ' + data);
       },
       (err: HttpErrorResponse) => {
         if (err.error instanceof Error) {
-          console.log("Client-side error occured.");
+          console.log('Client-side error occured.');
         } else {
-          console.log("Server-side error occured.");
+          console.log('Server-side error occured.');
         }
       }
     );

@@ -5,9 +5,8 @@
 
 export const environment = {
   production: false,
-  amUrl: 'https://api-test.smartcommunitylab.it/',
-  aacUrl: 'https://am-test.smartcommunitylab.it/aac/',
-  aacClientId: 'bf53cec4-e2a3-4033-a029-d128eee81951',
+  aacUrl: 'http://localhost:8080/aac/',
+  aacClientId: 'a2485081-ac02-4089-b690-4036a33a77dd',
   redirectUrl: 'http://localhost:4200/',
   scope: 'profile.basicprofile.me,user.roles.me',
   locUrl: 'http://localhost:7979/api/',

@@ -3,7 +3,9 @@ import { NgModule } from '@angular/core';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import {MatInputModule, MatButtonModule, MatCheckboxModule, MatToolbarModule, MatMenuModule, MatTableModule, MatTabsModule, MatCardModule, MatGridListModule,MatListModule, MatSlideToggleModule, MatExpansionModule, MatSelectModule} from '@angular/material';
+import {MatInputModule, MatButtonModule, MatCheckboxModule, MatToolbarModule, MatMenuModule,
+        MatTableModule, MatTabsModule, MatCardModule, MatGridListModule, MatListModule, MatSlideToggleModule,
+        MatExpansionModule, MatSelectModule} from '@angular/material';
 import {MatIconModule} from '@angular/material/icon';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSidenavModule} from '@angular/material/sidenav';
@@ -26,6 +28,9 @@ import { ConfigService } from './services/config.service';
 import { ComponentsService } from './services/components.service';
 import { OrganizationService } from './services/organization.service';
 import { HttpModule } from '@angular/http';
+import { LoginService } from './services/auth/login.service';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { TokenInterceptor } from './services/auth/token.interceptor';
 
 @NgModule({
   declarations: [
@@ -50,7 +55,7 @@ import { HttpModule } from '@angular/http';
     BrowserModule,
     BrowserAnimationsModule,
     MatInputModule,
-    MatButtonModule, 
+    MatButtonModule,
     MatCheckboxModule,
     MatToolbarModule,
     MatMenuModule,
@@ -72,12 +77,19 @@ import { HttpModule } from '@angular/http';
     MatChipsModule,
     MatAutocompleteModule,
     MatRadioModule,
-    HttpModule
+    HttpClientModule
   ],
   providers: [AuthGuard,
     ConfigService,
     ComponentsService,
-    OrganizationService],
+    OrganizationService,
+    LoginService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
