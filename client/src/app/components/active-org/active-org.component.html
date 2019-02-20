@@ -21,7 +21,11 @@
       <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
       <mat-cell *matCellDef="let element"> {{element.position}} </mat-cell>
     </ng-container> -->
-
+    <div *matCellDef="let element">
+      <div  *ngIf="element.active">
+        
+      </div>
+    </div>
     <!-- Name Column -->
     <ng-container matColumnDef="name">
       <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>

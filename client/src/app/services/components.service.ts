@@ -8,7 +8,7 @@ import 'rxjs/add/operator/map';
 export class ComponentsService {
 
   constructor(private http: HttpClient, private config: ConfigService) {}
-  mergeActivatedComponent: ActivatedComponentsProfile[];
+  mergeActivatedComponents: ActivatedComponentsProfile[];
   /**
    * Get Component List
    */
@@ -30,11 +30,11 @@ export class ComponentsService {
    * Set Component in a particular Org
    * param: org id, list of tenants with component ID
    */
-  setComponents(orgID: string, data: ActivatedComponentsProfile): any {
-    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/configuration`, data)
+  setComponents(orgID: string): any {
+    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/configuration`, this.mergeActivatedComponents)
     .subscribe(
       res => {
-        console.log('Return Data from post(create): ' + data);
+        console.log('Return Data from post(create): ' + res);
       },
       (err: HttpErrorResponse) => {
         if (err.error instanceof Error) {
@@ -46,22 +46,23 @@ export class ComponentsService {
     );
   }
 
+ 
   setMergeActivatedComponents(data: ActivatedComponentsProfile[]): boolean {
     if (data) {
       // this.mergeActivatedComponents.push(data);
-      this.mergeActivatedComponent = data;
+      this.mergeActivatedComponents = data;
       return true;
     }else {
       return false;
     }
   }
   getMergeActivatedComponents(): ActivatedComponentsProfile[] {
-    return this.mergeActivatedComponent;
+    return this.mergeActivatedComponents;
   }
   modifyComponent(indexComponent: number, indexTenant: number) {
-    this.mergeActivatedComponent[indexComponent].tenants.splice(indexTenant, 1);
+    this.mergeActivatedComponents[indexComponent].tenants.splice(indexTenant, 1);
   }
   addTenant(indexComponent: number) {
-    this.mergeActivatedComponent[indexComponent].tenants.push('');
+    this.mergeActivatedComponents[indexComponent].tenants.push('');
   }
 }

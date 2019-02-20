@@ -17,27 +17,14 @@
                     Add your Tenants
                 </mat-panel-description>
             </mat-expansion-panel-header>
-            
-                <div *ngIf="component.tenants == 0">
-                    <mat-form-field>
-                        <input matInput [(ngModel)]="component.tenants[0]" name="tenant" placeholder="Add Tenants">
-                    </mat-form-field>
-                    <!-- <button mat-raised-button (click)="addTenant(indexComponent)">Add Tenant</button> -->
-                </div>
-                <div *ngIf="component.tenants != 0">
-                    <div *ngFor="let tenant of component.tenants; let indexTenant = index; ">
-                        <mat-form-field>
-                            <input matInput [(ngModel)]="component.tenants[indexTenant]" name="tenant_{{indexTenant}}" placeholder="Tenants">
-                        </mat-form-field>
-                        <button mat-raised-button color="warn" (click)="removeTenants(indexComponent,indexTenant)">Delete</button>
-                    </div>
-                    <button mat-raised-button (click)="addTenant(indexComponent)">Add Tenant</button>
-                </div>
-                <!-- <input matInput [(ngModel)]="component.tenants" name="tenant_{{i}}" placeholder="Tenants"> -->
-            
-            
+            <div *ngFor="let tenant of component.tenants; let indexTenant = index;  trackBy: trackByTenant">
+                <mat-form-field>
+                    <input matInput [(ngModel)]="component.tenants[indexTenant]" name="tenant_{{indexTenant}}" (keyup)="onKeyChange()" placeholder="Tenants">
+                </mat-form-field>
+                <button mat-raised-button color="warn" (click)="removeTenants(indexComponent,indexTenant)">Delete</button>
+            </div>
+            <button mat-raised-button (click)="addTenant(indexComponent)">Add Tenant</button>
         </mat-expansion-panel>
-        
     </div>
         
     <!-- Modify Organization Information -->
@@ -218,11 +205,11 @@
 <mat-dialog-actions>
     
     <button mat-button *ngIf="data.dialogStatus=='TitleManageComponent'"
-            [mat-dialog-close]="{}" 
-            tabindex="1"        
-            >OK
-            <!-- [disabled]="ownerEmailControl.invalid || orgNameControl.invalid || orgDescriptionControl.invalid" -->
-        </button>
+        tabindex="1"
+        [mat-dialog-close]="tenantControl_status"    
+        [disabled]="!tenantControl_status"     
+        >OK
+    </button>
     <button mat-button *ngIf="data.dialogStatus=='!TitleManageComponent'"
         [mat-dialog-close]="{}" 
         tabindex="1">OK

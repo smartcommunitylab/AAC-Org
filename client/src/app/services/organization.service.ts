@@ -10,7 +10,7 @@ export class OrganizationService {
   constructor(private http: HttpClient, private config: ConfigService) { }
 
   /**
-   * Get Organizations
+   * Get All Organizations
    */
   getOrganizations(): Promise<OrganizationProfile[]> {
     return this.http.get(`${ this.config.get('locUrl') }organizations/`)
@@ -37,4 +37,13 @@ export class OrganizationService {
       }
     );
   }
+
+  /**
+   * Get Active Organizations
+   */
+  // getActiveOrganizations(): Promise<OrganizationProfile[]> {
+  //   this.getOrganizations().then(res=>{
+
+  //   })
+  // }
 }

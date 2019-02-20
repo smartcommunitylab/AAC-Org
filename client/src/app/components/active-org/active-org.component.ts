@@ -14,6 +14,7 @@ export class ActiveOrgComponent implements OnInit {
 
   constructor(private organizationService: OrganizationService, private route: ActivatedRoute, public dialog: MatDialog) { }
   orgProfile: OrganizationProfile[];
+  orgActive: Array<OrganizationProfile>=[];
   contentOrg: contentOrg;
   dataSource: any;
   displayedColumns: any;
@@ -21,10 +22,17 @@ export class ActiveOrgComponent implements OnInit {
   
   ngOnInit() {
     this.organizationService.getOrganizations().then(response => {
-      console.log("organizationService:",response["content"]);
+      // console.log("organizationService:",response["content"]);
+      for(var i=0; i<response["content"].length; i++){
+        if(response["content"][i]["active"]){
+          // console.log("activeOrg:",response["content"][i]);
+          this.orgActive.push(response["content"][i]);
+        }
+      }
+      // console.log("activeOrg:",this.orgActive);
       this.orgProfile = response;
       this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details'];
-      this.dataSource =new MatTableDataSource<contentOrg>(response["content"]);
+      this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgActive);
     });
     // this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details'];
     // this.dataSource =new MatTableDataSource<Element>(ELEMENT_DATA);
@@ -44,12 +52,9 @@ export class ActiveOrgComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if(result){
         console.log("Result: ",result);
-        // this.contentOrg.name=result.username;
-        // this.contentOrg.slug=result.domain;
         this.organizationService.setOrganization(result);
-        //console.log('globalData in session:',sessionStorage.getItem('currentDomain'));
         //for reload the table
-        // setTimeout(()=>{  this.ngOnInit();},1000);
+        setTimeout(()=>{  this.ngOnInit();},1000);
       }
     });
   }
