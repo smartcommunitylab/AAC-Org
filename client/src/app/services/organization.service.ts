@@ -8,7 +8,7 @@ import 'rxjs/add/operator/map';
 export class OrganizationService {
 
   constructor(private http: HttpClient, private config: ConfigService) { }
-
+  
   /**
    * Get All Organizations
    */
@@ -26,7 +26,24 @@ export class OrganizationService {
     // console.log('input data: ',data);
     return this.http.post(`${ this.config.get('locUrl') }organizations/`, data).subscribe(
       res => {
-        console.log('Return Data from post(create): ' + data);
+        console.log('Return Data from post(create): ' + res);
+      },
+      (err: HttpErrorResponse) => {
+        if (err.error instanceof Error) {
+          console.log('Client-side error occured.');
+        } else {
+          console.log('Server-side error occured.');
+        }
+      }
+    );
+  }
+  /**
+   * Delete An Organization
+   */
+  deleteOrganization(orgID: number):any{
+    return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}`).subscribe(
+      res => {
+        console.log('Return Data from post(create): ' + res);
       },
       (err: HttpErrorResponse) => {
         if (err.error instanceof Error) {
@@ -38,6 +55,44 @@ export class OrganizationService {
     );
   }
 
+  /**
+   * Enable Organization
+   * @param orgID 
+   * @param body 
+   */
+  enableOrganization(orgID:number, body:any){
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/enable`,body).subscribe(
+      res => {
+        console.log('Return Data from post(create): ' + res);
+      },
+      (err: HttpErrorResponse) => {
+        if (err.error instanceof Error) {
+          console.log('Client-side error occured.');
+        } else {
+          console.log('Server-side error occured.');
+        }
+      }
+    );
+  }
+  /**
+   * Disable an Organization
+   * @param orgID 
+   * @param body 
+   */
+  disableOrganization(orgID:number,body:any): any {
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/disable`,body).subscribe(
+      res => {
+        console.log('Return Data from post(create): ' + res);
+      },
+      (err: HttpErrorResponse) => {
+        if (err.error instanceof Error) {
+          console.log('Client-side error occured.');
+        } else {
+          console.log('Server-side error occured.');
+        }
+      }
+    );
+  }
   /**
    * Get Active Organizations
    */

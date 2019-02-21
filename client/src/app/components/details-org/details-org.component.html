@@ -12,12 +12,12 @@
   </mat-toolbar>  
 </div>
 
-<mat-tab-group (selectedTabChange)="tabClick($event)">
-  <mat-tab label="Information">
+<mat-tab-group (selectedTabChange)="tabClick($event)" >
+  <mat-tab label="Information" *ngIf="myOrg">
     <mat-card class="example-card">
       <mat-card-header>
         <mat-card-title>
-          <span>Organization Name</span> 
+          <span>{{myOrg.name}}</span> 
           
         </mat-card-title>
         <mat-card-subtitle>Information of the Organization</mat-card-subtitle>
@@ -28,72 +28,40 @@
         </button>
       </mat-card-header>
       <mat-card-content>
-        <mat-grid-list cols="3" rowHeight="12:1">
-          <mat-grid-tile>Name:</mat-grid-tile>
-          <mat-grid-tile>test1</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
+        <mat-grid-list cols="2" rowHeight="11:.6">
+          <mat-grid-tile>Organization Name:</mat-grid-tile>
+          <mat-grid-tile>{{myOrg.name}}</mat-grid-tile>
+
           <mat-grid-tile>Domain:</mat-grid-tile>
-          <mat-grid-tile>test</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
-          <mat-grid-tile>Owner Email:</mat-grid-tile>
-          <mat-grid-tile>test@fbk.eu</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
-          <mat-grid-tile>Owner Name:</mat-grid-tile>
-          <mat-grid-tile>testOwner</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
+          <mat-grid-tile>{{myOrg.slug}}</mat-grid-tile>
+
+          <mat-grid-tile>Name:</mat-grid-tile>
+          <mat-grid-tile>{{myOrg.contacts.name}}</mat-grid-tile>
+
+          <mat-grid-tile>Surname:</mat-grid-tile>
+          <mat-grid-tile>{{myOrg.contacts.surname}}</mat-grid-tile>
+
+          <mat-grid-tile>Email:</mat-grid-tile>
+          <mat-grid-tile>{{myOrg.contacts.email}}</mat-grid-tile>
+
           <mat-grid-tile>Description:</mat-grid-tile>
-          <mat-grid-tile>test12345</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
-          <mat-grid-tile>Provider:</mat-grid-tile>
-          <mat-grid-tile>Yes</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
+          <mat-grid-tile>{{myOrg.description}}</mat-grid-tile>
+
           <mat-grid-tile>Web:</mat-grid-tile>
-          <mat-grid-tile>test</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
+          <mat-grid-tile>{{myOrg.contacts.web}}</mat-grid-tile>
+
           <mat-grid-tile>Logo:</mat-grid-tile>
-          <mat-grid-tile>test1</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
-          <mat-grid-tile>Contact Email:</mat-grid-tile>
-          <mat-grid-tile>test@fbk.eu</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
+          <mat-grid-tile>{{myOrg.contacts.logo}}</mat-grid-tile>
+
           <mat-grid-tile>Tag:</mat-grid-tile>
-          <mat-grid-tile>testtag</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
-          <mat-grid-tile>Members:</mat-grid-tile>
-          <mat-grid-tile>test1</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
-          <mat-grid-tile>Provider Configuration:</mat-grid-tile>
-          <mat-grid-tile>Yes</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
+          <mat-grid-tile>{{myOrg.tag}}</mat-grid-tile>
+
+          <mat-grid-tile>Phone:</mat-grid-tile>
+          <mat-grid-tile>{{myOrg.contacts.phone}}</mat-grid-tile>
+
           <mat-grid-tile>Status:</mat-grid-tile>
-          <mat-grid-tile>active</mat-grid-tile>
-          <mat-grid-tile >
-            
-          </mat-grid-tile>
+          <mat-grid-tile>{{myOrg.active}}</mat-grid-tile>
+
         </mat-grid-list>
       </mat-card-content>
       <!-- <mat-card-actions>
@@ -121,13 +89,19 @@
                         {{component.componentId}}
                     </mat-panel-title>
                     <mat-panel-description>
-                        Add your Tenants
+                        Tenants
                     </mat-panel-description>
                 </mat-expansion-panel-header>
-                <mat-form-field>
+                <!-- <mat-form-field>
                     <input matInput placeholder="Tenants">
-                </mat-form-field>
-                
+                </mat-form-field> -->
+                <mat-list>
+                  <mat-list-item *ngFor="let tenant of component.tenants">
+                    {{tenant}}
+                    <mat-divider></mat-divider>
+                  </mat-list-item>
+                  
+                </mat-list>
             </mat-expansion-panel>
           <!-- <mat-expansion-panel [expanded]="false"   #matExpansionPanel1>
             <mat-expansion-panel-header >

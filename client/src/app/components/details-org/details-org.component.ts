@@ -5,8 +5,9 @@ import { ActivatedRoute } from '@angular/router';
 
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 // import {MatChipInputEvent} from '@angular/material';
+import {OrganizationService} from '../../services/organization.service';
 import {ComponentsService} from '../../services/components.service';
-import { ComponentsProfile, ActivatedComponentsProfile } from '../../models/profile';
+import { contentOrg,ComponentsProfile, ActivatedComponentsProfile } from '../../models/profile';
 
 @Component({
   selector: 'app-details-org',
@@ -18,18 +19,27 @@ export class DetailsOrgComponent implements OnInit {
   components: ComponentsProfile[];
   activatedComponents:ActivatedComponentsProfile[];
   mergeActivatedComponents:Array<ActivatedComponentsProfile>=[];
+  myOrg: contentOrg;
   orgID:string=this.route.snapshot.paramMap.get('id');
-  constructor(public dialog: MatDialog, private componentsService:ComponentsService, private route: ActivatedRoute) { }
+  constructor(private organizationService: OrganizationService,public dialog: MatDialog, private componentsService:ComponentsService, private route: ActivatedRoute) { }
 
   ngOnInit() {
-    console.log("Org ID:",this.orgID);
+    this.organizationService.getOrganizations().then(response => {
+      for(var i=0; i<response["content"].length; i++){
+        if(response["content"][i]["id"]==this.orgID){
+          // this.myOrg.push(response["content"][i]);
+          this.myOrg=response["content"][i];
+        }
+      }
+    });
+    
     this.componentsService.getActivatedComponents(this.orgID).then(response_activedComponents =>{
       this.activatedComponents=response_activedComponents;
       console.log("response_activedComponents:",response_activedComponents);
     });
   }
   tabClick(tab) {
-    console.log("selectedTabChange:",tab);
+    // console.log("selectedTabChange:",tab);
     if(tab.index==1){
       this.ngOnInit();
     }

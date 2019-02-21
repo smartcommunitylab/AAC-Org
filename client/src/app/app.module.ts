@@ -19,7 +19,7 @@ import { AppComponent } from './app.component';
 import { HeaderComponent } from './components/header/header.component';
 import { LoginComponent } from './components/login/login.component';
 import { ActiveOrgComponent, CreateOrganizationDialogComponent } from './components/active-org/active-org.component';
-import { DeactivateOrgComponent } from './components/deactivate-org/deactivate-org.component';
+import { InactivateOrgComponent, ModifyInactiveOrgDialogComponent } from './components/inactivate-org/inactivate-org.component';
 import { BlockOrgComponent } from './components/block-org/block-org.component';
 import { DetailsOrgComponent, detailsOrganizationDialogComponent, ChipsInputExamples} from './components/details-org/details-org.component';
 import { InputFileComponent } from './components/input-file/input-file.component';
@@ -38,9 +38,10 @@ import { TokenInterceptor } from './services/auth/token.interceptor';
     HeaderComponent,
     LoginComponent,
     ActiveOrgComponent,
-    DeactivateOrgComponent,
+    InactivateOrgComponent,
     BlockOrgComponent,
     CreateOrganizationDialogComponent,
+    ModifyInactiveOrgDialogComponent,
     DetailsOrgComponent,
     detailsOrganizationDialogComponent,
     ChipsInputExamples,
@@ -48,6 +49,7 @@ import { TokenInterceptor } from './services/auth/token.interceptor';
   ],
   entryComponents: [
     CreateOrganizationDialogComponent,
+    ModifyInactiveOrgDialogComponent,
     detailsOrganizationDialogComponent,
     ChipsInputExamples
   ],

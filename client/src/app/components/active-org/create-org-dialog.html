@@ -1,8 +1,12 @@
 <div class="dialog-overflow-hidden">
-    <h2 mat-dialog-title >Create New Organization</h2>
+    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateOrg'">Create New Organization</h2>
+    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">Disable an Organization</h2>
     <mat-dialog-content  >
-        <mat-label class="mat-h4">Please provide this information</mat-label>
-        <div *ngIf="data.dialogStatus=='TitleCreate'">
+        <div *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">
+            <mat-label class="mat-h4">Do you want to disable Organization name: {{data.org_name}}.</mat-label>
+        </div>
+        <div *ngIf="data.dialogStatus=='TitleCreateOrg'">
+            <mat-label class="mat-h4">Please provide this information</mat-label>
             <form [formGroup]="formDoc" (ngSubmit)="onSubmit()" novalidate >
                 <!-- Organization Name -->
                 <mat-form-field class="dialog-container-form-field" >
@@ -119,12 +123,15 @@
     </mat-dialog-content>
 
     <mat-dialog-actions >
-        <!-- <button mat-button *ngIf="!checkedProvider"
-            [mat-dialog-close]="{}" 
-            tabindex="1" 
-            [disabled]="ownerEmailControl.invalid || orgNameControl.invalid || orgDescriptionControl.invalid">OK
-        </button> -->
-        <button mat-button 
+        <button mat-button *ngIf="data.dialogStatus=='TitleChangeStatusOrg'"
+            [mat-dialog-close]=
+            "{
+                orgID:data.org_id,
+                status:true
+            }" 
+            tabindex="1" >OK
+        </button>
+        <button mat-button *ngIf="data.dialogStatus=='TitleCreateOrg'"
             tabindex="1" 
             [mat-dialog-close]=
             "{

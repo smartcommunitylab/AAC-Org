@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DeactivateOrgComponent } from './deactivate-org.component';
+import { InactivateOrgComponent } from './inactivate-org.component';
 
-describe('DeactivateOrgComponent', () => {
-  let component: DeactivateOrgComponent;
-  let fixture: ComponentFixture<DeactivateOrgComponent>;
+describe('InactivateOrgComponent', () => {
+  let component: InactivateOrgComponent;
+  let fixture: ComponentFixture<InactivateOrgComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ DeactivateOrgComponent ]
+      declarations: [ InactivateOrgComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(DeactivateOrgComponent);
+    fixture = TestBed.createComponent(InactivateOrgComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

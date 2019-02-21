@@ -18,9 +18,10 @@ export class ActiveOrgComponent implements OnInit {
   contentOrg: contentOrg;
   dataSource: any;
   displayedColumns: any;
-  
+
   
   ngOnInit() {
+    this.dataSource ='';
     this.organizationService.getOrganizations().then(response => {
       // console.log("organizationService:",response["content"]);
       for(var i=0; i<response["content"].length; i++){
@@ -31,13 +32,13 @@ export class ActiveOrgComponent implements OnInit {
       }
       // console.log("activeOrg:",this.orgActive);
       this.orgProfile = response;
-      this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details'];
+      this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details', 'status'];
+      // this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgActive);
       this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgActive);
     });
-    // this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details'];
-    // this.dataSource =new MatTableDataSource<Element>(ELEMENT_DATA);
+
   }
-  
+
 
   /**
    * Create New Organization
@@ -46,7 +47,7 @@ export class ActiveOrgComponent implements OnInit {
     let dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
       width: '40%',
       height:'60%',
-      data: { org_name: "", org_domain:"", org_description:"", dialogStatus:"TitleCreate"  }
+      data: { org_name: "", org_domain:"", org_description:"", dialogStatus:"TitleCreateOrg"  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -59,6 +60,28 @@ export class ActiveOrgComponent implements OnInit {
     });
   }
 
+  /**
+   * Delete an Org
+   * @param orgID 
+   * @param orgName 
+   */
+  openDialog4ChangeStatusOrg(orgID, orgName): void {
+
+    let dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
+      width: '40%',
+      height:'40%',
+      data: { org_name: orgName, org_id:orgID, dialogStatus:"TitleChangeStatusOrg"  }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if(result){
+        console.log("close ChangeStatusOrg dilog and Result: ",result);
+        this.organizationService.disableOrganization(orgID,orgName);
+        //for reload the table
+        setTimeout(()=>{  this.ngOnInit();},1000);
+      }
+    });
+  }
 }
 /**
  * Component for Dialog
@@ -123,24 +146,3 @@ export class CreateOrganizationDialogComponent {
     this.dialogRef.close();
   }
 }
-
-/*
-* test table data
-*/
-
-export interface Element {
-  id: number;
-  name: string;
-  domain: string;
-  owner: string;
-  description: string;
-  provider: string;
-}
-
-const ELEMENT_DATA: Element[] = [
-  {id: 1, name: 'test1', domain: 'project1', owner: 'test1@fbk.eu', description:'test description', provider:'yes'},
-  {id: 2, name: 'test2', domain: 'project2', owner: 'test2@fbk.eu', description:'test description', provider:'no'},
-  {id: 3, name: 'test3', domain: 'project3', owner: 'test3@fbk.eu', description:'test description', provider:'yes'},
-  {id: 4, name: 'test4', domain: 'project4', owner: 'test4@fbk.eu', description:'test description', provider:'no'},
-  {id: 5, name: 'test5', domain: 'project5', owner: 'test5@fbk.eu', description:'test description', provider:'yes'}
-];
