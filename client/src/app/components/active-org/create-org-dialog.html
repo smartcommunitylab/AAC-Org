@@ -1,9 +1,10 @@
-<div class="dialog-overflow-hidden">
+<!-- <div class="dialog-overflow-hidden"> -->
     <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateOrg'">Create New Organization</h2>
     <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">Disable an Organization</h2>
+    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: {{data.error.error}}</h2>
     <mat-dialog-content  >
         <div *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">
-            <mat-label class="mat-h4">Do you want to disable Organization name: {{data.org_name}}.</mat-label>
+            <mat-label class="mat-h4">Do you want to disable Organization: {{data.org_name}}.</mat-label>
         </div>
         <div *ngIf="data.dialogStatus=='TitleCreateOrg'">
             <mat-label class="mat-h4">Please provide this information</mat-label>
@@ -120,6 +121,10 @@
                 </mat-form-field> -->
             </form>
         </div>
+        <!-- Error Message -->
+        <div *ngIf="data.dialogStatus=='TitleErrorMessage'">
+            <mat-label class="mat-h4"><b>Message:</b>{{data.error.error_description}}</mat-label>
+        </div>
     </mat-dialog-content>
 
     <mat-dialog-actions >
@@ -154,4 +159,4 @@
         <span class="fill-remaining-space"></span>
         <button mat-button (click)="onNoClick()" tabindex="-1">Cancel</button>
     </mat-dialog-actions>
-</div>
+<!-- </div> -->

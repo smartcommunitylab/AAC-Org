@@ -23,14 +23,18 @@ import { InactivateOrgComponent, ModifyInactiveOrgDialogComponent } from './comp
 import { BlockOrgComponent } from './components/block-org/block-org.component';
 import { DetailsOrgComponent, detailsOrganizationDialogComponent, ChipsInputExamples} from './components/details-org/details-org.component';
 import { InputFileComponent } from './components/input-file/input-file.component';
+import { UsersComponent } from './components/users/users/users.component';
 
 import { ConfigService } from './services/config.service';
 import { ComponentsService } from './services/components.service';
 import { OrganizationService } from './services/organization.service';
-import { HttpModule } from '@angular/http';
+import { UsersService } from './services/users.service';
 import { LoginService } from './services/auth/login.service';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { TokenInterceptor } from './services/auth/token.interceptor';
+
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HttpModule } from '@angular/http';
+
 
 @NgModule({
   declarations: [
@@ -45,7 +49,8 @@ import { TokenInterceptor } from './services/auth/token.interceptor';
     DetailsOrgComponent,
     detailsOrganizationDialogComponent,
     ChipsInputExamples,
-    InputFileComponent
+    InputFileComponent,
+    UsersComponent
   ],
   entryComponents: [
     CreateOrganizationDialogComponent,
@@ -85,6 +90,7 @@ import { TokenInterceptor } from './services/auth/token.interceptor';
     ConfigService,
     ComponentsService,
     OrganizationService,
+    UsersService,
     LoginService,
     {
       provide: HTTP_INTERCEPTORS,

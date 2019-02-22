@@ -1,11 +1,78 @@
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleManageComponent'">List of Component</h2>
-<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyOrg'">Update Organization information</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyOrg'">Update {{data.name}} Information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateProviderConfig'">Create New Provider Configuration</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyProviderConfig'">Update Provider Configuration</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleAddUser'">Create A New User</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyUser'">Update User Information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDeleteUser'">Delete User</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: {{data.error.error}}</h2>
 <mat-dialog-content>
+    <!-- Modify Organization Information -->
+    <div *ngIf="data.dialogStatus=='TitleModifyOrg'">
+        <!-- Organization Name -->
+        <mat-form-field class="dialog-container-form-field" >
+            <input matInput  placeholder="Organization Name"  disabled value={{data.myOrg.name}} >
+            <mat-icon matSuffix>mode_edit</mat-icon>
+        </mat-form-field>
+        <!-- Domain name of the Provider Organization -->
+        <mat-form-field class="dialog-container-form-field" >
+            <input matInput  placeholder="Domain"  disabled value={{data.myOrg.slug}}>
+            <mat-icon matSuffix>mode_edit</mat-icon>
+        </mat-form-field>
+        <!-- Owner Email Address -->
+        <mat-form-field class="dialog-container-form-field" >
+            <input matInput  placeholder="Email" disabled value={{data.myOrg.contacts.email}}>
+            <mat-icon matSuffix>email</mat-icon>
+        </mat-form-field>
+        <!-- Name and Surname input field -->
+        <table class="nameInput-full-width" cellspacing="0">
+            <tr>
+                <td>
+                    <mat-form-field class="nameInput-full-width" >
+                        <input matInput placeholder="Name" name="name" [(ngModel)]='data.myOrg.contacts.name' (keyup)="onKeyChange()" >
+                        <mat-icon matSuffix>mode_edit</mat-icon>
+                    </mat-form-field>
+                </td>
+                <td>
+                    <mat-form-field class="nameInput-full-width" >
+                        <input matInput placeholder="Surname"  [(ngModel)]='data.myOrg.contacts.surname' (keyup)="onKeyChange()" >
+                        <mat-icon matSuffix>mode_edit</mat-icon>
+                    </mat-form-field>
+                </td>
+            </tr>
+        </table>
+        <!-- Description of the Organization -->
+        <mat-form-field class="dialog-container-form-field" >
+            <textarea matInput  placeholder="Description"   required [(ngModel)]='data.myOrg.description' (keyup)="onKeyChange()" ></textarea>
+        </mat-form-field>
+        <!-- Organization Web Address -->
+        <mat-form-field class="dialog-container-form-field" >
+            <input matInput  placeholder="Web Address" [(ngModel)]='data.myOrg.contacts.web' (keyup)="onKeyChange()" >
+            <mat-icon matSuffix>mode_edit</mat-icon>
+        </mat-form-field>
+        <!-- Logo upload of the Organization -->
+        <mat-form-field class="dialog-container-form-field" >
+            <input  matInput  placeholder="Logo" [(ngModel)]='data.myOrg.contacts.logo' (keyup)="onKeyChange()" >
+            <mat-icon matSuffix>mode_edit</mat-icon>
+        </mat-form-field>
+        <!-- Contact Email Address -->
+        <!-- <mat-form-field class="dialog-container-form-field" >
+            <input matInput  placeholder="Contact Email"   >
+            <mat-icon matSuffix>email</mat-icon>
+        </mat-form-field> -->
+        <!-- Contact Telephone -->
+        <mat-form-field class="dialog-container-form-field" >
+            <input type="tel" matInput placeholder="Contact Telephone" [(ngModel)]='data.myOrg.contacts.phone' (keyup)="onKeyChange()" >
+            <mat-icon matSuffix>phone</mat-icon>
+        </mat-form-field>
+        <!-- Tag -->
+        <mat-form-field class="dialog-container-form-field" >
+            <input matInput  placeholder="Tag"  [(ngModel)]='data.myOrg.tag' (keyup)="onKeyChange()" >
+            <mat-icon matSuffix>mode_edit</mat-icon>
+        </mat-form-field>
+        <!-- Provider check with boolean  -->
+        <mat-slide-toggle color="primary" disabled> Active</mat-slide-toggle>
+    </div>
     <!-- Manage Component  -->
     <div *ngIf="data.dialogStatus=='TitleManageComponent'" class="manageOrg">
         <mat-expansion-panel *ngFor="let component of data.components; let indexComponent = index;">
@@ -25,75 +92,6 @@
             </div>
             <button mat-raised-button (click)="addTenant(indexComponent)">Add Tenant</button>
         </mat-expansion-panel>
-    </div>
-        
-    <!-- Modify Organization Information -->
-    <div *ngIf="data.dialogStatus=='TitleModifyOrg'">
-        <!-- Organization Name -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Organization Name"  disabled value="Org Name" >
-            <mat-icon matSuffix>mode_edit</mat-icon>
-        </mat-form-field>
-        <!-- Domain name of the Provider Organization -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Domain"  disabled value="DomainName">
-            <mat-icon matSuffix>mode_edit</mat-icon>
-        </mat-form-field>
-        <!-- Owner Email Address -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Owner Email" disabled value="OwnerEmail">
-            <mat-icon matSuffix>email</mat-icon>
-        </mat-form-field>
-
-        <!-- Name and Surname input field -->
-        <table class="nameInput-full-width" cellspacing="0">
-            <tr>
-                <td>
-                    <mat-form-field class="nameInput-full-width" >
-                        <input matInput placeholder="Name" disabled value="OwnerName">
-                        <mat-icon matSuffix>mode_edit</mat-icon>
-                    </mat-form-field>
-                </td>
-                <td>
-                    <mat-form-field class="nameInput-full-width" >
-                        <input matInput placeholder="Surname" disabled value="OwnerSurname">
-                        <mat-icon matSuffix>mode_edit</mat-icon>
-                    </mat-form-field>
-                </td>
-            </tr>
-        </table>
-        <!-- Description of the Organization -->
-        <mat-form-field class="dialog-container-form-field" >
-            <textarea matInput  placeholder="Description"   required ></textarea>
-        </mat-form-field>
-        <!-- Provider check with boolean  -->
-        <mat-slide-toggle color="primary"> Provider</mat-slide-toggle>
-        <!-- Organization Web Address -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Web Address" >
-            <mat-icon matSuffix>mode_edit</mat-icon>
-        </mat-form-field>
-        <!-- Logo upload of the Organization -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input  matInput  placeholder="Logo" >
-            <mat-icon matSuffix>attach_file</mat-icon>
-        </mat-form-field>
-        <!-- Contact Email Address -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Contact Email"   >
-            <mat-icon matSuffix>email</mat-icon>
-        </mat-form-field>
-        <!-- Contact Telephone -->
-        <mat-form-field class="dialog-container-form-field" >
-            <span matPrefix>+39 &nbsp;</span>
-            <input type="tel" matInput placeholder="Contact Telephone">
-            <mat-icon matSuffix>phone</mat-icon>
-        </mat-form-field>
-        <!-- Tag -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Tag"   >
-            <mat-icon matSuffix>mode_edit</mat-icon>
-        </mat-form-field>
     </div>
 
     <!-- Create A Provider Configuration -->
@@ -200,10 +198,20 @@
     <div *ngIf="data.dialogStatus=='TitleDeleteUser'">
         <mat-label class="mat-h4">Are you sure to delete this user?</mat-label>
     </div>
+
+    <!-- Error Message -->
+    <div *ngIf="data.dialogStatus=='TitleErrorMessage'">
+        <mat-label class="mat-h4"><b>Message:</b>{{data.error.error_description}}</mat-label>
+    </div>
 </mat-dialog-content>
 
 <mat-dialog-actions>
-    
+    <button mat-button *ngIf="data.dialogStatus=='TitleModifyOrg'"
+        tabindex="1"
+        [mat-dialog-close]="true"    
+        [disabled]="!tenantControl_status"     
+        >OK
+    </button>
     <button mat-button *ngIf="data.dialogStatus=='TitleManageComponent'"
         tabindex="1"
         [mat-dialog-close]="tenantControl_status"    

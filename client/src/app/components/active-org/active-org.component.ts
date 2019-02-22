@@ -4,6 +4,7 @@ import {ActivatedRoute} from '@angular/router';
 import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
 import {OrganizationService} from '../../services/organization.service';
 import { OrganizationProfile, contentOrg } from '../../models/profile';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'app-active-org',
@@ -46,16 +47,33 @@ export class ActiveOrgComponent implements OnInit {
   openDialog4CreateOrg(): void {
     let dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
       width: '40%',
-      height:'60%',
       data: { org_name: "", org_domain:"", org_description:"", dialogStatus:"TitleCreateOrg"  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
         console.log("Result: ",result);
-        this.organizationService.setOrganization(result);
-        //for reload the table
-        setTimeout(()=>{  this.ngOnInit();},1000);
+        this.organizationService.setOrganization(result).subscribe(
+          res => {
+            //for reload the table
+            setTimeout(()=>{  this.ngOnInit();},1000);
+          },
+          (err: HttpErrorResponse) => {
+            //open a error dialog with err.error
+            if(err.error){
+              let dialogRefErr = this.dialog.open(CreateOrganizationDialogComponent, {
+                width: '30%',
+                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              });
+            }
+            
+            if (err.error instanceof Error) {
+              console.log('Client-side error occured.');
+            } else {
+              console.log('Server-side error occured.',err);
+            }
+          }
+        );
       }
     });
   }
@@ -68,17 +86,34 @@ export class ActiveOrgComponent implements OnInit {
   openDialog4ChangeStatusOrg(orgID, orgName): void {
 
     let dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
-      width: '40%',
-      height:'40%',
+      width: '25%',
       data: { org_name: orgName, org_id:orgID, dialogStatus:"TitleChangeStatusOrg"  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
         console.log("close ChangeStatusOrg dilog and Result: ",result);
-        this.organizationService.disableOrganization(orgID,orgName);
-        //for reload the table
-        setTimeout(()=>{  this.ngOnInit();},1000);
+        this.organizationService.disableOrganization(orgID,orgName).subscribe(
+          res => {
+            //for reload the table
+            setTimeout(()=>{  this.ngOnInit();},1000);
+          },
+          (err: HttpErrorResponse) => {
+            //open a error dialog with err.error
+            if(err.error){
+              let dialogRefErr = this.dialog.open(CreateOrganizationDialogComponent, {
+                width: '30%',
+                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              });
+            }
+            if (err.error instanceof Error) {
+              console.log('Client-side error occured.');
+            } else {
+              console.log('Server-side error occured.');
+            }
+          }
+        );
+        
       }
     });
   }

@@ -2,6 +2,7 @@ import { Component, OnInit, Inject, Input } from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource, MatChipInputEvent} from '@angular/material';
 import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import {HttpErrorResponse} from '@angular/common/http';
 
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 // import {MatChipInputEvent} from '@angular/material';
@@ -24,6 +25,7 @@ export class DetailsOrgComponent implements OnInit {
   constructor(private organizationService: OrganizationService,public dialog: MatDialog, private componentsService:ComponentsService, private route: ActivatedRoute) { }
 
   ngOnInit() {
+    // get all information about this organization
     this.organizationService.getOrganizations().then(response => {
       for(var i=0; i<response["content"].length; i++){
         if(response["content"][i]["id"]==this.orgID){
@@ -32,10 +34,9 @@ export class DetailsOrgComponent implements OnInit {
         }
       }
     });
-    
+    // get Activated Components in this organization
     this.componentsService.getActivatedComponents(this.orgID).then(response_activedComponents =>{
       this.activatedComponents=response_activedComponents;
-      console.log("response_activedComponents:",response_activedComponents);
     });
   }
   tabClick(tab) {
@@ -96,9 +97,25 @@ export class DetailsOrgComponent implements OnInit {
       dialogRef.afterClosed().subscribe(result => {
         // have to set data for save the component in the Org
         if(result){
-          this.componentsService.setComponents(this.orgID);
-          setTimeout(()=>{  this.ngOnInit();},1000);
-          console.log('The dialog was closed from openDialog4ManageComponent() and status',result);
+          this.componentsService.setComponents(this.orgID).subscribe(
+            res => {
+              setTimeout(()=>{  this.ngOnInit();},1000);
+              console.log('Return Data from post(create): ' + res);
+            },
+            (err: HttpErrorResponse) => {
+              //open a error dialog with err.error
+              let dialogRefErr = this.dialog.open(detailsOrganizationDialogComponent, {
+                width: '40%',
+                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              });
+              if (err.error instanceof Error) {
+                console.log('Client-side error occured.');
+              } else {
+                console.log('Server-side error occured.',err.error);
+              }
+            }
+          );
+          
         }else{
           console.log("result",result)
         }
@@ -110,13 +127,37 @@ export class DetailsOrgComponent implements OnInit {
    * Modify Organization
    */
   openDialog4ModifyOrg(): void {
+    this.organizationService.setMyOrganization(this.myOrg);
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '40%',
-      data: { name: "", dialogStatus:"TitleModifyOrg"  }
+      data: { name: this.myOrg["name"], myOrg:this.organizationService.getMyOrganization(), dialogStatus:"TitleModifyOrg"  }
     });
-
+    
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed from openDialog4ModifyOrg()');
+      // have to update Organization info
+      if(result){
+        this.organizationService.updateOrganization(this.orgID).subscribe(
+          res => {
+            console.log('Return Data from post(create): ' + res);
+          },
+          (err: HttpErrorResponse) => {
+            //open a error dialog with err.error
+            let dialogRefErr = this.dialog.open(detailsOrganizationDialogComponent, {
+              width: '40%',
+              data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+            });
+            if (err.error instanceof Error) {
+              console.log('Client-side error occured.');
+            } else {
+              console.log('Server-side error occured.');
+            }
+          }
+        );
+        // setTimeout(()=>{  this.ngOnInit();},1000);
+        console.log('The dialog was closed from openDialog4ModifyOrg() and result',result);
+      }else{
+        console.log("no result",result)
+      }
     });
   }
   /**

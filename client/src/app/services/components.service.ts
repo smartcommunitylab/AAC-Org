@@ -31,19 +31,7 @@ export class ComponentsService {
    * param: org id, list of tenants with component ID
    */
   setComponents(orgID: string): any {
-    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/configuration`, this.mergeActivatedComponents)
-    .subscribe(
-      res => {
-        console.log('Return Data from post(create): ' + res);
-      },
-      (err: HttpErrorResponse) => {
-        if (err.error instanceof Error) {
-          console.log('Client-side error occured.');
-        } else {
-          console.log('Server-side error occured.');
-        }
-      }
-    );
+    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/configuration`, this.mergeActivatedComponents);
   }
 
  

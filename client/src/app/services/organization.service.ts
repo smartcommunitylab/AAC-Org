@@ -8,7 +8,7 @@ import 'rxjs/add/operator/map';
 export class OrganizationService {
 
   constructor(private http: HttpClient, private config: ConfigService) { }
-  
+  myOrg: contentOrg;
   /**
    * Get All Organizations
    */
@@ -24,35 +24,31 @@ export class OrganizationService {
    */
   setOrganization(data: contentOrg): any {
     // console.log('input data: ',data);
-    return this.http.post(`${ this.config.get('locUrl') }organizations/`, data).subscribe(
-      res => {
-        console.log('Return Data from post(create): ' + res);
-      },
-      (err: HttpErrorResponse) => {
-        if (err.error instanceof Error) {
-          console.log('Client-side error occured.');
-        } else {
-          console.log('Server-side error occured.');
-        }
-      }
-    );
+    return this.http.post(`${ this.config.get('locUrl') }organizations/`, data);
+  }
+  /**
+   * update modified Organization
+   */
+  updateOrganization(orgID: string): any{
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/info`, this.myOrg);
+  }
+  getMyOrganization():contentOrg{
+    return this.myOrg;
+  }
+  setMyOrganization(dataMyOrg:contentOrg):boolean{
+    if (dataMyOrg) {
+      this.myOrg = dataMyOrg;
+      return true;
+    }else {
+      return false;
+    }
   }
   /**
    * Delete An Organization
+   * @param orgID
    */
   deleteOrganization(orgID: number):any{
-    return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}`).subscribe(
-      res => {
-        console.log('Return Data from post(create): ' + res);
-      },
-      (err: HttpErrorResponse) => {
-        if (err.error instanceof Error) {
-          console.log('Client-side error occured.');
-        } else {
-          console.log('Server-side error occured.');
-        }
-      }
-    );
+    return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}`);
   }
 
   /**
@@ -61,18 +57,7 @@ export class OrganizationService {
    * @param body 
    */
   enableOrganization(orgID:number, body:any){
-    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/enable`,body).subscribe(
-      res => {
-        console.log('Return Data from post(create): ' + res);
-      },
-      (err: HttpErrorResponse) => {
-        if (err.error instanceof Error) {
-          console.log('Client-side error occured.');
-        } else {
-          console.log('Server-side error occured.');
-        }
-      }
-    );
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/enable`,body);
   }
   /**
    * Disable an Organization
@@ -80,18 +65,7 @@ export class OrganizationService {
    * @param body 
    */
   disableOrganization(orgID:number,body:any): any {
-    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/disable`,body).subscribe(
-      res => {
-        console.log('Return Data from post(create): ' + res);
-      },
-      (err: HttpErrorResponse) => {
-        if (err.error instanceof Error) {
-          console.log('Client-side error occured.');
-        } else {
-          console.log('Server-side error occured.');
-        }
-      }
-    );
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/disable`,body);
   }
   /**
    * Get Active Organizations
