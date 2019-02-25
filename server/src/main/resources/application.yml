@@ -54,3 +54,18 @@ aac:
 logging:
   level:
     org.springframework.security: ${OMC_LOGGING_LEVEL_ORGSPRINGFRAMEWORKSECURITY:DEBUG}
+    
+# SWAGGER 
+swagger:
+  title: 
+    orgmanager: Organization Management API  
+  description: 
+    orgmanager: Organization Management API  
+  version: 1.0.0
+  license: Apache License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
+  contact:
+    name:  Smart Community Lab
+    url: www.smartcommunitylab.it
+    email: info@smartcommunitylab.it
+        

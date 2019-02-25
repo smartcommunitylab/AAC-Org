@@ -1,0 +1,30 @@
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleEnableOrg'">Enable an Organization</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDeleteOrg'">Delete an Organization</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: {{data.error.error}}</h2>
+<mat-dialog-content  >
+    <!-- Enable Org -->
+    <div *ngIf="data.dialogStatus=='TitleEnableOrg'">
+        <mat-label class="mat-h4">Do you want to enable the Organization name: {{data.org_name}}</mat-label>
+    </div>
+    <!-- Delete Org -->
+    <div *ngIf="data.dialogStatus=='TitleDeleteOrg'">
+        <mat-label class="mat-h4">Do you want to DELETE the Organization name: {{data.org_name}}</mat-label>
+    </div>
+    <!-- Error Message -->
+    <div *ngIf="data.dialogStatus=='TitleErrorMessage'">
+        <mat-label class="mat-h4"><b>Message:</b>{{data.error.error_description}}</mat-label>
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+    <button mat-button *ngIf="data.dialogStatus=='TitleEnableOrg'"
+        [mat-dialog-close]="true" 
+        tabindex="1" >OK
+    </button>
+    <button mat-button *ngIf="data.dialogStatus=='TitleDeleteOrg'"
+        [mat-dialog-close]="true"    
+        tabindex="1" >OK
+    </button>
+    <span class="fill-remaining-space"></span>
+    <button mat-button (click)="onNoClick()" tabindex="-1">Cancel</button>
+</mat-dialog-actions>

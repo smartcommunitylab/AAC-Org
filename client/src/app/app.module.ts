@@ -3,7 +3,9 @@ import { NgModule } from '@angular/core';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import {MatInputModule, MatButtonModule, MatCheckboxModule, MatToolbarModule, MatMenuModule, MatTableModule, MatTabsModule, MatCardModule, MatGridListModule,MatListModule, MatSlideToggleModule, MatExpansionModule, MatSelectModule} from '@angular/material';
+import {MatInputModule, MatButtonModule, MatCheckboxModule, MatToolbarModule, MatMenuModule,
+        MatTableModule, MatTabsModule, MatCardModule, MatGridListModule, MatListModule, MatSlideToggleModule,
+        MatExpansionModule, MatSelectModule} from '@angular/material';
 import {MatIconModule} from '@angular/material/icon';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSidenavModule} from '@angular/material/sidenav';
@@ -17,15 +19,22 @@ import { AppComponent } from './app.component';
 import { HeaderComponent } from './components/header/header.component';
 import { LoginComponent } from './components/login/login.component';
 import { ActiveOrgComponent, CreateOrganizationDialogComponent } from './components/active-org/active-org.component';
-import { DeactivateOrgComponent } from './components/deactivate-org/deactivate-org.component';
+import { InactivateOrgComponent, ModifyInactiveOrgDialogComponent } from './components/inactivate-org/inactivate-org.component';
 import { BlockOrgComponent } from './components/block-org/block-org.component';
 import { DetailsOrgComponent, detailsOrganizationDialogComponent, ChipsInputExamples} from './components/details-org/details-org.component';
 import { InputFileComponent } from './components/input-file/input-file.component';
+import { UsersComponent } from './components/users/users/users.component';
 
 import { ConfigService } from './services/config.service';
 import { ComponentsService } from './services/components.service';
 import { OrganizationService } from './services/organization.service';
+import { UsersService } from './services/users.service';
+import { LoginService } from './services/auth/login.service';
+import { TokenInterceptor } from './services/auth/token.interceptor';
+
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { HttpModule } from '@angular/http';
+
 
 @NgModule({
   declarations: [
@@ -33,16 +42,19 @@ import { HttpModule } from '@angular/http';
     HeaderComponent,
     LoginComponent,
     ActiveOrgComponent,
-    DeactivateOrgComponent,
+    InactivateOrgComponent,
     BlockOrgComponent,
     CreateOrganizationDialogComponent,
+    ModifyInactiveOrgDialogComponent,
     DetailsOrgComponent,
     detailsOrganizationDialogComponent,
     ChipsInputExamples,
-    InputFileComponent
+    InputFileComponent,
+    UsersComponent
   ],
   entryComponents: [
     CreateOrganizationDialogComponent,
+    ModifyInactiveOrgDialogComponent,
     detailsOrganizationDialogComponent,
     ChipsInputExamples
   ],
@@ -50,7 +62,7 @@ import { HttpModule } from '@angular/http';
     BrowserModule,
     BrowserAnimationsModule,
     MatInputModule,
-    MatButtonModule, 
+    MatButtonModule,
     MatCheckboxModule,
     MatToolbarModule,
     MatMenuModule,
@@ -72,12 +84,20 @@ import { HttpModule } from '@angular/http';
     MatChipsModule,
     MatAutocompleteModule,
     MatRadioModule,
-    HttpModule
+    HttpClientModule
   ],
   providers: [AuthGuard,
     ConfigService,
     ComponentsService,
-    OrganizationService],
+    OrganizationService,
+    UsersService,
+    LoginService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

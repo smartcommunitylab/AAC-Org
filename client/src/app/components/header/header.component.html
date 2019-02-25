@@ -4,35 +4,21 @@
       <mat-icon>menu</mat-icon>
     </button>
     
-    <span > OMC </span>
+    <span > Organization Manager </span>
     <span class="fill-remaining-space"></span>
     <button mat-icon-button [matMenuTriggerFor]="userMenu">
       <mat-icon >account_circle</mat-icon>
     </button>
 
     <mat-menu #userMenu="matMenu">
-      <button mat-menu-item>
+      <button mat-menu-item *ngIf="currentUser">
         <mat-icon>mood</mat-icon>
         <!-- <span>{{ 'Menu.UserName' | translate }}</span> -->
-        <span>Displayname</span>
+        <span>{{currentUser.username}}</span>
       </button>
-      <button mat-menu-item [matMenuTriggerFor]="language">
-        <mat-icon>translate</mat-icon>
-        <span>Language</span>
-      </button>
-      <button mat-menu-item>
+      <button mat-menu-item (click)="logout()">
         <mat-icon>exit_to_app</mat-icon>
         <span>Logout</span>
-      </button>
-    </mat-menu>
-    <mat-menu #language="matMenu">
-      <button mat-menu-item>
-        <mat-icon>g_translate</mat-icon>
-        <span>IT</span>
-      </button>
-      <button mat-menu-item>
-        <mat-icon>g_translate</mat-icon>
-        <span>EN</span>
       </button>
     </mat-menu>
   </mat-toolbar-row>
@@ -42,15 +28,11 @@
   <mat-sidenav #sidenav class="sidenav" >
     <button mat-menu-item   routerLink="/activeOrg" (click)="sidenav.close()"  *ngIf="currentUser">
       <mat-icon>storage</mat-icon>
-      <span>Active Organization </span>
+      <span>Active Organizations </span>
     </button>
-    <button mat-menu-item routerLink="/deactiveOrg"  (click)="sidenav.close()" *ngIf="currentUser">
+    <button mat-menu-item routerLink="/inactiveOrg"  (click)="sidenav.close()" *ngIf="currentUser">
         <mat-icon>person</mat-icon>
-      <span>Deactive Organization </span>
-    </button>
-    <button mat-menu-item routerLink="/blockOrg"  (click)="sidenav.close()"  *ngIf="currentUser">
-      <mat-icon>face</mat-icon>
-      <span>Block Organization </span>
+      <span>Inactive Organizations </span>
     </button>
   </mat-sidenav>
   <mat-sidenav-content>

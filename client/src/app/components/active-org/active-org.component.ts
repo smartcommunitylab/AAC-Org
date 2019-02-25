@@ -4,6 +4,7 @@ import {ActivatedRoute} from '@angular/router';
 import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
 import {OrganizationService} from '../../services/organization.service';
 import { OrganizationProfile, contentOrg } from '../../models/profile';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'app-active-org',
@@ -14,22 +15,31 @@ export class ActiveOrgComponent implements OnInit {
 
   constructor(private organizationService: OrganizationService, private route: ActivatedRoute, public dialog: MatDialog) { }
   orgProfile: OrganizationProfile[];
+  orgActive: Array<OrganizationProfile>=[];
   contentOrg: contentOrg;
   dataSource: any;
   displayedColumns: any;
-  
+
   
   ngOnInit() {
+    this.dataSource ='';
     this.organizationService.getOrganizations().then(response => {
-      console.log("organizationService:",response["content"]);
+      // console.log("organizationService:",response["content"]);
+      for(var i=0; i<response["content"].length; i++){
+        if(response["content"][i]["active"]){
+          // console.log("activeOrg:",response["content"][i]);
+          this.orgActive.push(response["content"][i]);
+        }
+      }
+      // console.log("activeOrg:",this.orgActive);
       this.orgProfile = response;
-      this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details'];
-      this.dataSource =new MatTableDataSource<contentOrg>(response["content"]);
+      this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details', 'status'];
+      // this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgActive);
+      this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgActive);
     });
-    // this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details'];
-    // this.dataSource =new MatTableDataSource<Element>(ELEMENT_DATA);
+
   }
-  
+
 
   /**
    * Create New Organization
@@ -37,23 +47,76 @@ export class ActiveOrgComponent implements OnInit {
   openDialog4CreateOrg(): void {
     let dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
       width: '40%',
-      height:'60%',
-      data: { org_name: "", org_domain:"", org_description:"", dialogStatus:"TitleCreate"  }
+      data: { org_name: "", org_domain:"", org_description:"", dialogStatus:"TitleCreateOrg"  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
         console.log("Result: ",result);
-        // this.contentOrg.name=result.username;
-        // this.contentOrg.slug=result.domain;
-        this.organizationService.setOrganization(result);
-        //console.log('globalData in session:',sessionStorage.getItem('currentDomain'));
-        //for reload the table
-        // setTimeout(()=>{  this.ngOnInit();},1000);
+        this.organizationService.setOrganization(result).subscribe(
+          res => {
+            //for reload the table
+            setTimeout(()=>{  this.ngOnInit();},1000);
+          },
+          (err: HttpErrorResponse) => {
+            //open a error dialog with err.error
+            if(err.error){
+              let dialogRefErr = this.dialog.open(CreateOrganizationDialogComponent, {
+                width: '30%',
+                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              });
+            }
+            
+            if (err.error instanceof Error) {
+              console.log('Client-side error occured.');
+            } else {
+              console.log('Server-side error occured.',err);
+            }
+          }
+        );
       }
     });
   }
 
+  /**
+   * Delete an Org
+   * @param orgID 
+   * @param orgName 
+   */
+  openDialog4ChangeStatusOrg(orgID, orgName): void {
+
+    let dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
+      width: '25%',
+      data: { org_name: orgName, org_id:orgID, dialogStatus:"TitleChangeStatusOrg"  }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if(result){
+        console.log("close ChangeStatusOrg dilog and Result: ",result);
+        this.organizationService.disableOrganization(orgID,orgName).subscribe(
+          res => {
+            //for reload the table
+            setTimeout(()=>{  this.ngOnInit();},1000);
+          },
+          (err: HttpErrorResponse) => {
+            //open a error dialog with err.error
+            if(err.error){
+              let dialogRefErr = this.dialog.open(CreateOrganizationDialogComponent, {
+                width: '30%',
+                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              });
+            }
+            if (err.error instanceof Error) {
+              console.log('Client-side error occured.');
+            } else {
+              console.log('Server-side error occured.');
+            }
+          }
+        );
+        
+      }
+    });
+  }
 }
 /**
  * Component for Dialog
@@ -118,24 +181,3 @@ export class CreateOrganizationDialogComponent {
     this.dialogRef.close();
   }
 }
-
-/*
-* test table data
-*/
-
-export interface Element {
-  id: number;
-  name: string;
-  domain: string;
-  owner: string;
-  description: string;
-  provider: string;
-}
-
-const ELEMENT_DATA: Element[] = [
-  {id: 1, name: 'test1', domain: 'project1', owner: 'test1@fbk.eu', description:'test description', provider:'yes'},
-  {id: 2, name: 'test2', domain: 'project2', owner: 'test2@fbk.eu', description:'test description', provider:'no'},
-  {id: 3, name: 'test3', domain: 'project3', owner: 'test3@fbk.eu', description:'test description', provider:'yes'},
-  {id: 4, name: 'test4', domain: 'project4', owner: 'test4@fbk.eu', description:'test description', provider:'no'},
-  {id: 5, name: 'test5', domain: 'project5', owner: 'test5@fbk.eu', description:'test description', provider:'yes'}
-];

@@ -21,7 +21,6 @@
       <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
       <mat-cell *matCellDef="let element"> {{element.position}} </mat-cell>
     </ng-container> -->
-
     <!-- Name Column -->
     <ng-container matColumnDef="name">
       <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
@@ -58,6 +57,16 @@
       <!-- <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell> -->
       <mat-cell *matCellDef="let element"><a routerLink="/detailsOrg/{{element.id}}"> <button mat-button color="primary">Details</button> </a></mat-cell>
     </ng-container>
+
+    <!-- Status Column -->
+    <ng-container matColumnDef="status">
+      <mat-header-cell *matHeaderCellDef> Status </mat-header-cell>
+      <mat-cell *matCellDef="let element"> 
+          <!-- <mat-slide-toggle color="primary" [(ngModel)]="isChecked" (change)="openDialog4ChangeStatusOrg(element.id,element.name)"> </mat-slide-toggle> -->
+        <button mat-button color="primary" (click)="openDialog4ChangeStatusOrg(element.id,element.name)">Active</button> 
+      </mat-cell>
+    </ng-container>
+
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
     <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>

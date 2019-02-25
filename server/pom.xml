@@ -73,13 +73,13 @@
 		</dependency>
 		<dependency>
 			<groupId>it.smartcommunitylab.orgmanager</groupId>
-			<artifactId>componentsmodel</artifactId>
-			<version>1.0.0</version>
+			<artifactId>orgmanager-componentsmodel</artifactId>
+			<version>1.0.0.RELEASE</version>
 		</dependency>
 		<dependency>
-			<groupId>it.smartcommunitylab</groupId>
-			<artifactId>nificonnector</artifactId>
-			<version>1.0.0</version>
+			<groupId>it.smartcommunitylab.orgmanager</groupId>
+			<artifactId>orgmanager-nificonnector</artifactId>
+			<version>1.0.0.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>it.smartcommunitylab</groupId>
@@ -90,6 +90,19 @@
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
 		</dependency>
+		
+		<dependency>
+      <groupId>io.springfox</groupId>
+      <artifactId>springfox-swagger2</artifactId>
+      <version>2.8.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.springfox</groupId>
+      <artifactId>springfox-swagger-ui</artifactId>
+      <version>2.8.0</version>
+    </dependency>
+
+		
 	</dependencies>
 
 	<build>

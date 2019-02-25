@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute, Router } from '@angular/router';
+import { LoginService } from '../../services/auth/login.service';
 
 @Component({
   selector: 'app-header',
@@ -7,11 +8,14 @@ import {ActivatedRoute, Router } from '@angular/router';
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent implements OnInit {
-  currentUser:string;
-  constructor(private route: ActivatedRoute, private router: Router) { }
+  currentUser: any;
+  constructor(private route: ActivatedRoute, private router: Router, private login: LoginService) { }
 
   ngOnInit() {
-    this.currentUser="admin";
+    this.login.getProfile().subscribe(profile => this.currentUser = profile);
   }
 
+  logout() {
+    this.login.logout();
+  }
 }

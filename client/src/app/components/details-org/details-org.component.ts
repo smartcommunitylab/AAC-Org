@@ -1,12 +1,14 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, Input } from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource, MatChipInputEvent} from '@angular/material';
 import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import {HttpErrorResponse} from '@angular/common/http';
 
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 // import {MatChipInputEvent} from '@angular/material';
+import {OrganizationService} from '../../services/organization.service';
 import {ComponentsService} from '../../services/components.service';
-import { ComponentsProfile, BodyAuth } from '../../models/profile';
+import { contentOrg,ComponentsProfile, ActivatedComponentsProfile } from '../../models/profile';
 
 @Component({
   selector: 'app-details-org',
@@ -16,41 +18,151 @@ import { ComponentsProfile, BodyAuth } from '../../models/profile';
 export class DetailsOrgComponent implements OnInit {
   panelOpenState: boolean = false;
   components: ComponentsProfile[];
-  constructor(public dialog: MatDialog, private componentsService:ComponentsService) { }
-  
+  activatedComponents:ActivatedComponentsProfile[];
+  mergeActivatedComponents:Array<ActivatedComponentsProfile>=[];
+  myOrg: contentOrg;
+  orgID:string=this.route.snapshot.paramMap.get('id');
+  constructor(private organizationService: OrganizationService,public dialog: MatDialog, private componentsService:ComponentsService, private route: ActivatedRoute) { }
+
   ngOnInit() {
-    this.componentsService.getComponents().then(components =>{
-      this.components=components;
+    // get all information about this organization
+    this.organizationService.getOrganizations().then(response => {
+      for(var i=0; i<response["content"].length; i++){
+        if(response["content"][i]["id"]==this.orgID){
+          // this.myOrg.push(response["content"][i]);
+          this.myOrg=response["content"][i];
+        }
+      }
+    });
+    // get Activated Components in this organization
+    this.componentsService.getActivatedComponents(this.orgID).then(response_activedComponents =>{
+      this.activatedComponents=response_activedComponents;
     });
   }
-
+  tabClick(tab) {
+    // console.log("selectedTabChange:",tab);
+    if(tab.index==1){
+      this.ngOnInit();
+    }
+  }
  /**
    * Manage Organization
    */
-  openDialog4ManageOrg(): void {
-    let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
-      width: '40%',
-      data: { name: "", dialogStatus:"TitleManageOrg"  }
+  // openDialog4ManageComponent(): void {
+  //   // this.mergeActivatedComponents=this.componentsService.getMergeActivatedComponents(this.route.snapshot.paramMap.get('id'));
+  //   this.componentsService.mergeActivatedComponentsFn(this.route.snapshot.paramMap.get('id')).then(() =>{
+  //   // if(this.componentsService.mergeActivatedComponentsFn(this.route.snapshot.paramMap.get('id'))){
+  //     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
+  //       width: '40%',
+  //       data: { name: "", components:this.componentsService.getMergeActivatedComponents(), dialogStatus:"TitleManageComponent"}
+  //     });
+      
+  //     dialogRef.afterClosed().subscribe(result => {
+  //       // have to set data for save the component in the Org
+  //       console.log('The dialog was closed from openDialog4ManageComponent() and this.mergeActivatedComponents');
+  //     });
+      
+  //   });
+    
+  // }
+  openDialog4ManageComponent(): void {
+    this.componentsService.getComponents().then(response_components =>{
+      this.components=response_components["content"];
+      this.mergeActivatedComponents=[];
+      for(var i=0; i<this.components.length; i++){
+        // var ten=this.activatedComponents.find(x=>x.componentId==this.components[i]["componentId"]).tenants;
+        if(this.activatedComponents.find(x=>x.componentId==this.components[i]["componentId"])){
+          this.mergeActivatedComponents.push({
+            'componentId': this.components[i]["componentId"],
+            'componentName': this.components[i]["name"],
+            'tenants':this.activatedComponents.find(x=>x.componentId==this.components[i]["componentId"]).tenants
+          });
+        }else{
+          this.mergeActivatedComponents.push({
+            'componentId': this.components[i]["componentId"],
+            'componentName': this.components[i]["name"],
+            'tenants':[]
+          });
+        }
+        
+      }
+      this.componentsService.setMergeActivatedComponents(this.mergeActivatedComponents);
+      
+      console.log("mergeActivatedComponents:",this.mergeActivatedComponents);
+      let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
+        width: '40%',
+        data: { name: "", components:this.componentsService.getMergeActivatedComponents(), dialogStatus:"TitleManageComponent"  }
+      });
+      
+      dialogRef.afterClosed().subscribe(result => {
+        // have to set data for save the component in the Org
+        if(result){
+          this.componentsService.setComponents(this.orgID).subscribe(
+            res => {
+              setTimeout(()=>{  this.ngOnInit();},1000);
+              console.log('Return Data from post(create): ' + res);
+            },
+            (err: HttpErrorResponse) => {
+              //open a error dialog with err.error
+              let dialogRefErr = this.dialog.open(detailsOrganizationDialogComponent, {
+                width: '40%',
+                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              });
+              if (err.error instanceof Error) {
+                console.log('Client-side error occured.');
+              } else {
+                console.log('Server-side error occured.',err.error);
+              }
+            }
+          );
+          
+        }else{
+          console.log("result",result)
+        }
+      });
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed from openDialog4ManageOrg()');
-    });
+    
   }
   /**
    * Modify Organization
    */
   openDialog4ModifyOrg(): void {
+    this.organizationService.setMyOrganization(this.myOrg);
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '40%',
-      data: { name: "", dialogStatus:"TitleModifyOrg"  }
+      data: { name: this.myOrg["name"], myOrg:this.organizationService.getMyOrganization(), dialogStatus:"TitleModifyOrg"  }
     });
-
+    
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed from openDialog4ModifyOrg()');
+      // have to update Organization info
+      if(result){
+        this.organizationService.updateOrganization(this.orgID).subscribe(
+          res => {
+            console.log('Return Data from post(create): ' + res);
+          },
+          (err: HttpErrorResponse) => {
+            //open a error dialog with err.error
+            let dialogRefErr = this.dialog.open(detailsOrganizationDialogComponent, {
+              width: '40%',
+              data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+            });
+            if (err.error instanceof Error) {
+              console.log('Client-side error occured.');
+            } else {
+              console.log('Server-side error occured.');
+            }
+          }
+        );
+        // setTimeout(()=>{  this.ngOnInit();},1000);
+        console.log('The dialog was closed from openDialog4ModifyOrg() and result',result);
+      }else{
+        console.log("no result",result)
+      }
     });
   }
-
+  /**
+   * Create Provider Config
+   */
   openDialog4CreateProviderConfig(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '400px',
@@ -61,7 +173,9 @@ export class DetailsOrgComponent implements OnInit {
       console.log('The dialog was closed from openDialog4CreateProviderConfig()');
     });
   }
-
+  /**
+   * Modify Provider Config
+   */
   openDialog4ModifyProviderConfig(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
@@ -72,7 +186,9 @@ export class DetailsOrgComponent implements OnInit {
       console.log('The dialog was closed from openDialog4ModifyProviderConfig()');
     });
   }
-
+  /**
+   * Add a user
+   */
   openDialog4AddUser(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
@@ -83,7 +199,9 @@ export class DetailsOrgComponent implements OnInit {
       console.log('The dialog was closed from openDialog4AddUser()');
     });
   }
-
+  /**
+   * Modify A User
+   */
   openDialog4ModifyUser(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
@@ -94,7 +212,9 @@ export class DetailsOrgComponent implements OnInit {
       console.log('The dialog was closed from openDialog4ModifyUser()');
     });
   }
-
+  /**
+   * Delete A User
+   */
   openDialog4DeleteUser(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
@@ -118,14 +238,29 @@ export class DetailsOrgComponent implements OnInit {
   styleUrls: ['./details-org.component.css']
 })
 export class detailsOrganizationDialogComponent {
-  constructor(public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any) { }
+  constructor(private componentsService:ComponentsService,public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any) { }
   selectedCat: string;
+  tenantControl_status = false;
   category: any = [ {"name": "Owner", "ID": "C1", "checked": true},
               {"name": "User", "ID": "C2", "checked": false}];
   
+  trackByTenant(item, id){
+    return item;
+  }
   onNoClick(): void {
     this.dialogRef.close();
   }
+  onKeyChange():boolean{
+    return this.tenantControl_status=true;
+  }
+  addTenant(indexComponent:number):void{
+    this.componentsService.addTenant(indexComponent);
+  }
+  removeTenants(indexComponent:number, indexTenant: number): any {
+    this.tenantControl_status=true;
+    return this.componentsService.modifyComponent(indexComponent,indexTenant);
+  }
+
 }
 
 ///////////////////////////////////// for test
@@ -148,6 +283,7 @@ export class ChipsInputExamples {
   onNoClick(): void {
     this.dialogRef.close();
   }
+  
   visible = true;
   selectable = true;
   removable = true;

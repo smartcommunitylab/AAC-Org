@@ -9,12 +9,3 @@
 .dialog-container-form-field > * {
     width: 100%;
 }
-
-.manageOrg{
-    min-height: 150px;
-}
-
-mat-grid-tile {
-    background: #e2f3fa;
-  }
-  
