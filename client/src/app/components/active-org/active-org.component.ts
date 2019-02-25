@@ -31,10 +31,8 @@ export class ActiveOrgComponent implements OnInit {
           this.orgActive.push(response["content"][i]);
         }
       }
-      // console.log("activeOrg:",this.orgActive);
       this.orgProfile = response;
       this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details', 'status'];
-      // this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgActive);
       this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgActive);
     });
 

@@ -23,7 +23,6 @@ export class OrganizationService {
    * param: list of Organizations information
    */
   setOrganization(data: contentOrg): any {
-    // console.log('input data: ',data);
     return this.http.post(`${ this.config.get('locUrl') }organizations/`, data);
   }
   /**

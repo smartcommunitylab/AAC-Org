@@ -64,10 +64,6 @@
 
         </mat-grid-list>
       </mat-card-content>
-      <!-- <mat-card-actions>
-        <button mat-button>LIKE</button>
-        <button mat-button>SHARE</button>
-      </mat-card-actions> -->
     </mat-card>
   </mat-tab>
   <mat-tab label="Configuration">
@@ -83,7 +79,7 @@
       </mat-card-header>
       <mat-card-content>
         <mat-accordion>
-            <mat-expansion-panel *ngFor="let component of activatedComponents">
+          <mat-expansion-panel *ngFor="let component of activatedComponents">
                 <mat-expansion-panel-header>
                     <mat-panel-title>
                         {{component.componentId}}
@@ -102,90 +98,14 @@
                   </mat-list-item>
                   
                 </mat-list>
-            </mat-expansion-panel>
-          <!-- <mat-expansion-panel [expanded]="false"   #matExpansionPanel1>
-            <mat-expansion-panel-header >
-              <mat-panel-title>
-                Component Name 
-              </mat-panel-title>
-              <mat-panel-description>
-                  Domain: {{matExpansionPanel1.expanded? 'open' : 'closed'}}
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-            <div class="contain-expansion-panel">
-              <div class="description">
-                <p>Description of the Component.</p>
-              </div>
-              <div class="providerConfig">
-                <mat-toolbar>
-                  <span>Provider Configurations</span>
-                  <span class="fill-remaining-space"></span>
-                  <button mat-raised-button color="primary" (click)="openDialog4CreateProviderConfig()">
-                    <i class="material-icons">add_circle_outline</i>
-                    Create Provider Config
-                  </button>
-                </mat-toolbar>
-                <mat-grid-list cols="2" rowHeight="8:1">
-                  
-                  <mat-grid-tile>Tenant</mat-grid-tile>
-                  <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>delete</mat-icon></button></mat-grid-tile>
-                  
-                  <mat-grid-tile>Tenant</mat-grid-tile>
-                  <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>delete</mat-icon></button></mat-grid-tile>
-                  
-                  <mat-grid-tile>Tenant</mat-grid-tile>
-                  <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>delete</mat-icon></button></mat-grid-tile>
-                </mat-grid-list>
-              </div>
-            </div>
           </mat-expansion-panel>
-        
-          <mat-expansion-panel [expanded]="false" #matExpansionPanel2>
-            <mat-expansion-panel-header >
-              <mat-panel-title>
-                Component Name 
-              </mat-panel-title>
-              <mat-panel-description>
-                  Domain: {{matExpansionPanel2.expanded? 'open' : 'closed'}}
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-            <div class="contain-expansion-panel">
-              <div class="description">
-                <p>Description of the Component.</p>
-              </div>
-              <div class="providerConfig">
-                <mat-toolbar>
-                  <span>Provider Configurations</span>
-                  <span class="fill-remaining-space"></span>
-                  <button mat-raised-button color="primary" (click)="openDialog4CreateProviderConfig()">
-                    <i class="material-icons">add_circle_outline</i>
-                    Create Provider Config
-                  </button>
-                </mat-toolbar>
-                <mat-grid-list cols="4" rowHeight="8:1">
-                  <mat-grid-tile>Provider Domain</mat-grid-tile>
-                  <mat-grid-tile>Tenant</mat-grid-tile>
-                  <mat-grid-tile>Activated</mat-grid-tile>
-                  <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>mode_edit</mat-icon></button></mat-grid-tile>
-                  <mat-grid-tile>Provider Domain</mat-grid-tile>
-                  <mat-grid-tile>Tenant</mat-grid-tile>
-                  <mat-grid-tile>Activated</mat-grid-tile>
-                  <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>mode_edit</mat-icon></button></mat-grid-tile>
-                  <mat-grid-tile>Provider Domain</mat-grid-tile>
-                  <mat-grid-tile>Tenant</mat-grid-tile>
-                  <mat-grid-tile>Activated</mat-grid-tile>
-                  <mat-grid-tile ><button mat-button (click)="openDialog4ModifyProviderConfig()"><mat-icon matSuffix>mode_edit</mat-icon></button></mat-grid-tile>
-                </mat-grid-list>
-              </div>
-            </div>
-          </mat-expansion-panel> -->
-        
+
         </mat-accordion>          
       </mat-card-content>
     </mat-card>
   </mat-tab>
   <mat-tab label="Users">
-    <mat-card class="example-card">
+    <!-- <mat-card class="example-card">
       <mat-card-header>
         <mat-card-title>Users of the Organization</mat-card-title>
         <mat-card-subtitle>List of Users in the Organization</mat-card-subtitle>
@@ -219,6 +139,50 @@
             <button mat-button (click)="openDialog4DeleteUser()"><mat-icon matSuffix>delete</mat-icon></button>
           </mat-grid-tile>
         </mat-grid-list>
+      </mat-card-content>
+    </mat-card> -->
+    <mat-card class="example-card">
+      <mat-card-header>
+        <mat-card-title>Users of the Organization</mat-card-title>
+        <mat-card-subtitle>List of Users in the Organization</mat-card-subtitle>
+        <span class="fill-remaining-space"></span>
+        <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4AddUser()">
+          <i class="material-icons">add_circle_outline</i>
+          Add User
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+          <mat-table #table [dataSource]="dataSourceUser">
+            <!-- Name Column -->
+            <ng-container matColumnDef="username">
+              <mat-header-cell *matHeaderCellDef> Username </mat-header-cell>
+              <mat-cell *matCellDef="let element"> {{element.username}} </mat-cell>
+            </ng-container>
+        
+            <!-- Domain Column -->
+            <ng-container matColumnDef="roles">
+              <mat-header-cell *matHeaderCellDef> Roles </mat-header-cell>
+              <mat-cell *matCellDef="let element"> {{element.roles['0'].role}} </mat-cell>
+            </ng-container>
+        
+            <!-- owner Column -->
+            <ng-container matColumnDef="owner">
+              <mat-header-cell *matHeaderCellDef> Owner </mat-header-cell>
+              <mat-cell *matCellDef="let element"> {{element.owner}} </mat-cell>
+            </ng-container>
+      
+            <!-- Status Column -->
+            <ng-container matColumnDef="action">
+              <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+              <mat-cell *matCellDef="let element"> 
+                <button mat-button (click)="openDialog4ModifyUser()"><mat-icon matSuffix>mode_edit</mat-icon></button>
+                <button mat-button (click)="openDialog4DeleteUser(element.id)"><mat-icon matSuffix>delete</mat-icon></button>
+              </mat-cell>
+            </ng-container>
+      
+            <mat-header-row *matHeaderRowDef="displayedUsersColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedUsersColumns;"></mat-row>
+          </mat-table>
       </mat-card-content>
     </mat-card>
   </mat-tab>
