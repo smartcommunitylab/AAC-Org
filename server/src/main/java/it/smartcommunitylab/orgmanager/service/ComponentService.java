@@ -87,6 +87,31 @@ public class ComponentService {
 	}
 	
 	/**
+	 * Returns the possible roles for the requested component
+	 * 
+	 * @param componentId - ID of the component
+	 * @return - A list of possible roles for the component
+	 */
+	public List<String> getComponentRoles(String componentId) {
+		List<Map<String, String>> componentProperties = componentsConfig.getComponentProperties();
+		String rolesString;
+		List<String> roles = new ArrayList<String>();
+		for (Map<String, String> map : componentProperties) { // Retrieves all properties for each component
+			if (componentId.equals(map.get(ComponentsConfig.FIELD_COMPONENT_ID))) { // it's the input component
+				rolesString = map.get(ComponentsConfig.FIELD_ROLES);
+				if (rolesString != null) { // builds a list from the comma-separated string
+					for (String s : rolesString.split(",")) {
+						if (!s.trim().equals(""))
+							roles.add(s.trim());
+					}
+				}
+				break;
+			}
+		}
+		return roles;
+	}
+	
+	/**
 	 * Returns the organization's configuration.
 	 * 
 	 * @param organizationId - ID of the organization

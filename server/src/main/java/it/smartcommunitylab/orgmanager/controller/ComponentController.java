@@ -25,6 +25,11 @@ public class ComponentController {
 		return componentService.listComponents(pageable);
 	}
 	
+	@GetMapping("/api/components/{componentId}/roles")
+	public List<String> getComponentRoles(@PathVariable String componentId) {
+		return componentService.getComponentRoles(componentId);
+	}
+	
 	@GetMapping("/api/organizations/{id}/configuration")
 	public List<ComponentConfigurationDTO> showConfigurations(@PathVariable Long id) {
 		return componentService.getConfigurations(id);
