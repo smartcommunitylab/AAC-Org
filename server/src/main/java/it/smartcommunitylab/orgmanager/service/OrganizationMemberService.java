@@ -252,7 +252,7 @@ public class OrganizationMemberService {
 		roles.addAll(rolesToAdd); // adds all new roles to the output roles
 		
 		if (alreadyOwner)
-			throw new IllegalArgumentException("User is already owner of the organization.");
+			throw new IllegalArgumentException("User " + owner.getUsername() + " already is owner of the organization.");
 		return new OrganizationMemberDTO(owner, roles, true);
 	}
 	
