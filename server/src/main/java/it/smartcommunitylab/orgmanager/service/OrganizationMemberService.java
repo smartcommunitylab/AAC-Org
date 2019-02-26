@@ -212,7 +212,9 @@ public class OrganizationMemberService {
 		OrganizationMember owner = organizationMemberRepository.findByUsernameAndOrganization(ownerName, organization);
 		HashSet<Role> roles = new HashSet<Role>();
 		Long ownerId; // ID used by the identity provider to identify the owner
+		boolean alreadyOwner = true; // used to check if the user already has the ROLE_PROVIDER role for the organization and all of its tenants
 		if (owner == null) { // owner user needs to be created
+			alreadyOwner = false;
 			ownerId = utils.getUserId(ownerName); // retrieves the ID from the identity provider
 			owner = new OrganizationMember(ownerName, organization, ownerId);
 		} else { // new owner is an existing user
@@ -223,11 +225,17 @@ public class OrganizationMemberService {
 		Role ownerRole = new Role(OrgManagerUtils.ROOT_ORGANIZATIONS + "/" + organization.getSlug(), OrgManagerUtils.ROLE_PROVIDER, owner, null);
 		List<Role> rolesToAdd = new ArrayList<Role>();
 		rolesToAdd.add(ownerRole); // owner role
+		if (alreadyOwner)
+			alreadyOwner = roles.contains(ownerRole);
 		// New owner must also be given ROLE_PROVIDER role on all tenants of the organization
 		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
-		for (Tenant t : tenants)
-			rolesToAdd.add(new Role(OrgManagerUtils.ROOT_COMPONENTS + "/" + t.getTenantId().getComponentId() + "/" + t.getTenantId().getName(),
-					OrgManagerUtils.ROLE_PROVIDER, owner, t.getTenantId().getComponentId()));
+		for (Tenant t : tenants) {
+			Role tenantRole = new Role(OrgManagerUtils.ROOT_COMPONENTS + "/" + t.getTenantId().getComponentId() + "/" + t.getTenantId().getName(),
+					OrgManagerUtils.ROLE_PROVIDER, owner, t.getTenantId().getComponentId());
+			rolesToAdd.add(tenantRole);
+			if (alreadyOwner)
+				alreadyOwner = roles.contains(tenantRole);
+		}
 		organizationMemberRepository.save(owner);
 		roleRepository.saveAll(rolesToAdd);
 		
@@ -242,6 +250,9 @@ public class OrganizationMemberService {
 		}
 		
 		roles.addAll(rolesToAdd); // adds all new roles to the output roles
+		
+		if (alreadyOwner)
+			throw new IllegalArgumentException("User is already owner of the organization.");
 		return new OrganizationMemberDTO(owner, roles, true);
 	}
 	
