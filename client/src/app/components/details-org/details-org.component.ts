@@ -28,6 +28,7 @@ export class DetailsOrgComponent implements OnInit {
   usersList:UsersProfile[];
   dataSourceUser: any;
   displayedUsersColumns: any;
+  userType:string;
 
 
   ngOnInit() {
@@ -185,9 +186,10 @@ export class DetailsOrgComponent implements OnInit {
    * Add a user
    */
   openDialog4AddUser(): void{
+    console.log("this.activatedComponents:",this.activatedComponents);
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '35%',
-      data: { name: "", dialogStatus:"TitleAddUser"  }
+      data: { name: "", components:this.activatedComponents, dialogStatus:"TitleAddUser"  }
     });
     
     dialogRef.afterClosed().subscribe(result => {
@@ -233,7 +235,8 @@ export class DetailsOrgComponent implements OnInit {
   /**
    * Delete A User
    */
-  openDialog4DeleteUser(userID:string): void{
+  openDialog4DeleteUser(userID:string,owner:boolean): void{
+    this.userType=owner?"owners":"members";
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
       data: { name: "testUser4delete", dialogStatus:"TitleDeleteUser"  }
@@ -242,7 +245,7 @@ export class DetailsOrgComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       
       if(result){
-        this.usersService.deleteOwner(this.orgID,userID).subscribe(
+        this.usersService.deleteUser(this.orgID,userID,this.userType).subscribe(
           res => {
             console.log('The dialog was closed from openDialog4DeleteUser()',res);
             //for reload the table

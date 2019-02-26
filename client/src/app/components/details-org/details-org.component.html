@@ -162,7 +162,12 @@
             <!-- Domain Column -->
             <ng-container matColumnDef="roles">
               <mat-header-cell *matHeaderCellDef> Roles </mat-header-cell>
-              <mat-cell *matCellDef="let element"> {{element.roles['0'].role}} </mat-cell>
+              <!-- <mat-cell *matCellDef="let element"> {{element.roles['0'].role}}  </mat-cell>-->
+              <mat-cell *matCellDef="let element"> 
+                <mat-select placeholder="Role" >
+                  <mat-option value="val" *ngFor=" let role of element.roles">{{role.role}}</mat-option>
+                </mat-select>
+              </mat-cell>
             </ng-container>
         
             <!-- owner Column -->
@@ -175,8 +180,9 @@
             <ng-container matColumnDef="action">
               <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
               <mat-cell *matCellDef="let element"> 
-                <button mat-button (click)="openDialog4ModifyUser()"><mat-icon matSuffix>mode_edit</mat-icon></button>
-                <button mat-button (click)="openDialog4DeleteUser(element.id)"><mat-icon matSuffix>delete</mat-icon></button>
+                <button mat-button *ngIf="element.owner" disabled><mat-icon matSuffix>mode_edit</mat-icon></button>
+                <button mat-button *ngIf="!element.owner" (click)="openDialog4ModifyUser()"><mat-icon matSuffix>mode_edit</mat-icon></button>
+                <button mat-button (click)="openDialog4DeleteUser(element.id,element.owner)"><mat-icon matSuffix>delete</mat-icon></button>
               </mat-cell>
             </ng-container>
       

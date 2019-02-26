@@ -12,6 +12,7 @@ export class UsersService {
   
   /**
    * Get All Organizations
+   * @param orgID
    */
   getAllUsers(orgID: string): Promise<UsersProfile[]> {
     return this.http.get(`${ this.config.get('locUrl') }organizations/${orgID}/members`)
@@ -21,6 +22,8 @@ export class UsersService {
 
   /**
    *  set owner as a user
+   * @param orgID
+   * @param ownerName
    */
   setOwner(orgID:string, ownerName:any ): any {
     return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/owners`, ownerName);
@@ -30,8 +33,9 @@ export class UsersService {
    * Delete An Owner
    * @param orgID
    * @param userID
+   * @param userType like 'owners' or 'members'
    */
-  deleteOwner(orgID: string,userID:string):any{
-    return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}/owners/${userID}`);
+  deleteUser(orgID: string, userID:string, userType:string):any{
+    return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}/${userID}`);
   }
 }
