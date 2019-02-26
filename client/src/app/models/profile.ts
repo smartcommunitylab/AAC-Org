@@ -1,5 +1,15 @@
 import { Injectable } from '@angular/core';
 
+export class UsersProfile{
+    id: string;
+    username: string;
+    roles:UsersRoles[];
+    owner:string;
+}
+export class UsersRoles{
+    contextSpace: string;
+    role: string;
+}
 export class ActivatedComponentsProfile{
     componentId: string;
     componentName: string;
