@@ -186,16 +186,15 @@ export class DetailsOrgComponent implements OnInit {
    * Add a user
    */
   openDialog4AddUser(): void{
-    console.log("this.activatedComponents:",this.activatedComponents);
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '35%',
       data: { name: "", components:this.activatedComponents, dialogStatus:"TitleAddUser"  }
     });
     
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed from openDialog4AddUser()', result);
-      if(result){
-        this.usersService.setOwner(this.orgID,result).subscribe(
+      //result.roles means it's a user else it will be owner
+      if(result && result.roles){
+        this.usersService.setUser(this.orgID,result,"members").subscribe(
           res => {
             //for reload the table
             setTimeout(()=>{  this.ngOnInit();},1000);
@@ -208,7 +207,27 @@ export class DetailsOrgComponent implements OnInit {
                 data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
               });
             }
-            
+            if (err.error instanceof Error) {
+              console.log('Client-side error occured.');
+            } else {
+              console.log('Server-side error occured.',err);
+            }
+          }
+        );
+      }else if(result){
+        this.usersService.setUser(this.orgID,result,"owners").subscribe(
+          res => {
+            //for reload the table
+            setTimeout(()=>{  this.ngOnInit();},1000);
+          },
+          (err: HttpErrorResponse) => {
+            //open a error dialog with err.error
+            if(err.error){
+              let dialogRefErr = this.dialog.open(detailsOrganizationDialogComponent, {
+                width: '30%',
+                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              });
+            }
             if (err.error instanceof Error) {
               console.log('Client-side error occured.');
             } else {
@@ -285,11 +304,16 @@ export class DetailsOrgComponent implements OnInit {
 export class detailsOrganizationDialogComponent {
   constructor(private componentsService:ComponentsService,public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any,  private _fb: FormBuilder) {
     this.selectedCat="Owner";
+    // this.userRoles=[
+    //   "ROLE_MANAGER",
+    //   "ROLE_USER"
+    // ];
   }
   selectedCat: string;
   tenantControl_status = false;
   category: any = [ {"name": "Owner", "ID": "C1", "checked": true},
               {"name": "User", "ID": "C2", "checked": false}];
+  userRoles:string[];
   usernameControl = new FormControl('', [Validators.required]);
   formDoc: FormGroup;
   ngOnInit() {
@@ -320,6 +344,12 @@ export class detailsOrganizationDialogComponent {
     return this.usernameControl.hasError('required') ? 'You must enter a Name of the Organization.' :
         //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
+  }
+  getTenantsBySelectedComponent(selectedComponentID:string){
+    this.componentsService.getTenantsBySelectedComponent(selectedComponentID).then(response => {
+      this.userRoles=response;
+      console.log("tenants:",this.userRoles);
+    });
   }
 }
 

@@ -25,12 +25,12 @@ export class UsersService {
    * @param orgID
    * @param ownerName
    */
-  setOwner(orgID:string, ownerName:any ): any {
-    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/owners`, ownerName);
+  setUser(orgID:string, ownerName:any, userType:string): any {
+    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, ownerName);
   }
 
   /**
-   * Delete An Owner
+   * Delete A User
    * @param orgID
    * @param userID
    * @param userType like 'owners' or 'members'

@@ -25,7 +25,15 @@ export class ComponentsService {
     .map(response => response as ActivatedComponentsProfile[])
     .toPromise();
   }
-
+  /**
+   * gat all tenants of a component
+   * @param componentID 
+   */
+  getTenantsBySelectedComponent(componentID:string):Promise<string[]>{
+    return this.http.get(`${ this.config.get('locUrl') }components/${componentID}/roles`)
+    .map(response => response as string[])
+    .toPromise();
+  }
   /**
    * Set Component in a particular Org
    * param: org id, list of tenants with component ID
@@ -53,4 +61,5 @@ export class ComponentsService {
   addTenant(indexComponent: number) {
     this.mergeActivatedComponents[indexComponent].tenants.push('');
   }
+  
 }

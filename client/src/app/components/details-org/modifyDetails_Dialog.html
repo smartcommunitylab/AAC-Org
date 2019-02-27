@@ -141,24 +141,22 @@
             <div class="example-selected-value">
                 <!-- Select Component  -->
                 <mat-form-field class="dialog-container-form-field">
-                    <mat-select placeholder="Component" #changeValue>
-                        <mat-option value=""  *ngFor="let component of data.components">{{component.componentId}}</mat-option>
+                    <mat-select placeholder="Component" [(value)]="selectedComponentId" (change)="getTenantsBySelectedComponent($event.value)">
+                        <mat-option value="{{component.componentId}}"  *ngFor="let component of data.components">{{component.componentId}}</mat-option>
                     </mat-select>
                 </mat-form-field>
                 <!-- Select Tenant  -->
-                <mat-form-field class="dialog-container-form-field">
-                    
-                    <mat-select placeholder="Tenant" >
-                        <mat-option value="ten1">Tenant1</mat-option>
-                        <mat-option value="ten1">{{changeValue.value}}</mat-option>
-                    </mat-select>
+                <mat-form-field class="dialog-container-form-field" *ngIf="selectedComponentId">
+                    <div *ngFor="let component of data.components; let in = index">
+                        <mat-select placeholder="Tenants" [(value)]="selectedTenant" *ngIf="component.componentId == selectedComponentId">
+                            <mat-option value="{{tenant}}" *ngFor="let tenant of component.tenants">{{tenant}}</mat-option>
+                        </mat-select>
+                    </div>
                 </mat-form-field>
                 <!-- Select Role  -->
-                <mat-form-field class="dialog-container-form-field">
-                    <mat-select placeholder="Role">
-                        <mat-option value="role1">Owner</mat-option>
-                        <mat-option value="role2">Admin</mat-option>
-                        <mat-option value="role3">User</mat-option>
+                <mat-form-field class="dialog-container-form-field" *ngIf="selectedTenant">
+                    <mat-select placeholder="Role" [(value)]="selectedRole">
+                        <mat-option value="{{role}}" *ngFor="let role of userRoles">{{role}}</mat-option>
                     </mat-select>
                 </mat-form-field>
             </div>
@@ -207,8 +205,19 @@
         [disabled]="!tenantControl_status"     
         >OK
     </button>
-    <button mat-button *ngIf="data.dialogStatus=='TitleAddUser' && selectedCat=='Owner'"
+    <button mat-button *ngIf="data.dialogStatus=='TitleAddUser' && selectedCat == 'Owner'"
         [mat-dialog-close]="{username:usernameControl.value}" 
+        [disabled]="usernameControl.invalid"
+        tabindex="1">OK
+    </button>
+    <button mat-button *ngIf="data.dialogStatus=='TitleAddUser' && selectedCat == 'User' && selectedRole"
+        [mat-dialog-close]="{
+            username:usernameControl.value,
+            roles:[{
+                contextSpace:'components/'+selectedComponentId+'/'+selectedTenant,
+                role:selectedRole
+            }]
+        }" 
         [disabled]="usernameControl.invalid"
         tabindex="1">OK
     </button>
