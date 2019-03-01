@@ -21,9 +21,10 @@ export class UsersService {
   }
 
   /**
-   *  set owner as a user
+   *  set a user/owner
    * @param orgID
    * @param ownerName
+   * @param userType like 'owners' or 'members'
    */
   setUser(orgID:string, ownerName:any, userType:string): any {
     return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, ownerName);

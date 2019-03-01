@@ -9,7 +9,9 @@
 .dialog-container-form-field > * {
     width: 100%;
 }
-
+.dialog-container-addUser {
+    display: contents !important;
+}
 .manageOrg{
     min-height: 150px;
 }

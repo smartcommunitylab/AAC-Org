@@ -105,42 +105,6 @@
     </mat-card>
   </mat-tab>
   <mat-tab label="Users">
-    <!-- <mat-card class="example-card">
-      <mat-card-header>
-        <mat-card-title>Users of the Organization</mat-card-title>
-        <mat-card-subtitle>List of Users in the Organization</mat-card-subtitle>
-        <span class="fill-remaining-space"></span>
-        <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4AddUser()">
-          <i class="material-icons">add_circle_outline</i>
-          Add User
-        </button>
-      </mat-card-header>
-      <mat-card-content>
-        <mat-grid-list cols="4" rowHeight="8:1">
-          <mat-grid-tile>Username</mat-grid-tile>
-          <mat-grid-tile>Role</mat-grid-tile>
-          <mat-grid-tile>Owner</mat-grid-tile>
-          <mat-grid-tile >
-            <button mat-button (click)="openDialog4ModifyUser()"><mat-icon matSuffix>mode_edit</mat-icon></button>
-            <button mat-button (click)="openDialog4DeleteUser()"><mat-icon matSuffix>delete</mat-icon></button>
-          </mat-grid-tile>
-          <mat-grid-tile>Username</mat-grid-tile>
-          <mat-grid-tile>Role</mat-grid-tile>
-          <mat-grid-tile>User</mat-grid-tile>
-          <mat-grid-tile >
-            <button mat-button (click)="openDialog4ModifyUser()"><mat-icon matSuffix>mode_edit</mat-icon></button>
-            <button mat-button (click)="openDialog4DeleteUser()"><mat-icon matSuffix>delete</mat-icon></button>
-          </mat-grid-tile>
-          <mat-grid-tile>Username</mat-grid-tile>
-          <mat-grid-tile>Role</mat-grid-tile>
-          <mat-grid-tile>User</mat-grid-tile>
-          <mat-grid-tile >
-            <button mat-button (click)="openDialog4ModifyUser()"><mat-icon matSuffix>mode_edit</mat-icon></button>
-            <button mat-button (click)="openDialog4DeleteUser()"><mat-icon matSuffix>delete</mat-icon></button>
-          </mat-grid-tile>
-        </mat-grid-list>
-      </mat-card-content>
-    </mat-card> -->
     <mat-card class="example-card">
       <mat-card-header>
         <mat-card-title>Users of the Organization</mat-card-title>
@@ -181,7 +145,7 @@
               <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
               <mat-cell *matCellDef="let element"> 
                 <button mat-button *ngIf="element.owner" disabled><mat-icon matSuffix>mode_edit</mat-icon></button>
-                <button mat-button *ngIf="!element.owner" (click)="openDialog4ModifyUser()"><mat-icon matSuffix>mode_edit</mat-icon></button>
+                <button mat-button *ngIf="!element.owner" (click)="openDialog4ModifyUser(element.id, element.username, element.roles)"><mat-icon matSuffix>mode_edit</mat-icon></button>
                 <button mat-button (click)="openDialog4DeleteUser(element.id,element.owner)"><mat-icon matSuffix>delete</mat-icon></button>
               </mat-cell>
             </ng-container>

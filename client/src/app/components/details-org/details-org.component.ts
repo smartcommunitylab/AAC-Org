@@ -9,7 +9,7 @@ import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import {OrganizationService} from '../../services/organization.service';
 import {ComponentsService} from '../../services/components.service';
 import {UsersService} from '../../services/users.service';
-import { UsersProfile,contentOrg,ComponentsProfile, ActivatedComponentsProfile } from '../../models/profile';
+import { UsersProfile,UsersRoles,contentOrg,ComponentsProfile, ActivatedComponentsProfile } from '../../models/profile';
 
 @Component({
   selector: 'app-details-org',
@@ -49,6 +49,7 @@ export class DetailsOrgComponent implements OnInit {
       this.usersList=response_users;
       this.displayedUsersColumns = ['username', 'roles', 'owner', 'action'];
       this.dataSourceUser =new MatTableDataSource<UsersProfile>(this.usersList);
+      console.log("all users:",this.usersList)
     });
   }
   tabClick(tab) {
@@ -186,8 +187,10 @@ export class DetailsOrgComponent implements OnInit {
    * Add a user
    */
   openDialog4AddUser(): void{
+    
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
-      width: '35%',
+      minWidth: '40%',
+      minHeight: '50%',
       data: { name: "", components:this.activatedComponents, dialogStatus:"TitleAddUser"  }
     });
     
@@ -241,14 +244,42 @@ export class DetailsOrgComponent implements OnInit {
   /**
    * Modify A User
    */
-  openDialog4ModifyUser(): void{
+  openDialog4ModifyUser(userID:string, username?:string, userRoles?:UsersRoles[]): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
-      data: { name: "testUser4modify", dialogStatus:"TitleModifyUser"  }
+      data: { name: username, components:this.activatedComponents, dialogStatus:"TitleModifyUser"  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed from openDialog4ModifyUser()');
+      if(result){
+        userRoles.push(result.roles);
+        // result.roles.push(userRoles);
+        let res={
+          "username":username,
+          "roles":userRoles
+        }
+        console.log("final result:",res)
+        this.usersService.setUser(this.orgID,res,"members").subscribe(
+          res => {
+            //for reload the table
+            setTimeout(()=>{  this.ngOnInit();},1000);
+          },
+          (err: HttpErrorResponse) => {
+            //open a error dialog with err.error
+            if(err.error){
+              let dialogRefErr = this.dialog.open(detailsOrganizationDialogComponent, {
+                width: '30%',
+                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              });
+            }
+            if (err.error instanceof Error) {
+              console.log('Client-side error occured.');
+            } else {
+              console.log('Server-side error occured.',err);
+            }
+          }
+        );
+      }
     });
   }
   /**
@@ -304,10 +335,6 @@ export class DetailsOrgComponent implements OnInit {
 export class detailsOrganizationDialogComponent {
   constructor(private componentsService:ComponentsService,public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any,  private _fb: FormBuilder) {
     this.selectedCat="Owner";
-    // this.userRoles=[
-    //   "ROLE_MANAGER",
-    //   "ROLE_USER"
-    // ];
   }
   selectedCat: string;
   tenantControl_status = false;
