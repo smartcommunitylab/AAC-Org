@@ -43,7 +43,7 @@
         <!-- <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell> -->
         <!-- <mat-cell *matCellDef="let element"><a routerLink="/detailsOrg/{{element.id}}"> <button mat-button color="primary">Details</button> </a></mat-cell> -->
         <mat-cell *matCellDef="let element"> 
-          <button mat-button color="primary" (click)="openDialog4EnableOrg(element.id,element.name)">Disable</button> 
+          <button mat-button color="primary" >Disable</button> 
         </mat-cell>
       </ng-container>
       
@@ -51,7 +51,8 @@
       <ng-container matColumnDef="action">
         <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
         <mat-cell *matCellDef="let element">
-            <button mat-button (click)="openDialog4DeleteOrg(element.id,element.name)"><mat-icon matSuffix>delete</mat-icon></button>
+            <button mat-button (click)="openDialog4EnableOrg(element.id,element.name)" color="primary"> Enable </button>
+            <button mat-button (click)="openDialog4DeleteOrg(element.id,element.name)" ><mat-icon matSuffix>delete</mat-icon></button>
         </mat-cell>
       </ng-container>
   

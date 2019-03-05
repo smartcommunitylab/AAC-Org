@@ -128,9 +128,12 @@
               <mat-header-cell *matHeaderCellDef> Roles </mat-header-cell>
               <!-- <mat-cell *matCellDef="let element"> {{element.roles['0'].role}}  </mat-cell>-->
               <mat-cell *matCellDef="let element"> 
-                <mat-select placeholder="Role" >
-                  <mat-option value="val" *ngFor=" let role of element.roles">{{role.role}}</mat-option>
-                </mat-select>
+                <!-- <mat-select placeholder="Role" >
+                  <mat-option value="val" *ngFor=" let role of element.roles">{{role.contextSpace}}-{{role.role}}</mat-option>
+                </mat-select> -->
+                <button mat-button color="primary" *ngFor=" let role of element.roles" (click)="openDialog4DetailsRole(role.contextSpace,role.role)">
+                    {{role.role}}
+                </button>
               </mat-cell>
             </ng-container>
         

@@ -189,8 +189,8 @@ export class DetailsOrgComponent implements OnInit {
   openDialog4AddUser(): void{
     
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
-      minWidth: '40%',
-      minHeight: '50%',
+      minWidth: '35%',
+      minHeight: '61%',
       data: { name: "", components:this.activatedComponents, dialogStatus:"TitleAddUser"  }
     });
     
@@ -243,23 +243,28 @@ export class DetailsOrgComponent implements OnInit {
   }
   /**
    * Modify A User
+   * @param userID
+   * @param username
+   * @param userRoles
    */
   openDialog4ModifyUser(userID:string, username?:string, userRoles?:UsersRoles[]): void{
+    console.log("one user data:",this.usersService.getUserData(username));
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
-      width: '350px',
-      data: { name: username, components:this.activatedComponents, dialogStatus:"TitleModifyUser"  }
+      minWidth: '40%',
+      data: { name: username, components:this.activatedComponents, userData:this.usersService.getUserData(username), dialogStatus:"TitleModifyUser"  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
-        userRoles.push(result.roles);
-        // result.roles.push(userRoles);
-        let res={
-          "username":username,
-          "roles":userRoles
-        }
-        console.log("final result:",res)
-        this.usersService.setUser(this.orgID,res,"members").subscribe(
+        // userRoles.push(result.roles);
+        // // result.roles.push(userRoles);
+        // let res={
+        //   "username":username,
+        //   "roles":userRoles
+        // }
+        // console.log("final result:",res)
+        // this.usersService.setUser(this.orgID,res,"members").subscribe(
+        this.usersService.updateUser(username,this.orgID,"members").subscribe(
           res => {
             //for reload the table
             setTimeout(()=>{  this.ngOnInit();},1000);
@@ -284,8 +289,10 @@ export class DetailsOrgComponent implements OnInit {
   }
   /**
    * Delete A User
+   * @param userID
+   * @param owner
    */
-  openDialog4DeleteUser(userID:string,owner:boolean): void{
+  openDialog4DeleteUser(userID:string, owner:boolean): void{
     this.userType=owner?"owners":"members";
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
@@ -320,7 +327,22 @@ export class DetailsOrgComponent implements OnInit {
       }
     });
   }
-
+  /**
+   * openDialog4DetailsRole
+   * @param contextSpace
+   * @param role
+   */
+  openDialog4DetailsRole(contextSpace:string, role:string){
+    let componentTenant = contextSpace.split("/");
+    let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
+      // minWidth: '35%',
+      // minHeight: '61%',
+      data: { role: role, component:componentTenant[1],tenant:componentTenant[2], dialogStatus:"TitleDetailsRole"  }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      console.log("openDialog4DetailsRole");
+    });
+  }
 }
 
 
@@ -333,8 +355,12 @@ export class DetailsOrgComponent implements OnInit {
   styleUrls: ['./details-org.component.css']
 })
 export class detailsOrganizationDialogComponent {
-  constructor(private componentsService:ComponentsService,public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any,  private _fb: FormBuilder) {
+  constructor(private componentsService:ComponentsService, private usersService:UsersService, public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any,  private _fb: FormBuilder) {
     this.selectedCat="Owner";
+    this.selectedComponentId="";
+    this.selectedTenant="";
+    this.selectedRole="";
+    this.updateUserRole_status=false;
   }
   selectedCat: string;
   tenantControl_status = false;
@@ -343,6 +369,11 @@ export class detailsOrganizationDialogComponent {
   userRoles:string[];
   usernameControl = new FormControl('', [Validators.required]);
   formDoc: FormGroup;
+  selectedComponentId:string;
+  selectedTenant:string;
+  selectedRole:string;
+  updateUserRole_status:boolean;
+
   ngOnInit() {
     this.formDoc = this._fb.group({
       basicfile: []
@@ -366,6 +397,18 @@ export class detailsOrganizationDialogComponent {
   removeTenants(indexComponent:number, indexTenant: number): any {
     this.tenantControl_status=true;
     return this.componentsService.modifyComponent(indexComponent,indexTenant);
+  }
+  removeRole(username:string, roleIndex: number){
+    this.updateUserRole_status=true;
+    this.usersService.removeRole(username,roleIndex);
+  }
+  addRole(username:string,selectedComponentId,selectedTenant,selectedRole){
+    let contextSpace="components/"+selectedComponentId+"/"+selectedTenant;
+    this.usersService.setRole(username,contextSpace,selectedRole);
+    this.selectedComponentId="";
+    this.selectedTenant="";
+    this.selectedRole="";
+    this.updateUserRole_status=true;
   }
   getErrorMessage4username() {
     return this.usernameControl.hasError('required') ? 'You must enter a Name of the Organization.' :

@@ -43,19 +43,22 @@
       <mat-cell *matCellDef="let element"> {{element.contacts.email}} </mat-cell>
     </ng-container>
 
-    <!-- Details Column with button redirect to another page-->
-    <ng-container matColumnDef="details">
-      <mat-header-cell *matHeaderCellDef> Details </mat-header-cell>
-      <!-- <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell> -->
-      <mat-cell *matCellDef="let element"><a routerLink="/detailsOrg/{{element.id}}"> <button mat-button color="primary">Details</button> </a></mat-cell>
-    </ng-container>
-
     <!-- Status Column -->
     <ng-container matColumnDef="status">
       <mat-header-cell *matHeaderCellDef> Status </mat-header-cell>
       <mat-cell *matCellDef="let element"> 
           <!-- <mat-slide-toggle color="primary" [(ngModel)]="isChecked" (change)="openDialog4ChangeStatusOrg(element.id,element.name)"> </mat-slide-toggle> -->
-        <button mat-button color="primary" (click)="openDialog4ChangeStatusOrg(element.id,element.name)">Active</button> 
+        <button mat-button color="primary" >Active</button> 
+      </mat-cell>
+    </ng-container>
+
+    <!-- Details Column with button redirect to another page-->
+    <ng-container matColumnDef="details">
+      <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+      <!-- <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell> -->
+      <mat-cell *matCellDef="let element">
+        <a routerLink="/detailsOrg/{{element.id}}"> <button mat-button color="primary">Details</button></a>
+        <button mat-button (click)="openDialog4ChangeStatusOrg(element.id,element.name)" color="primary"> Disable </button>
       </mat-cell>
     </ng-container>
 

@@ -32,7 +32,7 @@ export class ActiveOrgComponent implements OnInit {
         }
       }
       this.orgProfile = response;
-      this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details', 'status'];
+      this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'status', 'details'];
       this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgActive);
     });
 

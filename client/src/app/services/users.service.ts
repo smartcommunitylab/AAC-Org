@@ -8,18 +8,57 @@ import 'rxjs/add/operator/map';
 export class UsersService {
 
   constructor(private http: HttpClient, private config: ConfigService) { }
-
-  
+  usersListPromise:Promise<UsersProfile[]>;
+  usersList:UsersProfile[];
   /**
    * Get All Organizations
    * @param orgID
    */
   getAllUsers(orgID: string): Promise<UsersProfile[]> {
-    return this.http.get(`${ this.config.get('locUrl') }organizations/${orgID}/members`)
+    this.usersListPromise= this.http.get(`${ this.config.get('locUrl') }organizations/${orgID}/members`)
     .map(response => response as UsersProfile[])
     .toPromise();
+    this.usersListPromise.then(res=>{
+      this.usersList=res;
+    });
+    return this.usersListPromise;
   }
 
+  /**
+   * Get one user data
+   * @param username 
+   */
+  getUserData(username: string): UsersProfile{
+    for(var i=0; i<this.usersList.length; i++){
+      if(this.usersList[i].username==username){
+        return this.usersList[i];
+      }
+    }
+  }
+
+  setRole(username:string,contextSpace:string,role:string):any{
+    for(var i=0; i<this.usersList.length; i++){
+      if(this.usersList[i].username==username){
+        this.usersList[i].roles.push({
+          "contextSpace":contextSpace,
+          "role":role
+        });
+      }
+    }
+  }
+  /**
+   * remove one role of a perticular user
+   * @param username 
+   * @param roleIndex 
+   */
+  removeRole(username:string, roleIndex:number){
+    for(var i=0; i<this.usersList.length; i++){
+      if(this.usersList[i].username==username){
+        this.usersList[i].roles.splice(roleIndex, 1);
+        console.log("current roles:",this.usersList[i].roles)
+      }
+    }
+  }
   /**
    *  set a user/owner
    * @param orgID
@@ -29,7 +68,23 @@ export class UsersService {
   setUser(orgID:string, ownerName:any, userType:string): any {
     return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, ownerName);
   }
-
+  /**
+   * update an user data
+   * @param username 
+   * @param orgID 
+   * @param userType 
+   */
+  updateUser(username:string, orgID:string, userType:string): any{
+    for(var i=0; i<this.usersList.length; i++){
+      if(this.usersList[i].username==username){
+        // this.usersList[i].roles.splice(roleIndex, 1);
+        return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, {
+          "username":this.usersList[i].username,
+          "roles":this.usersList[i].roles
+        });
+      }
+    }
+  }
   /**
    * Delete A User
    * @param orgID

@@ -23,8 +23,9 @@
     </button>
     <button mat-button *ngIf="data.dialogStatus=='TitleDeleteOrg'"
         [mat-dialog-close]="true"    
-        tabindex="1" >OK
+        tabindex="-1" 
+        color="warn">OK
     </button>
     <span class="fill-remaining-space"></span>
-    <button mat-button (click)="onNoClick()" tabindex="-1">Cancel</button>
+    <button mat-button (click)="onNoClick()" tabindex="1">Cancel</button>
 </mat-dialog-actions>

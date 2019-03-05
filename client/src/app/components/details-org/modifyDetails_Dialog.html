@@ -5,6 +5,7 @@
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleAddUser'">Create A New User</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyUser'">Update User Information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDeleteUser'">Delete User</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDetailsRole'">Details Role</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: {{data.error.error}}</h2>
 <mat-dialog-content>
     <!-- Modify Organization Information -->
@@ -164,39 +165,62 @@
 
     <!-- Modify A User -->
     <div *ngIf="data.dialogStatus=='TitleModifyUser'">
-        <mat-label class="mat-h4">Please Update this information</mat-label>
         <!-- Username -->
         <mat-form-field class="dialog-container-form-field">
-            <input matInput  disabled value={{data.name}}  >
-            <mat-icon matSuffix>mode_edit</mat-icon>
+            <input matInput  disabled value={{data.name}}>
         </mat-form-field>
-        <div class="example-selected-value">
-            <!-- Select Component  -->
-            <mat-form-field class="dialog-container-form-field">
-                <mat-select placeholder="Components" [(value)]="selectedComponentId" (change)="getTenantsBySelectedComponent($event.value)">
-                    <mat-option value="{{component.componentId}}"  *ngFor="let component of data.components">{{component.componentId}}</mat-option>
-                </mat-select>
-            </mat-form-field>
-            <!-- Select Tenant  -->
-            <mat-form-field class="dialog-container-form-field" *ngIf="selectedComponentId">
-                <div *ngFor="let component of data.components; let in = index">
-                    <mat-select placeholder="Tenants" [(value)]="selectedTenant" *ngIf="component.componentId == selectedComponentId">
-                        <mat-option value="{{tenant}}" *ngFor="let tenant of component.tenants">{{tenant}}</mat-option>
-                    </mat-select>
-                </div>
-            </mat-form-field>
-            <!-- Select Role  -->
-            <mat-form-field class="dialog-container-form-field" *ngIf="selectedTenant">
-                <mat-select placeholder="Role" [(value)]="selectedRole">
-                    <mat-option value="{{role}}" *ngFor="let role of userRoles">{{role}}</mat-option>
-                </mat-select>
-            </mat-form-field>
+        <!-- user role -->
+        <div class="userRoles" >
+            <mat-label class="mat-h4">User Roles</mat-label>
+            <mat-card *ngFor="let role of data.userData.roles; let in=index">
+                <mat-card-header>
+                    <mat-card-title class="mat-h4">{{role.contextSpace}}/{{role.role}}</mat-card-title>
+                    <span class="fill-remaining-space"></span>
+                    <button mat-button (click)="removeRole(data.name,in)"><mat-icon matSuffix>delete</mat-icon></button>
+                </mat-card-header>
+            </mat-card>  
         </div>
+        <br/>
+        <mat-card>
+            <mat-card-header class="mat-h4">Add Roles</mat-card-header>
+            <mat-card-content>
+                <!-- Select Component  -->
+                <mat-form-field class="">
+                    <mat-select placeholder="Components" [(value)]="selectedComponentId" (change)="getTenantsBySelectedComponent($event.value)">
+                        <mat-option value="{{component.componentId}}"  *ngFor="let component of data.components">{{component.componentId}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <!-- Select Tenant  -->
+                <mat-form-field class="" *ngIf="selectedComponentId">
+                    <div *ngFor="let component of data.components; let in = index">
+                        <mat-select placeholder="Tenants" [(value)]="selectedTenant" *ngIf="component.componentId == selectedComponentId">
+                            <mat-option value="{{tenant}}" *ngFor="let tenant of component.tenants">{{tenant}}</mat-option>
+                        </mat-select>
+                    </div>
+                </mat-form-field>
+                <!-- Select Role  -->
+                <mat-form-field class="" *ngIf="selectedTenant">
+                    <mat-select placeholder="Role" [(value)]="selectedRole">
+                        <mat-option value="{{role}}" *ngFor="let role of userRoles">{{role}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <!-- add role -->
+                <button mat-mini-fab *ngIf="selectedRole" color="primary" (click)="addRole(data.name,selectedComponentId,selectedTenant,selectedRole)"><mat-icon>add_circle_outline</mat-icon></button>
+                <button mat-mini-fab *ngIf="!selectedRole" color="primary" disabled><mat-icon>add_circle_outline</mat-icon></button>
+            </mat-card-content>
+        </mat-card>
     </div>
 
     <!-- Delete A User -->
     <div *ngIf="data.dialogStatus=='TitleDeleteUser'">
         <mat-label class="mat-h4">Are you sure to delete this user?</mat-label>
+    </div>
+
+    <!-- Details Role -->
+    <div *ngIf="data.dialogStatus=='TitleDetailsRole'">
+        <mat-card>Component: {{data.component}}</mat-card>
+        <mat-card>Tenant: {{data.tenant}}</mat-card>
+        <mat-card>Role: {{data.role}}</mat-card>
     </div>
 
     <!-- Error Message -->
@@ -241,7 +265,7 @@
                 role:selectedRole
             }
         }" 
-        [disabled]="!selectedTenant"
+        [disabled]="!updateUserRole_status"
         tabindex="1">OK
     </button>
     <button mat-button *ngIf="data.dialogStatus=='TitleDeleteUser'"

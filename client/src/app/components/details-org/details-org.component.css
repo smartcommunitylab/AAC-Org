@@ -15,8 +15,10 @@
 .manageOrg{
     min-height: 150px;
 }
-
+.mat-dialog-content>.dialog-container-addUser{
+    display: contents !important;
+}
 mat-grid-tile {
     background: #e2f3fa;
-  }
+}
   
