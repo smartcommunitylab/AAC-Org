@@ -32,7 +32,7 @@ export class InactivateOrgComponent implements OnInit {
       }
       // console.log("activeOrg:",this.orgActive);
       this.orgProfile = response;
-      this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'status', 'action'];
+      this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'action'];
       this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgInActive);
     });
   }

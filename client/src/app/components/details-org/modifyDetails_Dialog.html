@@ -5,20 +5,20 @@
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleAddUser'">Create A New User</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyUser'">Update User Information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDeleteUser'">Delete User</h2>
-<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDetailsRole'">Details Role</h2>
-<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: {{data.error.error}}</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDetailsRole'">Details Role of {{data.username}}</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: </h2>
 <mat-dialog-content>
     <!-- Modify Organization Information -->
     <div *ngIf="data.dialogStatus=='TitleModifyOrg'">
         <!-- Organization Name -->
         <mat-form-field class="dialog-container-form-field" >
             <input matInput  placeholder="Organization Name"  disabled value={{data.myOrg.name}} >
-            <mat-icon matSuffix>mode_edit</mat-icon>
+            <!-- <mat-icon matSuffix>mode_edit</mat-icon> -->
         </mat-form-field>
         <!-- Domain name of the Provider Organization -->
         <mat-form-field class="dialog-container-form-field" >
             <input matInput  placeholder="Domain"  disabled value={{data.myOrg.slug}}>
-            <mat-icon matSuffix>mode_edit</mat-icon>
+            <!-- <mat-icon matSuffix>mode_edit</mat-icon> -->
         </mat-form-field>
         <!-- Owner Email Address -->
         <mat-form-field class="dialog-container-form-field" >
@@ -93,6 +93,7 @@
             </div>
             <button mat-raised-button (click)="addTenant(indexComponent)">Add Tenant</button>
         </mat-expansion-panel>
+        <br/>
     </div>
 
     <!-- Create A Provider Configuration -->
@@ -136,7 +137,7 @@
                 {{cat.name}}&nbsp;
             </mat-radio-button>
         </mat-radio-group>
-        
+        <br/>
         <div *ngIf="selectedCat=='User'">
             <div class="example-selected-value">
                 <!-- Select Component  -->
@@ -198,10 +199,20 @@
                         </mat-select>
                     </div>
                 </mat-form-field>
+                <mat-form-field class="" *ngIf="!selectedComponentId">
+                    <mat-select placeholder="Tenants" disabled>
+                        <mat-option value="tenant">tenant</mat-option>
+                    </mat-select>
+                </mat-form-field>
                 <!-- Select Role  -->
                 <mat-form-field class="" *ngIf="selectedTenant">
                     <mat-select placeholder="Role" [(value)]="selectedRole">
                         <mat-option value="{{role}}" *ngFor="let role of userRoles">{{role}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <mat-form-field class="" *ngIf="!selectedTenant">
+                    <mat-select placeholder="Role" disabled>
+                        <mat-option value="role">role</mat-option>
                     </mat-select>
                 </mat-form-field>
                 <!-- add role -->
@@ -209,6 +220,7 @@
                 <button mat-mini-fab *ngIf="!selectedRole" color="primary" disabled><mat-icon>add_circle_outline</mat-icon></button>
             </mat-card-content>
         </mat-card>
+        <br/>
     </div>
 
     <!-- Delete A User -->
@@ -218,9 +230,12 @@
 
     <!-- Details Role -->
     <div *ngIf="data.dialogStatus=='TitleDetailsRole'">
-        <mat-card>Component: {{data.component}}</mat-card>
-        <mat-card>Tenant: {{data.tenant}}</mat-card>
-        <mat-card>Role: {{data.role}}</mat-card>
+        <mat-card *ngFor="let role of data.userData.roles; let in=index">
+            <mat-card-header>
+                <mat-card-title class="mat-h4">{{role.contextSpace}}/{{role.role}}</mat-card-title>
+            </mat-card-header>
+        </mat-card> 
+        <br/> 
     </div>
 
     <!-- Error Message -->

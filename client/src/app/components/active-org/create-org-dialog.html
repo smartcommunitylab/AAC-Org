@@ -1,7 +1,7 @@
 <!-- <div class="dialog-overflow-hidden"> -->
     <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateOrg'">Create New Organization</h2>
     <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">Disable an Organization</h2>
-    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: {{data.error.error}}</h2>
+    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: </h2>
     <mat-dialog-content  >
         <div *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">
             <mat-label class="mat-h4">Do you want to disable Organization: {{data.org_name}}.</mat-label>

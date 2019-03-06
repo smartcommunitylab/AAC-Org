@@ -49,7 +49,6 @@ export class DetailsOrgComponent implements OnInit {
       this.usersList=response_users;
       this.displayedUsersColumns = ['username', 'roles', 'owner', 'action'];
       this.dataSourceUser =new MatTableDataSource<UsersProfile>(this.usersList);
-      console.log("all users:",this.usersList)
     });
   }
   tabClick(tab) {
@@ -243,12 +242,9 @@ export class DetailsOrgComponent implements OnInit {
   }
   /**
    * Modify A User
-   * @param userID
    * @param username
-   * @param userRoles
    */
-  openDialog4ModifyUser(userID:string, username?:string, userRoles?:UsersRoles[]): void{
-    console.log("one user data:",this.usersService.getUserData(username));
+  openDialog4ModifyUser(username?:string): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       minWidth: '40%',
       data: { name: username, components:this.activatedComponents, userData:this.usersService.getUserData(username), dialogStatus:"TitleModifyUser"  }
@@ -256,14 +252,6 @@ export class DetailsOrgComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
-        // userRoles.push(result.roles);
-        // // result.roles.push(userRoles);
-        // let res={
-        //   "username":username,
-        //   "roles":userRoles
-        // }
-        // console.log("final result:",res)
-        // this.usersService.setUser(this.orgID,res,"members").subscribe(
         this.usersService.updateUser(username,this.orgID,"members").subscribe(
           res => {
             //for reload the table
@@ -329,18 +317,18 @@ export class DetailsOrgComponent implements OnInit {
   }
   /**
    * openDialog4DetailsRole
-   * @param contextSpace
-   * @param role
+   * @param userID
+   * @param username
    */
-  openDialog4DetailsRole(contextSpace:string, role:string){
-    let componentTenant = contextSpace.split("/");
+  openDialog4DetailsRole(userID:string, username:string){
+    console.log("id::",userID, "username::",username,"userArray::",this.usersList.find(x => x.id == userID))
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
-      // minWidth: '35%',
+      minWidth: '35%',
       // minHeight: '61%',
-      data: { role: role, component:componentTenant[1],tenant:componentTenant[2], dialogStatus:"TitleDetailsRole"  }
+      data: { username: username, userData:this.usersService.getUserData(username), dialogStatus:"TitleDetailsRole"  }
     });
     dialogRef.afterClosed().subscribe(result => {
-      console.log("openDialog4DetailsRole");
+      // console.log("openDialog4DetailsRole");
     });
   }
 }
@@ -420,61 +408,5 @@ export class detailsOrganizationDialogComponent {
       this.userRoles=response;
       console.log("tenants:",this.userRoles);
     });
-  }
-}
-
-///////////////////////////////////// for test
-export interface Fruit {
-  name: string;
-}
-
-/**
- * @title Chips with input
- */
-@Component({
-  selector: 'chips-input-example',
-  templateUrl: 'modifyDetails_Dialog.html',
-  styleUrls: ['./details-org.component.css'],
-})
-export class ChipsInputExamples {
-  constructor(public dialogRef: MatDialogRef<detailsOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any) {
-    console.log('come constructor of ChipsInputExamples...');
-   }
-  onNoClick(): void {
-    this.dialogRef.close();
-  }
-  
-  visible = true;
-  selectable = true;
-  removable = true;
-  addOnBlur = true;
-  readonly separatorKeysCodes: number[] = [ENTER, COMMA];
-  fruits: Fruit[] = [
-    {name: 'Lemon'},
-    {name: 'Lime'},
-    {name: 'Apple'},
-  ];
-
-  add(event: MatChipInputEvent): void {
-    const input = event.input;
-    const value = event.value;
-    console.log('come add function...');
-    // Add our fruit
-    if ((value || '').trim()) {
-      this.fruits.push({name: value.trim()});
-    }
-
-    // Reset the input value
-    if (input) {
-      input.value = '';
-    }
-  }
-
-  remove(fruit: Fruit): void {
-    const index = this.fruits.indexOf(fruit);
-
-    if (index >= 0) {
-      this.fruits.splice(index, 1);
-    }
   }
 }

@@ -21,4 +21,7 @@
 mat-grid-tile {
     background: #e2f3fa;
 }
-  
+.matGridList-figure > ::ng-deep figure {
+    left: 10px !important;
+    justify-content: left !important;
+}

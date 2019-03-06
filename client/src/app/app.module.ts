@@ -21,7 +21,7 @@ import { LoginComponent } from './components/login/login.component';
 import { ActiveOrgComponent, CreateOrganizationDialogComponent } from './components/active-org/active-org.component';
 import { InactivateOrgComponent, ModifyInactiveOrgDialogComponent } from './components/inactivate-org/inactivate-org.component';
 import { BlockOrgComponent } from './components/block-org/block-org.component';
-import { DetailsOrgComponent, detailsOrganizationDialogComponent, ChipsInputExamples} from './components/details-org/details-org.component';
+import { DetailsOrgComponent, detailsOrganizationDialogComponent} from './components/details-org/details-org.component';
 import { InputFileComponent } from './components/input-file/input-file.component';
 import { UsersComponent } from './components/users/users/users.component';
 
@@ -48,7 +48,6 @@ import { HttpModule } from '@angular/http';
     ModifyInactiveOrgDialogComponent,
     DetailsOrgComponent,
     detailsOrganizationDialogComponent,
-    ChipsInputExamples,
     InputFileComponent,
     UsersComponent
   ],
@@ -56,7 +55,6 @@ import { HttpModule } from '@angular/http';
     CreateOrganizationDialogComponent,
     ModifyInactiveOrgDialogComponent,
     detailsOrganizationDialogComponent,
-    ChipsInputExamples
   ],
   imports: [
     BrowserModule,
