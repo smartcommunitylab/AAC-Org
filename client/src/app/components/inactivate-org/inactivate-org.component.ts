@@ -23,14 +23,11 @@ export class InactivateOrgComponent implements OnInit {
   ngOnInit() {
     this.dataSource ="";
     this.organizationService.getOrganizations().then(response => {
-      // console.log("organizationService:",response["content"]);
       for(var i=0; i<response["content"].length; i++){
         if(!response["content"][i]["active"]){
-          // console.log("activeOrg:",response["content"][i]);
           this.orgInActive.push(response["content"][i]);
         }
       }
-      // console.log("activeOrg:",this.orgActive);
       this.orgProfile = response;
       this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'action'];
       this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgInActive);
@@ -49,12 +46,10 @@ export class InactivateOrgComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
-        console.log("Result: ",result);
         this.organizationService.enableOrganization(orgID,orgName).subscribe(
           res => {
             //for reload the table
             setTimeout(()=>{  this.ngOnInit();},1000);
-            console.log('Return Data from post(create): ' + res);
           },
           (err: HttpErrorResponse) => {
             //open a error dialog with err.error
@@ -86,7 +81,6 @@ export class InactivateOrgComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
-        console.log("Result: ",result);
         this.organizationService.deleteOrganization(orgID).subscribe(
           res => {
             //for reload the table

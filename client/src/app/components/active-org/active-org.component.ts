@@ -24,10 +24,8 @@ export class ActiveOrgComponent implements OnInit {
   ngOnInit() {
     this.dataSource ='';
     this.organizationService.getOrganizations().then(response => {
-      // console.log("organizationService:",response["content"]);
       for(var i=0; i<response["content"].length; i++){
         if(response["content"][i]["active"]){
-          // console.log("activeOrg:",response["content"][i]);
           this.orgActive.push(response["content"][i]);
         }
       }
@@ -50,7 +48,6 @@ export class ActiveOrgComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
-        console.log("Result: ",result);
         this.organizationService.setOrganization(result).subscribe(
           res => {
             //for reload the table
@@ -90,7 +87,6 @@ export class ActiveOrgComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
-        console.log("close ChangeStatusOrg dilog and Result: ",result);
         this.organizationService.disableOrganization(orgID,orgName).subscribe(
           res => {
             //for reload the table

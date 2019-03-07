@@ -24,6 +24,7 @@ export class DetailsOrgComponent implements OnInit {
   activatedComponents:ActivatedComponentsProfile[];
   mergeActivatedComponents:Array<ActivatedComponentsProfile>=[];
   myOrg: contentOrg;
+  orgName: string="";
   orgID:string=this.route.snapshot.paramMap.get('id');
   usersList:UsersProfile[];
   dataSourceUser: any;
@@ -37,6 +38,7 @@ export class DetailsOrgComponent implements OnInit {
       for(var i=0; i<response["content"].length; i++){
         if(response["content"][i]["id"]==this.orgID){
           this.myOrg=response["content"][i];
+          this.orgName=response["content"][i]['name'];
         }
       }
     });
@@ -52,7 +54,6 @@ export class DetailsOrgComponent implements OnInit {
     });
   }
   tabClick(tab) {
-    // console.log("selectedTabChange:",tab);
     // only need first time
     if(tab.index==1){
       this.ngOnInit();
@@ -83,8 +84,6 @@ export class DetailsOrgComponent implements OnInit {
         
       }
       this.componentsService.setMergeActivatedComponents(this.mergeActivatedComponents);
-      
-      console.log("mergeActivatedComponents:",this.mergeActivatedComponents);
       let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
         width: '40%',
         data: { name: "", components:this.componentsService.getMergeActivatedComponents(), dialogStatus:"TitleManageComponent"  }
@@ -96,7 +95,6 @@ export class DetailsOrgComponent implements OnInit {
           this.componentsService.setComponents(this.orgID).subscribe(
             res => {
               setTimeout(()=>{  this.ngOnInit();},1000);
-              console.log('Return Data from post(create): ' + res);
             },
             (err: HttpErrorResponse) => {
               //open a error dialog with err.error
@@ -113,7 +111,7 @@ export class DetailsOrgComponent implements OnInit {
           );
           
         }else{
-          console.log("result",result)
+          console.log("result",result);
         }
       });
     });
@@ -130,7 +128,7 @@ export class DetailsOrgComponent implements OnInit {
     });
     
     dialogRef.afterClosed().subscribe(result => {
-      // have to update Organization info
+      // update Organization info
       if(result){
         this.organizationService.updateOrganization(this.orgID).subscribe(
           res => {
@@ -149,10 +147,8 @@ export class DetailsOrgComponent implements OnInit {
             }
           }
         );
-        // setTimeout(()=>{  this.ngOnInit();},1000);
-        console.log('The dialog was closed from openDialog4ModifyOrg() and result',result);
       }else{
-        console.log("no result",result)
+        console.log("no result",result);
       }
     });
   }
@@ -241,15 +237,15 @@ export class DetailsOrgComponent implements OnInit {
     });
   }
   /**
-   * Modify A User
-   * @param username
+   * Modify A User information
+   * @param username 
    */
   openDialog4ModifyUser(username?:string): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       minWidth: '40%',
       data: { name: username, components:this.activatedComponents, userData:this.usersService.getUserData(username), dialogStatus:"TitleModifyUser"  }
     });
-
+    
     dialogRef.afterClosed().subscribe(result => {
       if(result){
         this.usersService.updateUser(username,this.orgID,"members").subscribe(
@@ -292,7 +288,6 @@ export class DetailsOrgComponent implements OnInit {
       if(result){
         this.usersService.deleteUser(this.orgID,userID,this.userType).subscribe(
           res => {
-            console.log('The dialog was closed from openDialog4DeleteUser()',res);
             //for reload the table
             setTimeout(()=>{  this.ngOnInit();},1000);
           },
@@ -406,7 +401,6 @@ export class detailsOrganizationDialogComponent {
   getTenantsBySelectedComponent(selectedComponentID:string){
     this.componentsService.getTenantsBySelectedComponent(selectedComponentID).then(response => {
       this.userRoles=response;
-      console.log("tenants:",this.userRoles);
     });
   }
 }

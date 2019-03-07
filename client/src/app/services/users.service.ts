@@ -55,7 +55,6 @@ export class UsersService {
     for(var i=0; i<this.usersList.length; i++){
       if(this.usersList[i].username==username){
         this.usersList[i].roles.splice(roleIndex, 1);
-        console.log("current roles:",this.usersList[i].roles)
       }
     }
   }

@@ -17,7 +17,7 @@
     <mat-card class="example-card">
       <mat-card-header>
         <mat-card-title>
-          <span>{{myOrg.name}}</span> 
+          <span>{{orgName}}</span> 
           
         </mat-card-title>
         <mat-card-subtitle>Information of the Organization</mat-card-subtitle>
@@ -70,7 +70,7 @@
   <mat-tab label="Configuration">
     <mat-card class="example-card">
       <mat-card-header>
-        <mat-card-title>{{myOrg.name}}</mat-card-title>
+        <mat-card-title>{{orgName}}</mat-card-title>
         <mat-card-subtitle>List of Components in the Organization</mat-card-subtitle>
         <span class="fill-remaining-space"></span>
         <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4ManageComponent()">
@@ -90,9 +90,9 @@
                     </mat-panel-description> -->
                 </mat-expansion-panel-header>
                 <mat-list>
-                  <mat-list-item *ngFor="let tenant of component.tenants">
+                  <mat-list-item *ngFor="let tenant of component.tenants; let la=last">
                     {{tenant}}
-                    <mat-divider></mat-divider>
+                    <mat-divider *ngIf="!la"></mat-divider>
                   </mat-list-item>
                 </mat-list>
           </mat-expansion-panel>
@@ -104,7 +104,7 @@
   <mat-tab label="Users">
     <mat-card class="example-card">
       <mat-card-header>
-        <mat-card-title>{{myOrg.name}}</mat-card-title>
+        <mat-card-title>{{orgName}}</mat-card-title>
         <mat-card-subtitle>List of Users in the Organization</mat-card-subtitle>
         <span class="fill-remaining-space"></span>
         <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4AddUser()">
