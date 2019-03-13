@@ -22,11 +22,19 @@
     overflow: auto;
     max-height: 500px;
 }
+/* mat-cell{
+    display:flex !important;
+    justify-content:center!important;
+} */
+
+mat-header-cell > .matTabHeaderAction {
+    /* display:flex;
+    justify-content:center; */
+}
+
 .nameInput-full-width {
     width: 100%;
 }
 .dialog-overflow-hidden {
     overflow: hidden !important;
 }
-
-  

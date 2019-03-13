@@ -45,7 +45,7 @@
 
     <!-- Details Column with button redirect to another page-->
     <ng-container matColumnDef="details">
-      <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef class="matTabHeaderAction"> Action </mat-header-cell>
       <!-- <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell> -->
       <mat-cell *matCellDef="let element">
         <a routerLink="/detailsOrg/{{element.id}}"> <button mat-button color="primary">Details</button></a>
