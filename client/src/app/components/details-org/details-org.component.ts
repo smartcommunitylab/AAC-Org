@@ -41,7 +41,9 @@ export class DetailsOrgComponent implements OnInit {
           this.orgName=response["content"][i]['name'];
         }
       }
+      console.log("myOrg:",this.myOrg);
     });
+    
     // get Activated Components in this organization
     this.componentsService.getActivatedComponents(this.orgID).then(response_activedComponents =>{
       this.activatedComponents=response_activedComponents;

@@ -32,7 +32,7 @@
             <mat-grid-tile [colspan]=1 [rowspan]=6 class="matGridList-figure">
               <mat-card class="card-logo">
                 <mat-card-content class="card-logo-content">
-                    <img *ngIf="myOrg.contacts.logo" src='myOrg.contacts.logo' onError="this.src='https://img.icons8.com/metro/100/000000/organization.png'"/>
+                    <img *ngIf="myOrg.contacts.logo" src='{{myOrg.contacts.logo}}' onError="this.src='https://img.icons8.com/metro/100/000000/organization.png'"/>
                     <img *ngIf="!myOrg.contacts.logo" src='https://img.icons8.com/metro/100/000000/organization.png' /> 
                 </mat-card-content>
               </mat-card>
@@ -43,15 +43,20 @@
                 <mat-list-item role="listitem"><p>{{myOrg.description}}</p></mat-list-item>
                 <mat-list-item role="listitem">
                   <i class="material-icons">more</i>&nbsp;
-                  {{myOrg.tag}}
+                  <mat-chip-list>
+                      <mat-chip *ngFor="let tag of myOrg.tag">{{tag}}</mat-chip>
+                  </mat-chip-list>
+                  
                 </mat-list-item>
                 <mat-list-item role="listitem">
                   <i class="material-icons">web</i>&nbsp;
-                  {{myOrg.contacts.web}}
+                  <a href="{{myOrg.contacts.web}}" target="_blank">{{myOrg.contacts.web}}</a>
                 </mat-list-item>
                 <mat-list-item role="listitem">
                   <i class="material-icons">phone</i>&nbsp;
-                  {{myOrg.contacts.phone}}
+                  <mat-chip-list>
+                      <mat-chip *ngFor="let phone of myOrg.contacts.phone">{{phone}}</mat-chip>
+                  </mat-chip-list>
                 </mat-list-item>
               </mat-list>
             </mat-grid-tile>

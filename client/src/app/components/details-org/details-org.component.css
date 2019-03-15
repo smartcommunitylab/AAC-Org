@@ -18,6 +18,9 @@
 .mat-dialog-content>.dialog-container-addUser{
     display: contents !important;
 }
+.nameInput-full-width{
+    width:100%;
+}
 mat-grid-tile {
     /* background: #e2f3fa; */
 }
