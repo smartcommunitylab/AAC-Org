@@ -7,6 +7,10 @@ components:
     format					: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
     implementation			: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
     roles					: ROLE_MANAGER,ROLE_USER
+    usermgmtEndpoint: https://localhost:9443/services/RemoteUserStoreManagerService
+    usermgmtPassword: admin    
+    multitenancyEndpoint: https://localhost:9443/services/TenantMgtAdminService
+    multitenancyPassword: admin
     
   # Apache NiFi
   - name					: Apache NiFi
