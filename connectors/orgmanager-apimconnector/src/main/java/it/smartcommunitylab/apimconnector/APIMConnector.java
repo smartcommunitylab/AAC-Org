@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.apache.axis2.AxisFault;
+import org.springframework.stereotype.Service;
 import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
 import org.wso2.carbon.tenant.mgt.stub.beans.xsd.TenantInfoBean;
 import org.wso2.carbon.um.ws.api.stub.ClaimValue;
@@ -16,7 +17,9 @@ import it.smartcommunitylab.apimconnector.services.TenantManagementService;
 import it.smartcommunitylab.apimconnector.services.UserManagementService;
 import it.smartcommunitylab.apimconnector.utils.APIMConnectorUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
+import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
 
+@Service("it.smartcommunitylab.apimconnector.ApiMConnector")
 public class APIMConnector implements Component{
 
 	private UserManagementService umService;
@@ -28,17 +31,19 @@ public class APIMConnector implements Component{
 		tmService = new TenantManagementService(APIMConnectorUtils.getMultitenancyEndpoint(), APIMConnectorUtils.getMultitenancyPassword());
 	}
 
-	public void createOrganization(String organizationName, String owner) {
+	public void createOrganization(String organizationName, UserInfo owner) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	public void deleteOrganization(String organizationName) {
-		// TODO Auto-generated method stub
-		
+	public void deleteOrganization(String organizationName, List<String> tenants) {
+		for (String tenant : tenants) {
+			deleteTenant(tenant, organizationName);
+		}
 	}
 
-	public void createUser(String userName) {
+	public void createUser(UserInfo user) {
+		String userName = user.getUsername();
 		String password = new BigInteger(50, new SecureRandom()).toString(16);
 		String [] roles = new String[] {};
 		ClaimValue [] claims = new ClaimValue[] {};
@@ -102,10 +107,11 @@ public class APIMConnector implements Component{
 		
 	}
 
-	public void createTenant(String tenant, String organization, String owner) {
+	public void createTenant(String tenant, String organization, UserInfo ownerInfo) {
 		try {
 			//TODO extend the owner info details in the general interface
-			tmService.createTenant(tenant, organization, owner, "NameTest", "SurnameTest"); 
+			String password = new BigInteger(50, new SecureRandom()).toString(16);
+			tmService.createTenant(tenant, ownerInfo.getUsername(), password, ownerInfo.getName(), ownerInfo.getSurname()); 
 		} catch (AxisFault e) {
 			e.printStackTrace();
 		} catch (RemoteException e) {

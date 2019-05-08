@@ -1,5 +1,6 @@
 package it.smartcommunitylab.orgmanager.componentsmodel;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
@@ -13,15 +14,15 @@ import org.springframework.stereotype.Service;
 @Service("it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl")
 public class DefaultComponentImpl implements Component {
 
-	public void createUser(String userName) { /* does nothing */ }
+	public void createUser(UserInfo user) { /* does nothing */ }
 	
 	public void removeUserFromOrganization(String userName, String organizationName) { /* does nothing */ }
 
 	public void init(Map<String, String> properties) { /* does nothing */ }
 	
-	public void createOrganization(String organizationName, String owner) { /* does nothing */ }
+	public void createOrganization(String organizationName, UserInfo owner) { /* does nothing */ }
 	
-	public void deleteOrganization(String organizationName) { /* does nothing */ }
+	public void deleteOrganization(String organizationName, List<String> tenants) { /* does nothing */ }
 
 	public void assignRoleToUser(String role, String organization, String userName) { /* does nothing */ }
 
@@ -31,7 +32,7 @@ public class DefaultComponentImpl implements Component {
 
 	public void removeOwner(String ownerName, String organizationName) { /* does nothing */ }
 
-	public void createTenant(String tenant, String organization, String owner) { /* does nothing */ }
+	public void createTenant(String tenant, String organization, UserInfo ownerInfo) { /* does nothing */ }
 
 	public void deleteTenant(String tenant, String organization) { /* does nothing */ }
 

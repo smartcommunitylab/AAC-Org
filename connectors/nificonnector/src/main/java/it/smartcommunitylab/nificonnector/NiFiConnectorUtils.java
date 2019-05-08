@@ -103,7 +103,7 @@ public class NiFiConnectorUtils {
 	private static String truststorePassword; // truststore password
 	
 	private static String adminName; // name of administrator user
-	private static String ownerRole; // role assigned to the owner of an organization when the organization is created
+	private static String ownerRole; // role assigned to owners of an organization
 	
 	private static List<String> readRoles; // roles with only read permissions
 	private static List<String> writeRoles; // roles with both read and write permissions

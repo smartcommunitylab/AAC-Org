@@ -85,17 +85,16 @@ public class Organization implements Serializable {
 			contactsWeb = web != null ? new URL(web.toString()) : null;
 		} catch (MalformedURLException e) { /* does nothing */ }
 		
-		String[] phone = contacts.getPhone();
-		contactsPhone = phone != null ? Arrays.copyOf(phone, phone.length) : null;
+		// Copies the phone numbers, getting rid of possible empty strings
+		contactsPhone = copyValidStrings(contacts.getPhone());
 		
 		URL logo = contacts.getLogo();
 		try {
 			contactsLogo = logo != null ? new URL(logo.toString()) : null;
 		} catch (MalformedURLException e) { /* does nothing */ }
 		
-		// Creates a copy of the tags array
-		String[] tags = organizationDTO.getTag();
-		tag = tags != null ? Arrays.copyOf(tags, tags.length) : null;
+		// Copies the tags, getting rid of possible empty strings
+		tag = copyValidStrings(organizationDTO.getTag());
 		
 		active = organizationDTO.getActive();
 	}
@@ -194,6 +193,30 @@ public class Organization implements Serializable {
 	
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+	
+	/**
+	 * Copies an array into a new array without any of the original's null elements or empty strings.
+	 * 
+	 * @param strings - Array of strings that may contain null elements or empty strings
+	 * @return - Array copy without any null elements or empty strings
+	 */
+	private String[] copyValidStrings(String[] strings) {
+		String[] validStrings = null;
+		if (strings != null) { // elements have been specified
+			int i = 0;
+			for (String s : strings) {
+				if (s != null && !s.trim().equals("")) {
+					if (validStrings == null)
+						validStrings = new String[strings.length];
+					validStrings[i] = s.trim();
+					i++;
+				}
+			}
+			if (validStrings != null)
+				validStrings = Arrays.copyOfRange(validStrings, 0, i);
+		}
+		return validStrings;
 	}
 	
 	@Override

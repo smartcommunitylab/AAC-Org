@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
+import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
@@ -231,12 +232,12 @@ public class ComponentService {
 		
 		// Updates tenants in the components
 		Map<String, Component> componentMap = componentsModel.getListComponents();
-		for (String s : componentMap.keySet()) {
+		for (String s : componentMap.keySet()) { // TODO reconsider these 4 operations
 			for (Tenant t : newTenants) {
-				if (t.getTenantId().getComponentId().equals(s)) {
-					for (OrganizationMember owner : owners)
-						componentMap.get(s).createTenant(t.getTenantId().getName(), t.getOrganization().getName(), owner.getUsername());
-				}
+				Organization org = t.getOrganization();
+				UserInfo userInfo = new UserInfo(org.getContactsEmail(), org.getContactsName(), org.getContactsSurname());
+				if (t.getTenantId().getComponentId().equals(s))
+					componentMap.get(s).createTenant(t.getTenantId().getName(), t.getOrganization().getName(), userInfo);
 			}
 			for (Tenant t : tenantsToRemove) {
 				if (t.getTenantId().getComponentId().equals(s))

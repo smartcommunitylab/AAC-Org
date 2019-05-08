@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
+import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 import it.smartcommunitylab.orgmanager.dto.OrganizationMemberDTO;
@@ -141,12 +142,13 @@ public class OrganizationMemberService {
 		
 		// Creates user in the components
 		Map<String, Component> componentMap = componentsModel.getListComponents();
+		UserInfo userInfo = utils.getIdpUserDetails(userName);
 		boolean userCreated = false;
 		for (String s : componentMap.keySet()) {
 			for (Role r : rolesToAdd) {
 				if (r.getComponentId().equals(s)) {
 					if (!userCreated) {
-						componentMap.get(s).createUser(userName);
+						componentMap.get(s).createUser(userInfo);
 						userCreated = true;
 					}
 					componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userName);
@@ -253,8 +255,9 @@ public class OrganizationMemberService {
 		
 		// Adds the owner for the components
 		Map <String, Component> componentMap = componentsModel.getListComponents();
+		UserInfo ownerInfo = utils.getIdpUserDetails(owner.getUsername());
 		for (String s : componentMap.keySet()) {
-			componentMap.get(s).createUser(ownerName);
+			componentMap.get(s).createUser(ownerInfo);
 			componentMap.get(s).addOwner(ownerName, organization.getName());
 		}
 		
@@ -288,13 +291,14 @@ public class OrganizationMemberService {
 		Long ownerIdpId = owner.getIdpId(); // ID used by the identity provider
 		
 		if (!userHasAdminRights && utils.getAuthenticatedUserId().equals(ownerIdpId)) // authenticated user is trying to remove themselves
-			throw new IllegalArgumentException("You are owner of the organization and are trying to remove your own owner status.");
+			throw new IllegalArgumentException("You are registered as owner of the organization and are trying to remove your own owner status.");
 		
 		Set<Role> roles = roleRepository.findByOrganizationMember(owner);
 		List<Role> rolesToRemove = new ArrayList<Role>();
 		Role ownerRole = new Role(securityConfig.getOrganizationManagementContext() + "/" + organization.getSlug(), Constants.ROLE_PROVIDER, owner, null);
+		boolean isOwner = true;
 		if (!roles.contains(ownerRole)) // The input user is not owner of the organization
-			throw new EntityNotFoundException("User " + ownerName + " belongs to organization " + organization.getName() + ", but is not owner of it.");
+			isOwner = false;
 		rolesToRemove.add(ownerRole); // owner role
 		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
 		// Former owner must also be revoked ROLE_PROVIDER role for all tenants of the organization
@@ -310,5 +314,8 @@ public class OrganizationMemberService {
 		Map <String, Component> componentMap = componentsModel.getListComponents();
 		for (String s : componentMap.keySet())
 			componentMap.get(s).removeOwner(ownerName, organization.getName());
+		
+		if (!isOwner)
+			throw new EntityNotFoundException("User " + ownerName + " belongs to organization " + organization.getName() + ", but is not registered as owner of it.");
 	}
 }

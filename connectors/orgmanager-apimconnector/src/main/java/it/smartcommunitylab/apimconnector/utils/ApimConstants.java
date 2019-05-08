@@ -7,5 +7,6 @@ public class ApimConstants {
 	public static final String TENANT_MGT_ENDPOINT 	= "multitenancyEndpoint";
 	public static final String TENANT_MGT_PASSWORD 	= "multitenancyPassword";
 	public static final String COMPONENT_ID 		= "componentId";
+	public static final String HOST 				= "host";
 	
 }

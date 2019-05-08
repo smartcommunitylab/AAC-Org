@@ -27,6 +27,7 @@ import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 
 import it.smartcommunitylab.aac.AACService;
 import it.smartcommunitylab.aac.model.TokenData;
+import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.model.Organization;
 import it.smartcommunitylab.orgmanager.model.OrganizationMember;
@@ -206,6 +207,18 @@ public class OrgManagerUtils {
 	 * @return - ID of the input user
 	 */
 	public Long getUserId(String userName) {
+		JSONObject profile = getIdpUserProfile(userName);
+		return new Long(profile.getAsString("userId")); // ID used by the identity provider
+	}
+	
+	public UserInfo getIdpUserDetails(String userName) {
+		JSONObject profile = getIdpUserProfile(userName);
+		if (profile == null)
+			return null;
+		return new UserInfo(profile.getAsString("username"), profile.getAsString("name"), profile.getAsString("surname"));
+	}
+	
+	private JSONObject getIdpUserProfile(String userName) {
 		if (userName == null || userName.equals("")) // invalid request
 			return null;
 		String urlString = securityConfig.getUserProfilesUri() + "?username=" + userName;
@@ -218,7 +231,7 @@ public class OrgManagerUtils {
 			if (profiles.size() > 1) // Multiple users found, cannot determine which one is the right one
 				throw new AmbiguousIdentifierException("The identity provider returned multiple profiles, cannot determine the correct user. Unable to continue.");
 			JSONObject profile = (JSONObject) profiles.get(0);
-			return new Long(profile.getAsString("userId")); // ID used by the identity provider
+			return profile;
 		} catch (ParseException e) {
 			throw new IdentityProviderAPIException("API call to the identity provider to find " + userName + "'s ID returned an unexpected response: " + e.getMessage());
 		}
@@ -342,8 +355,8 @@ public class OrgManagerUtils {
 	/**
 	 * Elaborate the reason of the thrown error in order to be as understandable as possible 
 	 * 
-	 * @param httpResponse
-	 * @return
+	 * @param httpResponse - Response containing an error
+	 * @return - Detailed error description
 	 */
 	private static String provideErrorDescription(HTTPResponse httpResponse) {
 		String errorMessage = httpResponse.getStatusCode() + ": " + httpResponse.getStatusMessage();

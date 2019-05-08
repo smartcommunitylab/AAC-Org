@@ -7,6 +7,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import it.smartcommunitylab.apimconnector.APIMConnector;
+import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes= {TestConfig.class, IntegrationConfig.class})
@@ -17,11 +18,14 @@ public class APIMConnectorTest {
 	private static final String TEST_TENANT_DOMAIN 	= "domain.test8";
 	private static final String TEST_ORGANIZATION 	= "organization";
 	private static final String TEST_USER 			= "test-mail@test.com";
+	private static final String TEST_NAME 			= "testname";
+	private static final String TEST_SURNAME 		= "testsurname";
 	private static final String TEST_ROLE 			= "roleTest";
 	
 	@Test
 	public void testCreateTenant() {
-		apimConnector.createTenant(TEST_TENANT_DOMAIN,TEST_USER,TEST_ORGANIZATION);
+		UserInfo ownerInfo = new UserInfo(TEST_USER, TEST_NAME, TEST_SURNAME);
+		apimConnector.createTenant(TEST_TENANT_DOMAIN, TEST_ORGANIZATION, ownerInfo);
 	}
 	
 	@Test
@@ -36,7 +40,7 @@ public class APIMConnectorTest {
 	
 	@Test
 	public void testCreateUser() {
-		apimConnector.createUser(TEST_USER);
+		apimConnector.createUser(new UserInfo(TEST_USER, TEST_NAME, TEST_SURNAME));
 	}
 		
 	@Test

@@ -6,6 +6,7 @@ import it.smartcommunitylab.orgmanager.componentsmodel.ComponentException;
 public class APIMConnectorUtils {
 
 	private static String componentId;
+	private static String host;
 	private static String usermgmtEndpoint;
 	private static String usermgmtPassword;
 	private static String multitenancyEndpoint;
@@ -21,6 +22,7 @@ public class APIMConnectorUtils {
 			throw new ComponentException("No properties specified.");
 		
 		componentId 			= properties.get(ApimConstants.COMPONENT_ID);
+		host 					= properties.get(ApimConstants.HOST);
 		usermgmtEndpoint 		= properties.get(ApimConstants.USER_MGT_ENDPOINT);
 		usermgmtPassword 		= properties.get(ApimConstants.USER_MGT_ENDPOINT);
 		multitenancyEndpoint 	= properties.get(ApimConstants.TENANT_MGT_ENDPOINT);
@@ -33,7 +35,7 @@ public class APIMConnectorUtils {
 	}
 
 	public static String getUsermgmtEndpoint() {
-		return usermgmtEndpoint;
+		return host + usermgmtEndpoint;
 	}
 
 	public static String getUsermgmtPassword() {
@@ -41,7 +43,7 @@ public class APIMConnectorUtils {
 	}
 
 	public static String getMultitenancyEndpoint() {
-		return multitenancyEndpoint;
+		return host + multitenancyEndpoint;
 	}
 
 	public static String getMultitenancyPassword() {

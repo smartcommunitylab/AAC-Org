@@ -1,5 +1,6 @@
 package it.smartcommunitylab.orgmanager.componentsmodel;
 
+import java.util.List;
 import java.util.Map;
 
 public interface Component {
@@ -17,20 +18,21 @@ public interface Component {
 	 * @param organizationName - Name of the organization
 	 * @param owner - Owner of the organization
 	 */
-	public void createOrganization(String organizationName, String owner);
+	public void createOrganization(String organizationName, UserInfo owner);
 	
 	/**
 	 * Handles deletion of an organization.
 	 * 
 	 * @param organizationName - Name of the organization
+	 * @param tenants - Tenants belonging to the organization
 	 */
-	public void deleteOrganization(String organizationName);
+	public void deleteOrganization(String organizationName, List<String> tenants);
 	
 	/**
 	 * Creates a user
-	 * @param userName - Name of the user
+	 * @param user - User to create
 	 */
-	public void createUser(String userName);
+	public void createUser(UserInfo user);
 	
 	/**
 	 * Removes a user from an organization.
@@ -79,9 +81,9 @@ public interface Component {
 	 * 
 	 * @param tenant - Tenant to create
 	 * @param organization - Name of the organization
-	 * @param owner - Owner of the organization
+	 * @param userInfo - Owner of the organization
 	 */
-	public void createTenant(String tenant, String organization, String owner);
+	public void createTenant(String tenant, String organization, UserInfo userInfo);
 	
 	/**
 	 * Removes a tenant from the given organization.
