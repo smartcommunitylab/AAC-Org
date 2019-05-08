@@ -83,7 +83,7 @@ public class OrgManagerUtils {
 				roleJSON = (JSONObject) o;
 				space = roleJSON.getAsString("space");
 				role = roleJSON.getAsString("role");
-				if (space != null && space.equals(securityConfig.getOrganizationManagementContext()) && role != null && role.equals(ROLE_PROVIDER))
+				if (space != null && space.equals(securityConfig.getOrganizationManagementContext()) && role != null && role.equals(Constants.ROLE_PROVIDER))
 					return true; // authenticated user is admin
 			}
 			return false;

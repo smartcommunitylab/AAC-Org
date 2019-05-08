@@ -77,12 +77,12 @@ public class ComponentService {
 		String name, componentId, scope, format, implementation, rolesString;
 		List<String> roles;
 		for (Map<String, String> map : componentProperties) { // Retrieves all properties used in the output
-			name = map.get(ComponentsConfig.FIELD_NAME);
-			componentId = map.get(ComponentsConfig.FIELD_COMPONENT_ID);
-			scope = map.get(ComponentsConfig.FIELD_SCOPE);
-			format = map.get(ComponentsConfig.FIELD_FORMAT);
-			implementation = map.get(ComponentsConfig.FIELD_IMPLEMENTATION);
-			rolesString = map.get(ComponentsConfig.FIELD_ROLES);
+			name = map.get(Constants.FIELD_NAME);
+			componentId = map.get(Constants.FIELD_COMPONENT_ID);
+			scope = map.get(Constants.FIELD_SCOPE);
+			format = map.get(Constants.FIELD_FORMAT);
+			implementation = map.get(Constants.FIELD_IMPLEMENTATION);
+			rolesString = map.get(Constants.FIELD_ROLES);
 			roles = new ArrayList<String>();
 			if (rolesString != null) { // builds a list from the comma-separated string
 				for (String s : rolesString.split(",")) {
@@ -107,8 +107,8 @@ public class ComponentService {
 		String rolesString;
 		List<String> roles = new ArrayList<String>();
 		for (Map<String, String> map : componentProperties) { // Retrieves all properties for each component
-			if (componentId.equals(map.get(ComponentsConfig.FIELD_COMPONENT_ID))) { // it's the input component
-				rolesString = map.get(ComponentsConfig.FIELD_ROLES);
+			if (componentId.equals(map.get(Constants.FIELD_COMPONENT_ID))) { // it's the input component
+				rolesString = map.get(Constants.FIELD_ROLES);
 				if (rolesString != null) { // builds a list from the comma-separated string
 					for (String s : rolesString.split(",")) {
 						if (!s.trim().equals(""))
@@ -293,7 +293,7 @@ public class ComponentService {
 			boolean componentIdFound = false;
 			String componentIdProperty;
 			for (Map<String, String> map : componentsConfiguration.getComponents()) { // checks that the component ID belongs to an actual component
-				componentIdProperty = map.get(ComponentsConfig.FIELD_COMPONENT_ID);
+				componentIdProperty = map.get(Constants.FIELD_COMPONENT_ID);
 				if (componentIdProperty != null && componentIdProperty.equals(componentId)) {
 					componentIdFound = true; // component ID is valid
 					break;
