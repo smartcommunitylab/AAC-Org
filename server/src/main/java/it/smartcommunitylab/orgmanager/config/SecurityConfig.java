@@ -21,6 +21,9 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	@Value("${security.oauth2.client.organizationManagementScope}")
 	private String orgMgmtScope;
 	
+	@Value("${security.oauth2.client.organizationManagementContext}")
+	private String orgMgmtContext;
+	
 	@Value("${security.oauth2.client.tokenInfoUri}")
 	private String tokenInfoUri;
 	
@@ -53,6 +56,10 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	
 	public String getOrganizationManagementScope() {
 		return orgMgmtScope; // scope that denotes certain privileges in creating, updating, configuring and deleting organizations
+	}
+	
+	public String getOrganizationManagementContext() {
+		return orgMgmtContext; // context that denotes certain privileges in creating, updating, configuring and deleting organizations
 	}
 	
 	public String getTokenInfoUri() {

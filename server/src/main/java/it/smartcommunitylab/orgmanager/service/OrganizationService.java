@@ -16,8 +16,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
+import it.smartcommunitylab.orgmanager.config.SecurityConfig;
+import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO.Contacts;
 import it.smartcommunitylab.orgmanager.model.Organization;
@@ -48,6 +51,12 @@ public class OrganizationService {
 	
 	@Autowired
 	private OrgManagerUtils utils;
+	
+	@Autowired
+	private SecurityConfig securityConfig;
+	
+	@Autowired
+	private ComponentsModel componentsModel;
 	
 	@Transactional(readOnly=true)
 	/**
@@ -121,14 +130,14 @@ public class OrganizationService {
 		Long userId = utils.getUserId(ownerName); // ID used by the identity provider for the owner
 		OrganizationMember owner = new OrganizationMember(ownerName, organization, userId);
 		owner = organizationMemberRepository.save(owner); // stores the owner
-		Role role = new Role(OrgManagerUtils.ROOT_ORGANIZATIONS + "/" + organization.getSlug(), OrgManagerUtils.ROLE_PROVIDER, owner, null);
+		Role role = new Role(securityConfig.getOrganizationManagementContext() + "/" + organization.getSlug(), Constants.ROLE_PROVIDER, owner, null);
 		roleRepository.save(role); // stores the owner's role
 		
 		// Updates the identity provider
 		utils.idpAddRole(userId, role); // updates the owner's role in the identity provider as well
 		
 		// Performs the operation in the components
-		Map<String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
+		Map<String, Component> componentMap = componentsModel.getListComponents();
 		for (String s : componentMap.keySet()) {
 			componentMap.get(s).createUser(owner.getUsername());
 			componentMap.get(s).createOrganization(name, owner.getUsername());
@@ -255,7 +264,7 @@ public class OrganizationService {
 			utils.idpRemoveRoles(m.getIdpId(), memberRolesMap.get(m));
 		
 		// Deletes the organization in the components
-		Map<String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
+		Map<String, Component> componentMap = componentsModel.getListComponents();
 		for (String s : componentMap.keySet())
 			componentMap.get(s).deleteOrganization(organization.getName());
 	}

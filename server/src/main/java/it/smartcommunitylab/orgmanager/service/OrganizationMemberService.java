@@ -14,8 +14,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
+import it.smartcommunitylab.orgmanager.config.SecurityConfig;
+import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 import it.smartcommunitylab.orgmanager.dto.OrganizationMemberDTO;
 import it.smartcommunitylab.orgmanager.dto.RoleDTO;
 import it.smartcommunitylab.orgmanager.model.Organization;
@@ -48,6 +51,12 @@ public class OrganizationMemberService {
 	
 	@Autowired
 	private OrgManagerUtils utils;
+	
+	@Autowired
+	private SecurityConfig securityConfig;
+	
+	@Autowired
+	private ComponentsModel componentsModel;
 	
 	/**
 	 * Lists users within an organization.
@@ -120,7 +129,7 @@ public class OrganizationMemberService {
 			}
 		}
 		// Retrieves roles prior to this new configuration, to remove roles not present in the new configuration
-		Set<Role> rolesToRemove = roleRepository.findByOrganizationMemberAndRoleNotIgnoreCase(storedMember, OrgManagerUtils.ROLE_PROVIDER);
+		Set<Role> rolesToRemove = roleRepository.findByOrganizationMemberAndRoleNotIgnoreCase(storedMember, Constants.ROLE_PROVIDER);
 		rolesToRemove.removeAll(rolesToAdd); // Roles not present in the new configuration
 		
 		roleRepository.saveAll(rolesToAdd); // Stores the member's new roles
@@ -131,7 +140,7 @@ public class OrganizationMemberService {
 		utils.idpRemoveRoles(userId, rolesToRemove);
 		
 		// Creates user in the components
-		Map<String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
+		Map<String, Component> componentMap = componentsModel.getListComponents();
 		boolean userCreated = false;
 		for (String s : componentMap.keySet()) {
 			for (Role r : rolesToAdd) {
@@ -186,7 +195,7 @@ public class OrganizationMemberService {
 		utils.idpRemoveRoles(memberIdpId, rolesToRemove);
 		
 		// Removes the user for the components
-		Map<String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
+		Map<String, Component> componentMap = componentsModel.getListComponents();
 		for (String s : componentMap.keySet())
 			componentMap.get(s).removeUserFromOrganization(member.getUsername(), organization.getName());
 	}
@@ -222,7 +231,7 @@ public class OrganizationMemberService {
 			roles = roleRepository.findByOrganizationMember(owner); // retrieve the roles for output
 		}
 		
-		Role ownerRole = new Role(OrgManagerUtils.ROOT_ORGANIZATIONS + "/" + organization.getSlug(), OrgManagerUtils.ROLE_PROVIDER, owner, null);
+		Role ownerRole = new Role(securityConfig.getOrganizationManagementContext() + "/" + organization.getSlug(), Constants.ROLE_PROVIDER, owner, null);
 		List<Role> rolesToAdd = new ArrayList<Role>();
 		rolesToAdd.add(ownerRole); // owner role
 		if (alreadyOwner)
@@ -230,8 +239,8 @@ public class OrganizationMemberService {
 		// New owner must also be given ROLE_PROVIDER role on all tenants of the organization
 		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
 		for (Tenant t : tenants) {
-			Role tenantRole = new Role(OrgManagerUtils.ROOT_COMPONENTS + "/" + t.getTenantId().getComponentId() + "/" + t.getTenantId().getName(),
-					OrgManagerUtils.ROLE_PROVIDER, owner, t.getTenantId().getComponentId());
+			Role tenantRole = new Role(Constants.ROOT_COMPONENTS + "/" + t.getTenantId().getComponentId() + "/" + t.getTenantId().getName(),
+					Constants.ROLE_PROVIDER, owner, t.getTenantId().getComponentId());
 			rolesToAdd.add(tenantRole);
 			if (alreadyOwner)
 				alreadyOwner = roles.contains(tenantRole);
@@ -243,7 +252,7 @@ public class OrganizationMemberService {
 		utils.idpAddRoles(ownerId, rolesToAdd);
 		
 		// Adds the owner for the components
-		Map <String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
+		Map <String, Component> componentMap = componentsModel.getListComponents();
 		for (String s : componentMap.keySet()) {
 			componentMap.get(s).createUser(ownerName);
 			componentMap.get(s).addOwner(ownerName, organization.getName());
@@ -283,22 +292,22 @@ public class OrganizationMemberService {
 		
 		Set<Role> roles = roleRepository.findByOrganizationMember(owner);
 		List<Role> rolesToRemove = new ArrayList<Role>();
-		Role ownerRole = new Role(OrgManagerUtils.ROOT_ORGANIZATIONS + "/" + organization.getSlug(), OrgManagerUtils.ROLE_PROVIDER, owner, null);
+		Role ownerRole = new Role(securityConfig.getOrganizationManagementContext() + "/" + organization.getSlug(), Constants.ROLE_PROVIDER, owner, null);
 		if (!roles.contains(ownerRole)) // The input user is not owner of the organization
 			throw new EntityNotFoundException("User " + ownerName + " belongs to organization " + organization.getName() + ", but is not owner of it.");
 		rolesToRemove.add(ownerRole); // owner role
 		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
 		// Former owner must also be revoked ROLE_PROVIDER role for all tenants of the organization
 		for (Tenant t : tenants)
-			rolesToRemove.add(new Role(OrgManagerUtils.ROOT_COMPONENTS + "/" + t.getTenantId().getComponentId() + "/" + t.getTenantId().getName(),
-					OrgManagerUtils.ROLE_PROVIDER, owner, t.getTenantId().getComponentId()));
+			rolesToRemove.add(new Role(Constants.ROOT_COMPONENTS + "/" + t.getTenantId().getComponentId() + "/" + t.getTenantId().getName(),
+					Constants.ROLE_PROVIDER, owner, t.getTenantId().getComponentId()));
 		roleRepository.deleteAll(rolesToRemove);
 		
 		// Updates roles in the identity provider
 		utils.idpRemoveRoles(ownerIdpId, rolesToRemove);
 		
 		// Removes the owner for the components
-		Map <String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
+		Map <String, Component> componentMap = componentsModel.getListComponents();
 		for (String s : componentMap.keySet())
 			componentMap.get(s).removeOwner(ownerName, organization.getName());
 	}

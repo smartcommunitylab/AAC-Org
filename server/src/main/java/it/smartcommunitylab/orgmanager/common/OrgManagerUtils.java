@@ -36,14 +36,7 @@ import net.minidev.json.JSONObject;
 
 @Service
 public class OrgManagerUtils {
-	public static final String ROLE_PROVIDER = "ROLE_PROVIDER";
-	public static final String ROOT_COMPONENTS = "components";
-	public static final String ROOT_ORGANIZATIONS = "organizations";
-	public static final String BEAN_COMPONENTS_MAP = "getComponentsMap";
-	public static final String PATH_COMPONENTS_CONFIG = "/config/components.yml";
-	private static final String SCOPE_USER_PROFILES = "profile.basicprofile.all,profile.accountprofile.all";
-	private static final String SCOPE_MANAGE_ROLES = "user.roles.write,user.roles.read,user.roles.read.all,client.roles.read.all";
-	
+		
 	private AACService aacService;
 	
 	@Autowired
@@ -90,7 +83,7 @@ public class OrgManagerUtils {
 				roleJSON = (JSONObject) o;
 				space = roleJSON.getAsString("space");
 				role = roleJSON.getAsString("role");
-				if (space != null && space.equals(ROOT_ORGANIZATIONS) && role != null && role.equals(ROLE_PROVIDER))
+				if (space != null && space.equals(securityConfig.getOrganizationManagementContext()) && role != null && role.equals(ROLE_PROVIDER))
 					return true; // authenticated user is admin
 			}
 			return false;
@@ -138,9 +131,9 @@ public class OrgManagerUtils {
 				context = roleJSON.getAsString("context");
 				space = roleJSON.getAsString("space");
 				role = roleJSON.getAsString("role");
-				if (context != null && context.equals(ROOT_ORGANIZATIONS) && 
+				if (context != null && context.equals(securityConfig.getOrganizationManagementContext()) && 
 						space != null && space.equals(organization.getSlug())
-						&& role != null && role.equals(ROLE_PROVIDER))
+						&& role != null && role.equals(Constants.ROLE_PROVIDER))
 					return true; // authenticated user is owner
 			}
 			return false;
@@ -158,8 +151,8 @@ public class OrgManagerUtils {
 	 */
 	public boolean containsOwnerRole(Collection<Role> roles, String slug) {
 		for (Role r : roles) {
-			if (r.getRoleId().getContextSpace().equals(ROOT_ORGANIZATIONS + "/" + slug) &&
-					r.getRoleId().getRole().equals(ROLE_PROVIDER))
+			if (r.getRoleId().getContextSpace().equals(securityConfig.getOrganizationManagementContext() + "/" + slug) &&
+					r.getRoleId().getRole().equals(Constants.ROLE_PROVIDER))
 				return true; // authenticated user is owner
 		}
 		return false;
@@ -177,7 +170,7 @@ public class OrgManagerUtils {
 		}
 		OAuth2AuthenticationDetails det = (OAuth2AuthenticationDetails) obj;
 		String urlString = securityConfig.getTokenInfoUri() + "?" + securityConfig.getTokenName() + "=" + det.getTokenValue();
-		HTTPResponse response = callIdentityProviderAPI(urlString, HTTPRequest.Method.POST, getTokenWithScope(SCOPE_USER_PROFILES)); // API call to get token info
+		HTTPResponse response = callIdentityProviderAPI(urlString, HTTPRequest.Method.POST, getTokenWithScope(Constants.SCOPE_USER_PROFILES)); // API call to get token info
 		
 		String userId = null;
 		try {
@@ -216,7 +209,7 @@ public class OrgManagerUtils {
 		if (userName == null || userName.equals("")) // invalid request
 			return null;
 		String urlString = securityConfig.getUserProfilesUri() + "?username=" + userName;
-		HTTPResponse httpResponse = callIdentityProviderAPI(urlString, HTTPRequest.Method.GET, getTokenWithScope(SCOPE_USER_PROFILES));
+		HTTPResponse httpResponse = callIdentityProviderAPI(urlString, HTTPRequest.Method.GET, getTokenWithScope(Constants.SCOPE_USER_PROFILES));
 		try {
 			JSONObject responseJSON = httpResponse.getContentAsJSONObject();
 			JSONArray profiles = (JSONArray) responseJSON.get("profiles"); // a profiles array should be returned
@@ -296,7 +289,7 @@ public class OrgManagerUtils {
 			if (iter.hasNext()) // checks that it's not the last role
 				urlString += ","; // separates roles with a comma
 		}
-		callIdentityProviderAPI(urlString, method, getTokenWithScope(SCOPE_MANAGE_ROLES));
+		callIdentityProviderAPI(urlString, method, getTokenWithScope(Constants.SCOPE_MANAGE_ROLES));
 	}
 	
 	/**
@@ -336,11 +329,36 @@ public class OrgManagerUtils {
 			}
 			httpRequest.setAuthorization(accessToken); // sets authorization header
 			HTTPResponse httpResponse = httpRequest.send();
-			if (httpResponse.getStatusCode() >= 400) // some error occurred 
-				throw new IOException(httpResponse.getStatusCode() + ": " + httpResponse.getStatusMessage());
+			if (httpResponse.getStatusCode() >= 400) {// some error occurred 
+				String provideErrorDesc = provideErrorDescription(httpResponse);
+				throw new IOException(provideErrorDesc);
+			}
 			return httpResponse;
 		} catch (IOException e) {
 			throw new IdentityProviderAPIException("API call to the identity provider failed: " + e.getMessage());
 		}
+	}
+	
+	/**
+	 * Elaborate the reason of the thrown error in order to be as understandable as possible 
+	 * 
+	 * @param httpResponse
+	 * @return
+	 */
+	private static String provideErrorDescription(HTTPResponse httpResponse) {
+		String errorMessage = httpResponse.getStatusCode() + ": " + httpResponse.getStatusMessage();
+		JSONObject object;
+		try {
+			object = httpResponse.getContentAsJSONObject();
+			String error_description = object.getAsString("error_description");
+			String error_message = object.getAsString("errorMessage");
+			if(error_description != null)
+				errorMessage += " : " + error_description;
+			if(error_message != null)
+				errorMessage += " : " + error_message;
+		} catch (ParseException e) {
+			throw new IdentityProviderAPIException("Error inside provideErrorDesc: " + e.getMessage());
+		}
+		return errorMessage;
 	}
 }

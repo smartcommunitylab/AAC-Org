@@ -19,11 +19,15 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig;
+import it.smartcommunitylab.orgmanager.config.SecurityConfig;
+import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
 import it.smartcommunitylab.orgmanager.dto.ComponentConfigurationDTO;
 import it.smartcommunitylab.orgmanager.dto.ComponentDTO;
+import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 import it.smartcommunitylab.orgmanager.model.Organization;
 import it.smartcommunitylab.orgmanager.model.OrganizationMember;
 import it.smartcommunitylab.orgmanager.model.Role;
@@ -46,13 +50,19 @@ public class ComponentService {
 	private RoleRepository roleRepository;
 	
 	@Autowired
-	private ComponentsConfig componentsConfig;
+	private ComponentsConfiguration componentsConfiguration;
+	
+	@Autowired
+	private ComponentsModel componentsModel;
 	
 	@Autowired
 	private ApplicationContext context;
 	
 	@Autowired
 	private OrgManagerUtils utils;
+	
+	@Autowired
+	private SecurityConfig securityConfig;
 	
 	/**
 	 * Lists all components.
@@ -63,7 +73,7 @@ public class ComponentService {
 	@Transactional(readOnly=true)
 	public Page<ComponentDTO> listComponents(Pageable pageable) {
 		List<ComponentDTO> componentListDTO = new ArrayList<ComponentDTO>();
-		List<Map<String, String>> componentProperties = componentsConfig.getComponentProperties();
+		List<Map<String, String>> componentProperties = componentsConfiguration.getComponents();
 		String name, componentId, scope, format, implementation, rolesString;
 		List<String> roles;
 		for (Map<String, String> map : componentProperties) { // Retrieves all properties used in the output
@@ -93,7 +103,7 @@ public class ComponentService {
 	 * @return - A list of possible roles for the component
 	 */
 	public List<String> getComponentRoles(String componentId) {
-		List<Map<String, String>> componentProperties = componentsConfig.getComponentProperties();
+		List<Map<String, String>> componentProperties = componentsConfiguration.getComponents();
 		String rolesString;
 		List<String> roles = new ArrayList<String>();
 		for (Map<String, String> map : componentProperties) { // Retrieves all properties for each component
@@ -175,7 +185,7 @@ public class ComponentService {
 		for (Tenant t : newTenants) { // loops on all tenants listed in the new configuration
 			previousTenants.remove(t); // tenant is still in use
 			for (OrganizationMember owner : owners)
-				rolesToAdd.add(new Role(OrgManagerUtils.ROOT_COMPONENTS + "/" + t, OrgManagerUtils.ROLE_PROVIDER, owner, t.getTenantId().getComponentId())); // prepare role for this tenant
+				rolesToAdd.add(new Role(securityConfig.getOrganizationManagementContext() + "/" + t, Constants.ROLE_PROVIDER, owner, t.getTenantId().getComponentId())); // prepare role for this tenant
 		}
 		Set<String> componentIds = new HashSet<String>(); // component IDs that appear in the new configuration
 		for (ComponentConfigurationDTO conf : configurationDTOList) {
@@ -187,7 +197,7 @@ public class ComponentService {
 			// because its component ID is not specified, however, it is interpreted as "leave
 			// this component's configuration as it is".
 			if (componentIds.contains(t.getTenantId().getComponentId())) { // component ID was specified, but the tenant is missing
-				rolesToRemove.addAll(roleRepository.findByContextSpace(OrgManagerUtils.ROOT_COMPONENTS + "/" + t)); // tenant will be removed, so all related roles have to be removed
+				rolesToRemove.addAll(roleRepository.findByContextSpace(securityConfig.getOrganizationManagementContext() + "/" + t)); // tenant will be removed, so all related roles have to be removed
 				tenantsToRemove.add(t); // tenant will have to be removed
 			}
 		}
@@ -220,7 +230,7 @@ public class ComponentService {
 			utils.idpRemoveRoles(m.getIdpId(), memberToRolesToRemove.get(m)); // revokes roles in the identity provider
 		
 		// Updates tenants in the components
-		Map<String, Component> componentMap = (Map<String, Component>) context.getBean(OrgManagerUtils.BEAN_COMPONENTS_MAP);
+		Map<String, Component> componentMap = componentsModel.getListComponents();
 		for (String s : componentMap.keySet()) {
 			for (Tenant t : newTenants) {
 				if (t.getTenantId().getComponentId().equals(s)) {
@@ -282,7 +292,7 @@ public class ComponentService {
 			String componentId = conf.getComponentId();
 			boolean componentIdFound = false;
 			String componentIdProperty;
-			for (Map<String, String> map : componentsConfig.getComponentProperties()) { // checks that the component ID belongs to an actual component
+			for (Map<String, String> map : componentsConfiguration.getComponents()) { // checks that the component ID belongs to an actual component
 				componentIdProperty = map.get(ComponentsConfig.FIELD_COMPONENT_ID);
 				if (componentIdProperty != null && componentIdProperty.equals(componentId)) {
 					componentIdFound = true; // component ID is valid
@@ -322,7 +332,7 @@ public class ComponentService {
 	private List<OrganizationMember> listOwners(Organization organization) {
 		List<OrganizationMember> owners = new ArrayList<OrganizationMember>();
 		// Retrieves the list of all roles that denote an owner
-		List<Role> ownerRoles = roleRepository.findByContextSpaceAndRole(OrgManagerUtils.ROOT_ORGANIZATIONS + "/" + organization.getSlug(), OrgManagerUtils.ROLE_PROVIDER);
+		List<Role> ownerRoles = roleRepository.findByContextSpaceAndRole(securityConfig.getOrganizationManagementContext() + "/" + organization.getSlug(), Constants.ROLE_PROVIDER);
 		for (Role r : ownerRoles)
 			owners.add(r.getOrganizationMember()); // adds the owner to the result
 		return owners;
