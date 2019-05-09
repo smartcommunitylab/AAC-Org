@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +22,6 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
-import it.smartcommunitylab.orgmanager.config.ComponentsConfig;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
 import it.smartcommunitylab.orgmanager.dto.ComponentConfigurationDTO;
@@ -55,9 +53,6 @@ public class ComponentService {
 	
 	@Autowired
 	private ComponentsModel componentsModel;
-	
-	@Autowired
-	private ApplicationContext context;
 	
 	@Autowired
 	private OrgManagerUtils utils;
@@ -209,11 +204,9 @@ public class ComponentService {
 		tenantRepository.deleteAll(tenantsToRemove); // deletes unused tenants
 		
 		// Updates roles on the identity provider
-		if (!rolesToAdd.isEmpty()) {
-			for (OrganizationMember owner : owners) {
+		if (!rolesToAdd.isEmpty())
+			for (OrganizationMember owner : owners)
 				utils.idpAddRoles(owner.getIdpId(), rolesToAdd); // owner is given authority on all created tenants
-			}
-		}
 		
 		// Map that links each member to the roles that they must be stripped of
 		Map<OrganizationMember, List<Role>> memberToRolesToRemove = new HashMap<OrganizationMember, List<Role>>();
@@ -232,29 +225,16 @@ public class ComponentService {
 		
 		// Updates tenants in the components
 		Map<String, Component> componentMap = componentsModel.getListComponents();
-		for (String s : componentMap.keySet()) { // TODO reconsider these 4 operations
-			for (Tenant t : newTenants) {
+		for (String s : componentMap.keySet()) {
+			for (Tenant t : newTenants) { // Creates new tenants
 				Organization org = t.getOrganization();
 				UserInfo userInfo = new UserInfo(org.getContactsEmail(), org.getContactsName(), org.getContactsSurname());
 				if (t.getTenantId().getComponentId().equals(s))
 					componentMap.get(s).createTenant(t.getTenantId().getName(), t.getOrganization().getName(), userInfo);
 			}
-			for (Tenant t : tenantsToRemove) {
+			for (Tenant t : tenantsToRemove) // Deletes tenants no longer in use
 				if (t.getTenantId().getComponentId().equals(s))
 					componentMap.get(s).deleteTenant(t.getTenantId().getName(), t.getOrganization().getName());
-			}
-			for (Role r : rolesToAdd) {
-				if (r.getComponentId().equals(s)) {
-					for (OrganizationMember owner : owners)
-						componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), owner.getUsername());
-				}
-			}
-			for (Role r : rolesToRemove) {
-				if (r.getComponentId().equals(s)) {
-					for (OrganizationMember owner : owners)
-						componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), owner.getUsername());
-				}
-			}
 		}
 		
 		// Prepares the updated configuration, to show it as response. It will be a list with an element for each component.
@@ -309,7 +289,7 @@ public class ComponentService {
 			if (conf.getTenants() != null) {
 				for (String t : conf.getTenants()) {
 					if (!pattern.matcher(t).matches()) // tenant does not match the format
-						throw new IllegalArgumentException("The following tenant contains illegal characters: " + t + ", please use only alphanumeric characters, dash (-) or underscore (_).");
+						throw new IllegalArgumentException("The following tenant contains illegal characters: " + t + ", please match this regex: " + componentTenantPattern);
 					Tenant storedTenant = tenantRepository.findByComponentIdAndName(componentId, t); // check if tenant already exists
 					if (storedTenant == null) { // tenant needs to be created
 						storedTenant = new Tenant(componentId, t, organization);

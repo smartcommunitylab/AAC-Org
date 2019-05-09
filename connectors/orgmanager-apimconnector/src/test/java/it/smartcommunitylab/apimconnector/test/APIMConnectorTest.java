@@ -45,6 +45,7 @@ public class APIMConnectorTest {
 		
 	@Test
 	public void testAssignRole2User() {
-		apimConnector.assignRoleToUser(TEST_ROLE, TEST_ORGANIZATION, TEST_USER);
+		UserInfo userInfo = new UserInfo(TEST_USER, TEST_NAME, TEST_SURNAME);
+		apimConnector.assignRoleToUser(TEST_ROLE, TEST_ORGANIZATION, userInfo);
 	}
 }

@@ -77,7 +77,7 @@ public class NiFiConnector implements Component {
 	 * Deletes the process group for the organization
 	 * 
 	 * @param organizationName - Name of the organization
-	 * @param tenants - Tenants of the organization
+	 * @param tenants - Tenants of the organization, unused
 	 */
 	public void deleteOrganization(String organizationName, List<String> tenants) {
 		JSONObject organizationPG = getProcessGroup(organizationName, NiFiConnectorUtils.ROOT); // the organization's process group

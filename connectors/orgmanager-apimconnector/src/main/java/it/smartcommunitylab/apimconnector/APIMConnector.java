@@ -58,17 +58,19 @@ public class APIMConnector implements Component{
 		}
 	}
 
-	public void removeUserFromOrganization(String userName, String organizationName) {
+	public void removeUserFromOrganization(UserInfo userInfo, String organizationName) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	public void assignRoleToUser(String role, String organization, String userName) {
+	public void assignRoleToUser(String role, String organization, UserInfo userInfo) {
+		String domain = role.substring(0, role.indexOf(":"));
+		System.out.println("domain: " + domain); // TODO refactoring to separate domain from role, adapting NiFiConnector as well?
 //		List<String> rolesList = Arrays.asList(new String[]{role});
 //		RoleModel roleModel = new RoleModel();
 //		roleModel.setAddRoles(rolesList);
 //		try {
-//			umService.updateRoles(roleModel, userName, organization);
+//			umService.updateRoles(roleModel, userInfo.getUsername(), organization);
 //		} catch (AxisFault e) {
 //			e.printStackTrace();
 //		} catch (RemoteException e) {
@@ -80,12 +82,12 @@ public class APIMConnector implements Component{
 //		}
 	}
 
-	public void revokeRoleFromUser(String role, String organization, String userName) {
+	public void revokeRoleFromUser(String role, String organization, UserInfo userInfo) {
 		List<String> rolesList = Arrays.asList(new String[]{role});
 		RoleModel roleModel = new RoleModel();
 		roleModel.setRemoveRoles(rolesList);
 		try {
-			umService.updateRoles(roleModel, userName, organization);
+			umService.updateRoles(roleModel, userInfo.getUsername(), organization);
 		} catch (AxisFault e) {
 			e.printStackTrace();
 		} catch (RemoteException e) {
@@ -97,12 +99,12 @@ public class APIMConnector implements Component{
 		}
 	}
 
-	public void addOwner(String ownerName, String organizationName) {
+	public void addOwner(UserInfo ownerInfo, String organizationName) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	public void removeOwner(String ownerName, String organizationName) {
+	public void removeOwner(UserInfo ownerInfo, String organizationName) {
 		// TODO Auto-generated method stub
 		
 	}

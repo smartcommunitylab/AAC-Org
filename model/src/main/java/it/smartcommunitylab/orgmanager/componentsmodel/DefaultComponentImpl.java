@@ -16,7 +16,7 @@ public class DefaultComponentImpl implements Component {
 
 	public void createUser(UserInfo user) { /* does nothing */ }
 	
-	public void removeUserFromOrganization(String userName, String organizationName) { /* does nothing */ }
+	public void removeUserFromOrganization(UserInfo userInfo, String organizationName) { /* does nothing */ }
 
 	public void init(Map<String, String> properties) { /* does nothing */ }
 	
@@ -24,13 +24,13 @@ public class DefaultComponentImpl implements Component {
 	
 	public void deleteOrganization(String organizationName, List<String> tenants) { /* does nothing */ }
 
-	public void assignRoleToUser(String role, String organization, String userName) { /* does nothing */ }
+	public void assignRoleToUser(String role, String organization, UserInfo userInfo) { /* does nothing */ }
 
-	public void revokeRoleFromUser(String role, String organization, String userName) { /* does nothing */ }
+	public void revokeRoleFromUser(String role, String organization, UserInfo userInfo) { /* does nothing */ }
 
-	public void addOwner(String ownerName, String organizationName) { /* does nothing */ }
+	public void addOwner(UserInfo ownerInfo, String organizationName) { /* does nothing */ }
 
-	public void removeOwner(String ownerName, String organizationName) { /* does nothing */ }
+	public void removeOwner(UserInfo ownerInfo, String organizationName) { /* does nothing */ }
 
 	public void createTenant(String tenant, String organization, UserInfo ownerInfo) { /* does nothing */ }
 
