@@ -284,7 +284,6 @@ public class ComponentService {
 			}
 			if (!componentIdFound) // no component with the given ID could be found
 				throw new IllegalArgumentException("Component " + componentId + " could not be found.");
-			System.out.println("tenant format : " + componentTenantPattern);
 			Pattern pattern = Pattern.compile(componentTenantPattern); // tenants need to have a certain format
 			if (conf.getTenants() != null) {
 				for (String t : conf.getTenants()) {

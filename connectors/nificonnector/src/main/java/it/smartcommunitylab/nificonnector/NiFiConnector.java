@@ -43,7 +43,7 @@ public class NiFiConnector implements Component {
 	 * 
 	 * @param properties - Map: name of property -> value of property
 	 */
-	public void init(Map<String, String> properties) {
+	public String init(Map<String, String> properties) {
 		NiFiConnectorUtils.init(properties);
 		try {
 			String errMessage = "Unable to verify if component " + NiFiConnectorUtils.getComponentId() + " is running.";
@@ -55,6 +55,7 @@ public class NiFiConnector implements Component {
 					+ NiFiConnectorUtils.PROPERTY_IMPLEMENTATION + " property with " + DefaultComponentImpl.class.getName()
 					+ ". Error: " +  e);
 		}
+		return result(0, "Initializaton complete.");
 	}
 	
 	/**
@@ -63,14 +64,15 @@ public class NiFiConnector implements Component {
 	 * @param organizationName - Name of the organization
 	 * @param ownerInfo - Owner of the organization
 	 */
-	public void createOrganization(String organizationName, UserInfo ownerInfo) {
+	public String createOrganization(String organizationName, UserInfo ownerInfo) {
 		if (organizationName == null || organizationName.equals(""))
-			return;
+			return result(2, "The organization to create was not specified.");
 		JSONArray userGroups = listUserGroups();
 		createUserGroups(null, organizationName, userGroups); // creates user groups related to the roles in the organization
 		JSONObject processGroup = createProcessGroup(organizationName, NiFiConnectorUtils.ROOT); // the parent process group will be the root
 		assignPolicies(processGroup, null, listUserGroups()); // null as organizationName parameter: the process group itself represents the organization
 		assignRoleToUser(organizationName + ":" + NiFiConnectorUtils.getOwnerRole(), null, ownerInfo); // null as organizationName parameter: the process group itself represents the organization
+		return result(0, "Organization " + organizationName + " has been created with owner " + ownerInfo.getUsername() + ".");
 	}
 	
 	/**
@@ -79,7 +81,9 @@ public class NiFiConnector implements Component {
 	 * @param organizationName - Name of the organization
 	 * @param tenants - Tenants of the organization, unused
 	 */
-	public void deleteOrganization(String organizationName, List<String> tenants) {
+	public String deleteOrganization(String organizationName, List<String> tenants) {
+		if (organizationName == null || organizationName.equals(""))
+			return result(2, "The organization to delete was not specified");
 		JSONObject organizationPG = getProcessGroup(organizationName, NiFiConnectorUtils.ROOT); // the organization's process group
 		if (organizationPG != null) {
 			JSONArray nestedPGs = listProcessGroups(organizationPG.getAsString(NiFiConnectorUtils.FIELD_ID)); // process groups nested inside the organization's process group
@@ -94,6 +98,7 @@ public class NiFiConnector implements Component {
 			deleteProcessGroup(organizationPG); // deletes the organization's process group
 		}
 		deleteUserGroups(null, organizationName); // deletes user groups of the organization's process group
+		return result(0, "Organization " + organizationName + " and all of its tenants have been deleted.");
 	}
 	
 	/**
@@ -101,11 +106,11 @@ public class NiFiConnector implements Component {
 	 * 
 	 * @param userInfo - User to create
 	 */
-	public void createUser(UserInfo userInfo) {
+	public String createUser(UserInfo userInfo) {
 		String userName = userInfo.getUsername();
 		JSONObject user = getUser(userName); // checks if user already exists
 		if (user != null) // user already exists
-			return;
+			return result(1, "User " + userName + " already exists.");
 		
 		user = new JSONObject(); // user needs to be created
 		
@@ -123,6 +128,7 @@ public class NiFiConnector implements Component {
 		// Grants the user permission to view UI
 		JSONObject viewUIPolicy = getPolicy(NiFiConnectorUtils.ACTION_READ, NiFiConnectorUtils.FLOW);
 		addUserToPolicy(user, viewUIPolicy);
+		return result(0, "User " + userName + " was created.");
 	}
 	
 	/**
@@ -130,16 +136,17 @@ public class NiFiConnector implements Component {
 	 * 
 	 * @param userInfo - User to remove
 	 * @param organizationName - Name of the organization
+	 * @param tenants - List of tenants belonging to the organization, unused
 	 */
-	public void removeUserFromOrganization(UserInfo userInfo, String organizationName) {
+	public String removeUserFromOrganization(UserInfo userInfo, String organizationName, List<String> tenants) {
 		if (userInfo == null)
-			return;
+			return result(2, "The user to remove was not specified.");
 		JSONObject user = getUser(userInfo.getUsername());
 		if (user == null) // user does not belong to the organization
-			return;
+			return result(1, "User " + userInfo.getUsername() + " does not belong to the organization.");
 		JSONObject organizationPG = getProcessGroup(organizationName, NiFiConnectorUtils.ROOT);
 		if (organizationPG == null)
-			return;
+			return result(2, "Process group for organization " + organizationName + " could not be found.");
 		
 		String organizationPGID = organizationPG.getAsString(NiFiConnectorUtils.FIELD_ID); // ID of the organization's process group
 		JSONArray nestedPGs = listProcessGroups(organizationPGID); // lists all process groups nested within the organization's process group
@@ -158,6 +165,7 @@ public class NiFiConnector implements Component {
 		// Revokes permission to view the organization's process group
 		JSONObject viewOrganizationPGPolicy = getPolicy(NiFiConnectorUtils.ACTION_READ, NiFiConnectorUtils.TYPE_PROCESS_GROUP + organizationPGID);
 		removeUserFromPolicy(user, viewOrganizationPGPolicy);
+		return result(0, "User " + userInfo.getUsername() + " was removed from organization " + organizationName + ".");
 	}
 	
 	/**
@@ -167,12 +175,12 @@ public class NiFiConnector implements Component {
 	 * @param organization - Name of the organization
 	 * @param userInfo - User to give the role to
 	 */
-	public void assignRoleToUser(String role, String organizationName, UserInfo userInfo) {
+	public String assignRoleToUser(String role, String organizationName, UserInfo userInfo) {
 		if (userInfo == null || role == null || role.equals(""))
-			return;
+			return result(2, "User or role to assign were not specified.");
 		JSONObject user = getUser(userInfo.getUsername());
 		if (user == null) // user cannot be found
-			return;
+			return result(2, "User " + userInfo.getUsername() + " could not be found.");
 		String roleToAssign = role;
 		if (organizationName != null)
 			roleToAssign = organizationName + "/" + roleToAssign;
@@ -188,6 +196,7 @@ public class NiFiConnector implements Component {
 		JSONObject viewOrganizationPGPolicy = getPolicy(NiFiConnectorUtils.ACTION_READ, // policy to view the process group
 				NiFiConnectorUtils.TYPE_PROCESS_GROUP + organizationPG.getAsString(NiFiConnectorUtils.FIELD_ID));
 		addUserToPolicy(user, viewOrganizationPGPolicy);
+		return result(0, "User " + userInfo.getUsername() + " was assigned the role " + role + " in organization " + organizationName + ".");
 	}
 	
 	/**
@@ -230,14 +239,16 @@ public class NiFiConnector implements Component {
 	 * @param organizationName - Name of the organization
 	 * @param userInfo - User to revoke the role from
 	 */
-	public void revokeRoleFromUser(String role, String organizationName, UserInfo userInfo) {
+	public String revokeRoleFromUser(String role, String organizationName, UserInfo userInfo) {
+		if (userInfo == null || role == null || role.equals(""))
+			return result(2, "User or role to revoke were not specified.");
 		JSONArray userGroups = listUserGroups(); // lists all user groups
 		String roleToRevoke = role;
 		if (organizationName != null)
 			roleToRevoke = organizationName + "/" + roleToRevoke;
 		JSONObject group = getUserGroup(roleToRevoke, userGroups); // retrieves the user group corresponding to the input
-		if (group == null || userInfo == null)
-			return;
+		if (group == null)
+			return result(2, "User group for role " + role + " could not be found.");
 		JSONObject groupComponent = (JSONObject) group.get(NiFiConnectorUtils.FIELD_COMPONENT);
 		JSONArray users = (JSONArray) groupComponent.get(NiFiConnectorUtils.FIELD_USERS); // members of the user group
 		Object toRemove = null;
@@ -257,6 +268,7 @@ public class NiFiConnector implements Component {
 			String groupId = group.getAsString(NiFiConnectorUtils.FIELD_ID); // ID of the user group
 			updateUserGroup(groupId, roleToRevoke, group); // updates the group
 		}
+		return result(0, "User " + userInfo.getUsername() + " no longer has the " + role + " role.");
 	}
 	
 	/**
@@ -268,12 +280,12 @@ public class NiFiConnector implements Component {
 	 * @param organizationName - Name of the organization which owns the tenant
 	 * @param ownerInfo - Unused
 	 */
-	public void createTenant(String tenantName, String organizationName, UserInfo ownerInfo) {
+	public String createTenant(String tenantName, String organizationName, UserInfo ownerInfo) {
 		if (tenantName == null || tenantName.equals("") || organizationName == null || organizationName.equals(""))
-			return;
+			return result(2, "Tenant to create or its organization were not specified.");
 		JSONObject organizationPG = getProcessGroup(organizationName, NiFiConnectorUtils.ROOT); // process group that represents the organization
 		if (organizationPG == null)
-			return;
+			return result(2, "Unable to create tenant; process group for the organization " + organizationName + " could not be found.");
 		
 		JSONArray userGroups = listUserGroups(); // lists all user groups
 		createUserGroups(tenantName, organizationName, userGroups); // creates user groups for the tenant
@@ -282,6 +294,7 @@ public class NiFiConnector implements Component {
 		assignPolicies(tenantPG, organizationName, userGroups); // creates the policies for the process group
 		for (String ownerName : listOwners(organizationName)) // owners of the organization are added to the proper user group
 			assignRoleToUser(tenantName + ":" + NiFiConnectorUtils.getOwnerRole(), organizationName, new UserInfo(ownerName, null, null));
+		return result(0, "Tenant " + tenantName + " has been created under organization " + organizationName + ".");
 	}
 	
 	/**
@@ -291,16 +304,17 @@ public class NiFiConnector implements Component {
 	 * @param tenantName - Name of the process group to delete
 	 * @param organizationName - Name of the organization which owns the tenant
 	 */
-	public void deleteTenant(String tenantName, String organizationName) {
+	public String deleteTenant(String tenantName, String organizationName) {
 		if (tenantName == null || tenantName.equals("") || organizationName == null || organizationName.equals(""))
-			return;
+			return result(2, "Tenant to delete or organization were not specified.");
 		JSONObject organizationPG = getProcessGroup(organizationName, NiFiConnectorUtils.ROOT); // process group that represents the organization
 		if (organizationPG == null)
-			return;
+			return result(2, "Unable to delete tenant; process group for organization " + organizationName + " could not be found.");
 		JSONObject tenantPG = getProcessGroup(tenantName, organizationPG.getAsString(NiFiConnectorUtils.FIELD_ID)); // process group that represents the tenant
 		if (tenantPG != null)
 			deleteProcessGroup(tenantPG); // deletes the tenant's process group
 		deleteUserGroups(tenantName, organizationName); // deletes user groups related to the tenant's process group
+		return result(0, "Tenant " + tenantName + " under organization " + organizationName + " has been deleted.");
 	}
 	
 	/**
@@ -695,13 +709,13 @@ public class NiFiConnector implements Component {
 	 * @param ownerInfo - New owner
 	 * @param organizationName - Name of the organization
 	 */
-	public void addOwner(UserInfo ownerInfo, String organizationName) {
+	public String addOwner(UserInfo ownerInfo, String organizationName) {
 		JSONObject owner = getUser(ownerInfo.getUsername());
 		if (owner == null) // cannot find user
-			return;
+			return result(2, "Unable to add owner; user " + ownerInfo.getUsername() + " could not be found.");
 		JSONObject organizationPG = getProcessGroup(organizationName, NiFiConnectorUtils.ROOT);
 		if (organizationPG == null)
-			return;
+			return result(2, "Unable to add owner; process group for organization " + organizationName + " could not be found.");
 		
 		String organizationPGID = organizationPG.getAsString(NiFiConnectorUtils.FIELD_ID); // ID of the organization's process group
 		JSONArray nestedPGs = listProcessGroups(organizationPGID); // lists all process groups nested within the organization's process group
@@ -715,6 +729,7 @@ public class NiFiConnector implements Component {
 		}
 		// New owner is given ownership of the organization's process group
 		assignRoleToUser(organizationName + ":" + NiFiConnectorUtils.getOwnerRole(), null, ownerInfo);
+		return result(0, ownerInfo.getUsername() + " has been registered as owner of " + organizationName + ".");
 	}
 	
 	/**
@@ -723,13 +738,13 @@ public class NiFiConnector implements Component {
 	 * @param ownerInfo - Owner to remove
 	 * @param organizationName - Name of the organization
 	 */
-	public void removeOwner(UserInfo ownerInfo, String organizationName) {
+	public String removeOwner(UserInfo ownerInfo, String organizationName) {
 		JSONObject user = getUser(ownerInfo.getUsername());
 		if (user == null) // cannot find user
-			return;
+			return result(2, "Unable to remove owner; user " + ownerInfo.getUsername() + " could not be found.");
 		JSONObject organizationPG = getProcessGroup(organizationName, NiFiConnectorUtils.ROOT);
 		if (organizationPG == null)
-			return;
+			return result(2, "Unable to remove owner; process group for organization " + organizationName + " could not be found.");
 		
 		String organizationPGID = organizationPG.getAsString(NiFiConnectorUtils.FIELD_ID); // ID of the organization's process group
 		JSONArray nestedPGs = listProcessGroups(organizationPGID); // lists all process groups nested within the organization's process group
@@ -743,6 +758,7 @@ public class NiFiConnector implements Component {
 		}
 		// Former owner is revoked ownership of the organization's process group
 		revokeRoleFromUser(organizationName + ":" + NiFiConnectorUtils.getOwnerRole(), null, ownerInfo);
+		return result(0, ownerInfo.getUsername() + " is no longer owner of " + organizationName + ".");
 	}
 	
 	/**
@@ -875,5 +891,21 @@ public class NiFiConnector implements Component {
 		} catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException | UnrecoverableKeyException | KeyManagementException e) {
 			throw new ComponentException(NiFiConnectorUtils.getComponentId() + ": error while retrieving NiFi administrator's certificate: " + e);
 		}
+	}
+	
+	/**
+	 * Returns a message to communicate the result of the operation.
+	 * 
+	 * @param code - Denotes if the operation was successful, failed, or no operation was performed
+	 * @param message - Message
+	 * @return - Result of the operation
+	 */
+	private String result(int code, String message) {
+		String op = "SUCCESS";
+		if (code == 1)
+			op = "NO ACTION";
+		else if (code > 1)
+			op = "ERROR";
+		return NiFiConnectorUtils.getComponentId() + ": " + op + " - " + message;
 	}
 }

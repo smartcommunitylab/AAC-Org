@@ -14,26 +14,26 @@ import org.springframework.stereotype.Service;
 @Service("it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl")
 public class DefaultComponentImpl implements Component {
 
-	public void createUser(UserInfo user) { /* does nothing */ }
+	public String createUser(UserInfo user) { return null; }
 	
-	public void removeUserFromOrganization(UserInfo userInfo, String organizationName) { /* does nothing */ }
+	public String removeUserFromOrganization(UserInfo userInfo, String organizationName, List<String> tenants) { return null; }
 
-	public void init(Map<String, String> properties) { /* does nothing */ }
+	public String init(Map<String, String> properties) { return null; }
 	
-	public void createOrganization(String organizationName, UserInfo owner) { /* does nothing */ }
+	public String createOrganization(String organizationName, UserInfo owner) { return null; }
 	
-	public void deleteOrganization(String organizationName, List<String> tenants) { /* does nothing */ }
+	public String deleteOrganization(String organizationName, List<String> tenants) { return null; }
 
-	public void assignRoleToUser(String role, String organization, UserInfo userInfo) { /* does nothing */ }
+	public String assignRoleToUser(String role, String organization, UserInfo userInfo) { return null; }
 
-	public void revokeRoleFromUser(String role, String organization, UserInfo userInfo) { /* does nothing */ }
+	public String revokeRoleFromUser(String role, String organization, UserInfo userInfo) { return null; }
 
-	public void addOwner(UserInfo ownerInfo, String organizationName) { /* does nothing */ }
+	public String addOwner(UserInfo ownerInfo, String organizationName) { return null; }
 
-	public void removeOwner(UserInfo ownerInfo, String organizationName) { /* does nothing */ }
+	public String removeOwner(UserInfo ownerInfo, String organizationName) { return null; }
 
-	public void createTenant(String tenant, String organization, UserInfo ownerInfo) { /* does nothing */ }
+	public String createTenant(String tenant, String organization, UserInfo ownerInfo) { return null; }
 
-	public void deleteTenant(String tenant, String organization) { /* does nothing */ }
+	public String deleteTenant(String tenant, String organization) { return null; }
 
 }

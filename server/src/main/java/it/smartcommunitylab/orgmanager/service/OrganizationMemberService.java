@@ -146,6 +146,7 @@ public class OrganizationMemberService {
 						componentMap.get(s).createUser(userInfo);
 						userCreated = true;
 					}
+					System.out.println("Assigning " + r);
 					componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userInfo);
 				}
 			}
@@ -190,10 +191,14 @@ public class OrganizationMemberService {
 		// Updates roles in the identity provider
 		utils.idpRemoveRoles(memberIdpId, rolesToRemove);
 		
+		List<String> tenantsList = new ArrayList<String>();
+		for (Tenant t : tenantRepository.findByOrganization(organization))
+			tenantsList.add(t.getTenantId().getName());
+		
 		// Removes the user for the components
 		Map<String, Component> componentMap = componentsModel.getListComponents();
 		for (String s : componentMap.keySet())
-			componentMap.get(s).removeUserFromOrganization(utils.getIdpUserDetails(member.getUsername()), organization.getName());
+			componentMap.get(s).removeUserFromOrganization(utils.getIdpUserDetails(member.getUsername()), organization.getName(), tenantsList);
 	}
 	
 	/**

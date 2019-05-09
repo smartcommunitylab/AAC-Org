@@ -10,7 +10,7 @@ public interface Component {
 	 * 
 	 * @param properties - Properties to use during initialization
 	 */
-	public void init(Map<String, String> properties);
+	public String init(Map<String, String> properties);
 	
 	/**
 	 * Handles creation of an organization.
@@ -18,7 +18,7 @@ public interface Component {
 	 * @param organizationName - Name of the organization
 	 * @param owner - Owner of the organization
 	 */
-	public void createOrganization(String organizationName, UserInfo owner);
+	public String createOrganization(String organizationName, UserInfo owner);
 	
 	/**
 	 * Handles deletion of an organization.
@@ -26,21 +26,22 @@ public interface Component {
 	 * @param organizationName - Name of the organization
 	 * @param tenants - Tenants belonging to the organization
 	 */
-	public void deleteOrganization(String organizationName, List<String> tenants);
+	public String deleteOrganization(String organizationName, List<String> tenants);
 	
 	/**
 	 * Creates a user
 	 * @param user - User to create
 	 */
-	public void createUser(UserInfo user);
+	public String createUser(UserInfo user);
 	
 	/**
 	 * Removes a user from an organization.
 	 * 
 	 * @param user - User to remove
 	 * @param organizationName - Name of the organization
+	 * @param tenants - Tenants of the organization
 	 */
-	public void removeUserFromOrganization(UserInfo user, String organizationName);
+	public String removeUserFromOrganization(UserInfo user, String organizationName, List<String> tenants);
 	
 	/**
 	 * Assigns a role to the user.
@@ -49,7 +50,7 @@ public interface Component {
 	 * @param organization - Organization
 	 * @param user - User to give the role to
 	 */
-	public void assignRoleToUser(String role, String organization, UserInfo user);
+	public String assignRoleToUser(String role, String organization, UserInfo user);
 	
 	/**
 	 * Revokes a role from the user.
@@ -58,7 +59,7 @@ public interface Component {
 	 * @param organization - Organization
 	 * @param user - User to revoke the role from
 	 */
-	public void revokeRoleFromUser(String role, String organization, UserInfo user);
+	public String revokeRoleFromUser(String role, String organization, UserInfo user);
 	
 	/**
 	 * Adds an owner to the organization.
@@ -66,7 +67,7 @@ public interface Component {
 	 * @param owner - New owner
 	 * @param organizationName - Name of the organization
 	 */
-	public void addOwner(UserInfo owner, String organizationName);
+	public String addOwner(UserInfo owner, String organizationName);
 	
 	/**
 	 * Removes an owner from the organization.
@@ -74,7 +75,7 @@ public interface Component {
 	 * @param owner - Owner to remove
 	 * @param organizationName - Name of the organization
 	 */
-	public void removeOwner(UserInfo owner, String organizationName);
+	public String removeOwner(UserInfo owner, String organizationName);
 	
 	/**
 	 * Creates a tenant for the given organization.
@@ -83,7 +84,7 @@ public interface Component {
 	 * @param organization - Name of the organization
 	 * @param userInfo - Owner of the organization
 	 */
-	public void createTenant(String tenant, String organization, UserInfo userInfo);
+	public String createTenant(String tenant, String organization, UserInfo userInfo);
 	
 	/**
 	 * Removes a tenant from the given organization.
@@ -91,5 +92,5 @@ public interface Component {
 	 * @param tenant - Tenant to delete
 	 * @param organization - Name of the organization
 	 */
-	public void deleteTenant(String tenant, String organization);
+	public String deleteTenant(String tenant, String organization);
 }
