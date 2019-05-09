@@ -18,7 +18,7 @@ public class DefaultComponentImpl implements Component {
 
 	public String  createUser(UserInfo user) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
 	
-	public String removeUserFromOrganization(String userName, String organizationName) { /* does nothing */  return CommonConstants.SUCCESS_MSG;}
+	public String removeUserFromOrganization(UserInfo userInfo, String organizationName) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
 
 	public void init(Map<String, String> properties) { /* does nothing */ }
 	
@@ -26,13 +26,13 @@ public class DefaultComponentImpl implements Component {
 	
 	public String deleteOrganization(String organizationName, List<String> tenants) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
 
-	public String assignRoleToUser(String role, String organization, String userName) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
+	public String assignRoleToUser(String role, String organization, UserInfo userInfo) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
 
-	public String revokeRoleFromUser(String role, String organization, String userName) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
+	public String revokeRoleFromUser(String role, String organization, UserInfo userInfo) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
 
-	public String addOwner(String ownerName, String organizationName) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
+	public String addOwner(UserInfo ownerInfo, String organizationName) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
 
-	public String removeOwner(String ownerName, String organizationName) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
+	public String removeOwner(UserInfo ownerInfo, String organizationName) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
 
 	public String createTenant(String tenant, String organization, UserInfo ownerInfo) { /* does nothing */ return CommonConstants.SUCCESS_MSG;}
 

@@ -18,7 +18,6 @@ import it.smartcommunitylab.aac.wso2.model.RoleModel;
 import it.smartcommunitylab.apimconnector.services.TenantManagementService;
 import it.smartcommunitylab.apimconnector.services.UserManagementService;
 import it.smartcommunitylab.apimconnector.utils.APIMConnectorUtils;
-import it.smartcommunitylab.apimconnector.utils.ApimConstants;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
 import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonConstants;
@@ -70,17 +69,19 @@ public class APIMConnector implements Component{
 		return message;
 	}
 
-	public String removeUserFromOrganization(String userName, String organizationName) {
+	public String removeUserFromOrganization(UserInfo userInfo, String organizationName) {
 		return CommonConstants.SUCCESS_MSG;
 	}
 
-	public String assignRoleToUser(String role, String organization, String userName) {
+	public String assignRoleToUser(String role, String organization, UserInfo userInfo) {
+		String domain = role.substring(0, role.indexOf(":"));
+		log.info("domain: " + domain); // TODO refactoring to separate domain from role, adapting NiFiConnector as well?
 		String message = CommonConstants.SUCCESS_MSG;
 		List<String> rolesList = Arrays.asList(new String[]{role});
 		RoleModel roleModel = new RoleModel();
 		roleModel.setAddRoles(rolesList);
 		try {
-			umService.updateRoles(roleModel, userName, organization);
+			umService.updateRoles(roleModel, userInfo.getUsername(), organization);
 		} catch (AxisFault e) {
 			message = CommonConstants.SUCCESS_MSG;
 		} catch (RemoteException e) {
@@ -93,13 +94,13 @@ public class APIMConnector implements Component{
 		return message;
 	}
 
-	public String revokeRoleFromUser(String role, String organization, String userName) {
+	public String revokeRoleFromUser(String role, String organization, UserInfo userInfo) {
 		String message = CommonConstants.SUCCESS_MSG;
 		List<String> rolesList = Arrays.asList(new String[]{role});
 		RoleModel roleModel = new RoleModel();
 		roleModel.setRemoveRoles(rolesList);
 		try {
-			umService.updateRoles(roleModel, userName, organization);
+			umService.updateRoles(roleModel, userInfo.getUsername(), organization);
 		} catch (AxisFault e) {
 			message = e.getMessage();
 		} catch (RemoteException e) {
@@ -112,11 +113,11 @@ public class APIMConnector implements Component{
 		return message;
 	}
 
-	public String addOwner(String ownerName, String organizationName) {
-		return CommonConstants.SUCCESS_MSG;
+	public String addOwner(UserInfo ownerInfo, String organizationName) {
+		return CommonConstants.SUCCESS_MSG;		
 	}
 
-	public String removeOwner(String ownerName, String organizationName) {
+	public String removeOwner(UserInfo ownerInfo, String organizationName) {
 		return CommonConstants.SUCCESS_MSG;
 	}
 

@@ -9,7 +9,6 @@ import java.util.Set;
 import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,9 +47,6 @@ public class OrganizationMemberService {
 	private RoleRepository roleRepository;
 	
 	@Autowired
-	private ApplicationContext context;
-	
-	@Autowired
 	private OrgManagerUtils utils;
 	
 	@Autowired
@@ -86,8 +82,7 @@ public class OrganizationMemberService {
 	}
 	
 	/**
-	 * User is granted the roles listed in the request body. Previously granted roles not present in this new configuration
-	 * will be revoked.
+	 * User is granted the roles listed in the request body. Previously granted roles not present in this new configuration will be revoked.
 	 * 
 	 * @param organizationId - ID of the organization to add the member to
 	 * @param memberDTO - Request body, contains the member to add and their roles
@@ -151,13 +146,12 @@ public class OrganizationMemberService {
 						componentMap.get(s).createUser(userInfo);
 						userCreated = true;
 					}
-					componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userName);
+					componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userInfo);
 				}
 			}
-			for (Role r : rolesToRemove) {
+			for (Role r : rolesToRemove)
 				if (r.getComponentId() != null && r.getComponentId().equals(s))
-					componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), userName);
-			}
+					componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), userInfo);
 		}
 		
 		Set<Role> updatedRoles = roleRepository.findByOrganizationMember(storedMember);
@@ -199,7 +193,7 @@ public class OrganizationMemberService {
 		// Removes the user for the components
 		Map<String, Component> componentMap = componentsModel.getListComponents();
 		for (String s : componentMap.keySet())
-			componentMap.get(s).removeUserFromOrganization(member.getUsername(), organization.getName());
+			componentMap.get(s).removeUserFromOrganization(utils.getIdpUserDetails(member.getUsername()), organization.getName());
 	}
 	
 	/**
@@ -258,7 +252,7 @@ public class OrganizationMemberService {
 		UserInfo ownerInfo = utils.getIdpUserDetails(owner.getUsername());
 		for (String s : componentMap.keySet()) {
 			componentMap.get(s).createUser(ownerInfo);
-			componentMap.get(s).addOwner(ownerName, organization.getName());
+			componentMap.get(s).addOwner(ownerInfo, organization.getName());
 		}
 		
 		roles.addAll(rolesToAdd); // adds all new roles to the output roles
@@ -287,7 +281,7 @@ public class OrganizationMemberService {
 		if (owner == null) // The input user does not belong to the organization
 			throw new EntityNotFoundException("There is no user in organization " + organization.getName() + " with ID " + ownerId);
 		
-		String ownerName = owner.getUsername();
+		
 		Long ownerIdpId = owner.getIdpId(); // ID used by the identity provider
 		
 		if (!userHasAdminRights && utils.getAuthenticatedUserId().equals(ownerIdpId)) // authenticated user is trying to remove themselves
@@ -312,10 +306,11 @@ public class OrganizationMemberService {
 		
 		// Removes the owner for the components
 		Map <String, Component> componentMap = componentsModel.getListComponents();
+		UserInfo ownerInfo = utils.getIdpUserDetails(owner.getUsername());
 		for (String s : componentMap.keySet())
-			componentMap.get(s).removeOwner(ownerName, organization.getName());
+			componentMap.get(s).removeOwner(ownerInfo, organization.getName());
 		
 		if (!isOwner)
-			throw new EntityNotFoundException("User " + ownerName + " belongs to organization " + organization.getName() + ", but is not registered as owner of it.");
+			throw new EntityNotFoundException("User " + owner.getUsername() + " belongs to organization " + organization.getName() + ", but is not registered as owner of it.");
 	}
 }

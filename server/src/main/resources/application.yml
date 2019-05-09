@@ -90,7 +90,7 @@ componentsconfig:
     - name: Apache NiFi
       componentId: nifi
       scope: components/nifi
-      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      implementation: it.smartcommunitylab.nificonnector.NiFiConnector
       roles: ROLE_MANAGER,ROLE_MONITOR
       host: https://localhost:8443
       listUsersApi: /nifi-api/tenants/users

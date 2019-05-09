@@ -1,6 +1,5 @@
 package it.smartcommunitylab.orgmanager.config;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,7 +8,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,8 +23,6 @@ import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 @EnableConfigurationProperties
 public class ComponentsConfig {
 	
-	@Autowired
-	private ApplicationContext context;
 	@Autowired
 	private ComponentsConfiguration componentsConfiguration;
 	
