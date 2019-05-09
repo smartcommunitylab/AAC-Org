@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -47,9 +46,6 @@ public class OrganizationService {
 	
 	@Autowired
 	private TenantRepository tenantRepository;
-	
-	@Autowired
-	private ApplicationContext context;
 	
 	@Autowired
 	private OrgManagerUtils utils;

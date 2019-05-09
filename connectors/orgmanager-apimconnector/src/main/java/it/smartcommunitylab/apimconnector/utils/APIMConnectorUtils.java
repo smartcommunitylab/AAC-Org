@@ -24,7 +24,7 @@ public class APIMConnectorUtils {
 		componentId 			= properties.get(ApimConstants.COMPONENT_ID);
 		host 					= properties.get(ApimConstants.HOST);
 		usermgmtEndpoint 		= properties.get(ApimConstants.USER_MGT_ENDPOINT);
-		usermgmtPassword 		= properties.get(ApimConstants.USER_MGT_ENDPOINT);
+		usermgmtPassword 		= properties.get(ApimConstants.USER_MGT_PASSWORD);
 		multitenancyEndpoint 	= properties.get(ApimConstants.TENANT_MGT_ENDPOINT);
 		multitenancyPassword 	= properties.get(ApimConstants.TENANT_MGT_PASSWORD);
 

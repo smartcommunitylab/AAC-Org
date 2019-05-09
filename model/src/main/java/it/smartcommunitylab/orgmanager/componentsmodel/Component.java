@@ -37,44 +37,44 @@ public interface Component {
 	/**
 	 * Removes a user from an organization.
 	 * 
-	 * @param userName - Name of the user
+	 * @param user - User to remove
 	 * @param organizationName - Name of the organization
 	 */
-	public void removeUserFromOrganization(String userName, String organizationName);
+	public void removeUserFromOrganization(UserInfo user, String organizationName);
 	
 	/**
 	 * Assigns a role to the user.
 	 * 
 	 * @param role - Role to assign
 	 * @param organization - Organization
-	 * @param userName - User to give the role to
+	 * @param user - User to give the role to
 	 */
-	public void assignRoleToUser(String role, String organization, String userName);
+	public void assignRoleToUser(String role, String organization, UserInfo user);
 	
 	/**
 	 * Revokes a role from the user.
 	 * 
 	 * @param role - Role to revoke
 	 * @param organization - Organization
-	 * @param userName - User to revoke the role from
+	 * @param user - User to revoke the role from
 	 */
-	public void revokeRoleFromUser(String role, String organization, String userName);
+	public void revokeRoleFromUser(String role, String organization, UserInfo user);
 	
 	/**
 	 * Adds an owner to the organization.
 	 * 
-	 * @param ownerName - Name of the owner
+	 * @param owner - New owner
 	 * @param organizationName - Name of the organization
 	 */
-	public void addOwner(String ownerName, String organizationName);
+	public void addOwner(UserInfo owner, String organizationName);
 	
 	/**
 	 * Removes an owner from the organization.
 	 * 
-	 * @param ownerName - Name of the owner
+	 * @param owner - Owner to remove
 	 * @param organizationName - Name of the organization
 	 */
-	public void removeOwner(String ownerName, String organizationName);
+	public void removeOwner(UserInfo owner, String organizationName);
 	
 	/**
 	 * Creates a tenant for the given organization.
