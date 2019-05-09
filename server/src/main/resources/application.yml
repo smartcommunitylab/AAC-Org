@@ -78,7 +78,7 @@ componentsconfig:
       componentId: apimanager
       scope: apimanager
       format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
-      implementation: it.smartcommunitylab.apimconnector.ApiMConnector
+      implementation: it.smartcommunitylab.apimconnector.APIMConnector
       roles: ROLE_MANAGER,ROLE_USER
       host: https://localhost:9443
       usermgmtEndpoint: /services/RemoteUserStoreManagerService

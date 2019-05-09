@@ -19,7 +19,7 @@ import it.smartcommunitylab.apimconnector.utils.APIMConnectorUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
 
-@Service("it.smartcommunitylab.apimconnector.ApiMConnector")
+@Service("it.smartcommunitylab.apimconnector.APIMConnector")
 public class APIMConnector implements Component{
 
 	private UserManagementService umService;
@@ -64,20 +64,20 @@ public class APIMConnector implements Component{
 	}
 
 	public void assignRoleToUser(String role, String organization, String userName) {
-		List<String> rolesList = Arrays.asList(new String[]{role});
-		RoleModel roleModel = new RoleModel();
-		roleModel.setAddRoles(rolesList);
-		try {
-			umService.updateRoles(roleModel, userName, organization);
-		} catch (AxisFault e) {
-			e.printStackTrace();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (TenantMgtAdminServiceExceptionException e) {
-			e.printStackTrace();
-		} catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-			e.printStackTrace();
-		}
+//		List<String> rolesList = Arrays.asList(new String[]{role});
+//		RoleModel roleModel = new RoleModel();
+//		roleModel.setAddRoles(rolesList);
+//		try {
+//			umService.updateRoles(roleModel, userName, organization);
+//		} catch (AxisFault e) {
+//			e.printStackTrace();
+//		} catch (RemoteException e) {
+//			e.printStackTrace();
+//		} catch (TenantMgtAdminServiceExceptionException e) {
+//			e.printStackTrace();
+//		} catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	public void revokeRoleFromUser(String role, String organization, String userName) {
