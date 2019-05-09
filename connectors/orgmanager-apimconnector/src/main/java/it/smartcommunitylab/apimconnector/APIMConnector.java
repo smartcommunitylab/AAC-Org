@@ -27,8 +27,8 @@ public class APIMConnector implements Component{
 	
 	public void init(Map<String, String> properties) {
 		APIMConnectorUtils.init(properties);
-		umService = new UserManagementService(APIMConnectorUtils.getUsermgmtEndpoint(), APIMConnectorUtils.getUsermgmtPassword());
 		tmService = new TenantManagementService(APIMConnectorUtils.getMultitenancyEndpoint(), APIMConnectorUtils.getMultitenancyPassword());
+		umService = new UserManagementService(APIMConnectorUtils.getUsermgmtEndpoint(), APIMConnectorUtils.getUsermgmtPassword(), tmService);
 	}
 
 	public void createOrganization(String organizationName, UserInfo owner) {

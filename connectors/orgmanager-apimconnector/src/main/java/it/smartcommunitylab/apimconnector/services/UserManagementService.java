@@ -3,18 +3,13 @@ package it.smartcommunitylab.apimconnector.services;
 import it.smartcommunitylab.aac.wso2.WSO2Constans;
 import it.smartcommunitylab.aac.wso2.model.RoleModel;
 import it.smartcommunitylab.apimconnector.utils.Utils;
-
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.List;
-
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.transport.http.HTTPConstants;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceStub;
 import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
 import org.wso2.carbon.tenant.mgt.stub.beans.xsd.TenantInfoBean;
 import org.wso2.carbon.um.ws.api.stub.ClaimValue;
@@ -27,15 +22,15 @@ public class UserManagementService {
 	private String umEndpoint;
 	private String umPassword;
 	
-	@Autowired
 	private TenantManagementService tenantService;
 	private RemoteUserStoreManagerServiceStub umStub;
 
 	private static final int TIMEOUT_IN_MILLIS = 15 * 60 * 1000;
 	
-	public UserManagementService(String umEndpoint, String umPassword) {
+	public UserManagementService(String umEndpoint, String umPassword, TenantManagementService tenantService) {
 		this.umEndpoint = umEndpoint;
 		this.umPassword = umPassword;
+		this.tenantService = tenantService;
 	}
 	
 	protected RemoteUserStoreManagerServiceStub getUMStub() throws AxisFault {
