@@ -78,9 +78,19 @@ public class ComponentsConfig {
 			format = map.get(Constants.FIELD_FORMAT);
 			if (format == null || format.equals("")) // when missing, format is given a default value
 				map.put(Constants.FIELD_FORMAT, Constants.DEFAULT_FORMAT);
-			Component component = (Component) context.getBean(implementation); // instantiates the component with a subclass
-			component.init(map); // initializes the component, passing its properties to it
-			componentMap.getListComponents().put(componentId, component); // adds the component to the map
+			Class customClass;
+			try {
+				customClass = Class.forName(implementation);
+				Component component = (Component) customClass.newInstance(); // instantiates the component with a subclass
+				component.init(map); // initializes the component, passing its properties to it
+				componentMap.getListComponents().put(componentId, component); // adds the component to the map
+			} catch (ClassNotFoundException e) {
+				throw new InvalidConfigurationException(String.format(missingFieldErr, componentId, Constants.FIELD_IMPLEMENTATION));
+			} catch (InstantiationException e) {
+				throw new InvalidConfigurationException(String.format(missingFieldErr, componentId, Constants.FIELD_IMPLEMENTATION));
+			} catch (IllegalAccessException e) {
+				throw new InvalidConfigurationException(String.format(missingFieldErr, componentId, Constants.FIELD_IMPLEMENTATION));
+			}
 		}
 		
 		return componentMap;

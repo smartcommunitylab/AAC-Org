@@ -293,17 +293,19 @@ public class ComponentService {
 			String componentId = conf.getComponentId();
 			boolean componentIdFound = false;
 			String componentIdProperty;
+			String componentTenantPattern = "";
 			for (Map<String, String> map : componentsConfiguration.getComponents()) { // checks that the component ID belongs to an actual component
 				componentIdProperty = map.get(Constants.FIELD_COMPONENT_ID);
 				if (componentIdProperty != null && componentIdProperty.equals(componentId)) {
 					componentIdFound = true; // component ID is valid
+					componentTenantPattern = map.get(Constants.FIELD_FORMAT);
 					break;
 				}
 			}
 			if (!componentIdFound) // no component with the given ID could be found
 				throw new IllegalArgumentException("Component " + componentId + " could not be found.");
-			
-			Pattern pattern = Pattern.compile("^[a-zA-Z0-9_-]+$"); // tenants need to have a certain format
+			System.out.println("tenant format : " + componentTenantPattern);
+			Pattern pattern = Pattern.compile(componentTenantPattern); // tenants need to have a certain format
 			if (conf.getTenants() != null) {
 				for (String t : conf.getTenants()) {
 					if (!pattern.matcher(t).matches()) // tenant does not match the format
