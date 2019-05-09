@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import javax.persistence.EntityNotFoundException;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
@@ -19,10 +19,12 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.smartcommunitylab.apimconnector.utils.ApimConstants;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
+import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonConstants;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
@@ -41,6 +43,7 @@ import it.smartcommunitylab.orgmanager.repository.TenantRepository;
 @Transactional
 public class ComponentService {
 	
+	private Log log = LogFactory.getLog(ComponentService.class);
 	@Autowired
 	private OrganizationRepository organizationRepository;
 	
@@ -236,8 +239,12 @@ public class ComponentService {
 			for (Tenant t : newTenants) {
 				Organization org = t.getOrganization();
 				UserInfo userInfo = new UserInfo(org.getContactsEmail(), org.getContactsName(), org.getContactsSurname());
-				if (t.getTenantId().getComponentId().equals(s))
-					componentMap.get(s).createTenant(t.getTenantId().getName(), t.getOrganization().getName(), userInfo);
+				if (t.getTenantId().getComponentId().equals(s)) {
+					String result_message = componentMap.get(s).createTenant(t.getTenantId().getName(), t.getOrganization().getName(), userInfo);
+					if(!result_message.equals(CommonConstants.SUCCESS_MSG)) {
+						throw new EntityNotFoundException(CommonConstants.ERROR_TENANT_CREATE_MSG + " : " + result_message);
+					}
+				}
 			}
 			for (Tenant t : tenantsToRemove) {
 				if (t.getTenantId().getComponentId().equals(s))
@@ -304,7 +311,7 @@ public class ComponentService {
 			}
 			if (!componentIdFound) // no component with the given ID could be found
 				throw new IllegalArgumentException("Component " + componentId + " could not be found.");
-			System.out.println("tenant format : " + componentTenantPattern);
+			log.info("Pattern for tenant name validation: " + componentTenantPattern);
 			Pattern pattern = Pattern.compile(componentTenantPattern); // tenants need to have a certain format
 			if (conf.getTenants() != null) {
 				for (String t : conf.getTenants()) {
