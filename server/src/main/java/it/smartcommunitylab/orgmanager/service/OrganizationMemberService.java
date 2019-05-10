@@ -17,6 +17,8 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
+import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonConstants;
+import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonUtils;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 import it.smartcommunitylab.orgmanager.dto.OrganizationMemberDTO;
@@ -256,8 +258,14 @@ public class OrganizationMemberService {
 		Map <String, Component> componentMap = componentsModel.getListComponents();
 		UserInfo ownerInfo = utils.getIdpUserDetails(owner.getUsername());
 		for (String s : componentMap.keySet()) {
-			componentMap.get(s).createUser(ownerInfo);
-			componentMap.get(s).addOwner(ownerInfo, organization.getName());
+			String resultMessage = componentMap.get(s).createUser(ownerInfo);
+			if(CommonUtils.isErroneousResult(resultMessage)) {
+				throw new EntityNotFoundException(resultMessage);
+			}
+			resultMessage = componentMap.get(s).addOwner(ownerInfo, organization.getName());
+			if(CommonUtils.isErroneousResult(resultMessage)) {
+				throw new EntityNotFoundException(resultMessage);
+			}
 		}
 		
 		roles.addAll(rolesToAdd); // adds all new roles to the output roles

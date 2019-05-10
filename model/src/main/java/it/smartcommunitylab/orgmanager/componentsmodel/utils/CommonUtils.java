@@ -6,6 +6,7 @@ import org.apache.commons.logging.LogFactory;
 public class CommonUtils {
 
 	private static Log log = LogFactory.getLog(CommonUtils.class);
+	
 	/**
 	 * Returns a message to communicate the result of the operation.
 	 * 
@@ -22,5 +23,18 @@ public class CommonUtils {
 		String result = string + ": " + op + " - " + message;
 		log.info("Inside FormatResult method: " + result);
 		return result;
+	}
+	
+	/**
+	 * Validates if the message contains errors
+	 * 
+	 * @param message
+	 * @return
+	 */
+	public static boolean isErroneousResult(String message) {
+		if(message.contains(CommonConstants.ERROR_MSG)) {
+			return true;
+		}
+		return false;
 	}
 }

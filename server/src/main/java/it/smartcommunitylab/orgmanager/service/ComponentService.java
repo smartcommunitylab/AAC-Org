@@ -23,6 +23,7 @@ import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
 import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonConstants;
+import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonUtils;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
 import it.smartcommunitylab.orgmanager.dto.ComponentConfigurationDTO;
@@ -233,7 +234,7 @@ public class ComponentService {
 				if (t.getTenantId().getComponentId().equals(s))
 				{
 					String resultMessage = componentMap.get(s).createTenant(t.getTenantId().getName(), t.getOrganization().getName(), userInfo);
-					if(!resultMessage.contains(CommonConstants.SUCCESS_MSG)) {
+					if(CommonUtils.isErroneousResult(resultMessage)) {
 						throw new EntityNotFoundException(resultMessage);
 					}
 				}
@@ -241,7 +242,7 @@ public class ComponentService {
 			for (Tenant t : tenantsToRemove) // Deletes tenants no longer in use
 				if (t.getTenantId().getComponentId().equals(s)) {
 					String resultMessage = componentMap.get(s).deleteTenant(t.getTenantId().getName(), t.getOrganization().getName());
-					if(!resultMessage.contains(CommonConstants.SUCCESS_MSG)) {
+					if(CommonUtils.isErroneousResult(resultMessage)) {
 						throw new EntityNotFoundException(resultMessage);
 					}
 				}
