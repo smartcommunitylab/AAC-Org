@@ -18,9 +18,9 @@ The Organization Management server will call certain methods offered by this pac
 ## Certificates
 Executing these operations in a secured NiFi instance requires specific authorizations, so the application needs to act with the permissions granted to the administrator user.\
 Since _OpenID Connect_ is used to secure NiFi, we have to authenticate by providing the administrator’s SSL certificate and configuring NiFi to recognize it.\
-This section describes how to do this and is heavily based on a very useful and detailed [article](https://community.hortonworks.com/content/supportkb/151106/nifi-how-to-create-your-own-certs-for-securing-nif.html) by Matt Clarke from the Hortonworks Community
+This section describes how to do this and is heavily based on a very useful and detailed [article](https://community.hortonworks.com/content/supportkb/151106/nifi-how-to-create-your-own-certs-for-securing-nif.html) by Matt Clarke from the Hortonworks Community.
 
-Two pieces of software are needed for this process:\
+Two pieces of software are needed for this process:
 - [Keytool](https://docs.oracle.com/javase/6/docs/technotes/tools/windows/keytool.html): comes bundled with Java’s JRE, so you should find it in your Java installation folder, usually in `C:\Program Files\Java\jre1.8.0_191\bin`, depending on your version.
 - [OpenSSL](https://www.openssl.org/source/)
 
@@ -36,7 +36,7 @@ This will create the private key for your CA and place it in the `C:\certs` fold
 `openssl genrsa -aes128 -out C:\certs\myCA.key 4096`
 
 #### 1.2 Creating a pem certificate
-This command creates the CA’s certificate. You will be asked to provide the password you chose in 1.1. You will then have to fill the CA’s profile (country, organization name, etc.): the data you insert in this step is not important for our purposes, but it might be preferable to pick something that will help you recognize this certificate.\
+This command creates the CA’s certificate. You will be asked to provide the password you chose in [1.1](#11-creating-the-cas-private-key). You will then have to fill the CA’s profile (country, organization name, etc.): the data you insert in this step is not important for our purposes, but it might be preferable to pick something that will help you recognize this certificate.\
 `1095` is the validity (in days) of the certificate, feel free to change it as you see fit.
 
 `openssl req -x509 -new -key C:\certs\myCA.key -days 1095 -out C:\certs\myCA.pem`
@@ -57,7 +57,8 @@ This will create the truststore and include the CA’s certificate in it, meanin
 `keytool -import -keystore C:\certs\truststore.jks -file C:\certs\myCA.der -alias myCA`
 
 #### 2.2 Configuring NiFi to use the new truststore
-Open the `nifi.properties` file (it can be found inside the `conf` subfolder of your NiFi installation) and edit the following fields. In newer NiFi versions, the `needClientAuth` field may not be present, in which case you can omit it.
+Open the `nifi.properties` file (it can be found inside the `conf` subfolder of your NiFi installation) and edit the following fields. In newer NiFi versions, the `needClientAuth` field may not be present, in which case you can omit it. The password for the `truststorePasswd` field is the one you chose in [2.1](#21-creating-the-truststore).
+
 `nifi.security.truststore=C:/certs/truststore.jks`\
 `nifi.security.truststoreType=JKS`\
 `nifi.security.truststorePasswd=MyTruststorePassword`\
@@ -76,34 +77,35 @@ Finally, it will ask you to choose a password for the private key. If you just h
 `keytool -genkey -alias nifiserver -keyalg RSA -keystore C:\certs\nifiserver.jks -keysize 2048`
 
 #### 3.2 Generating a certificate sign request
-This command will generate a certificate with a request to sign it. It may ask for both the passwords you chose in step 3.1: first the keystore’s password and then the private key’s password. If they’re the same, it will only ask once.
+This command will generate a certificate with a request to sign it. It may ask for both the passwords you chose in [3.1](#31-generate-a-keystore-for-the-nifi-server): first the keystore’s password and then the private key’s password. If they’re the same, it will only ask once.
 
 `keytool -certreq -alias nifiserver -keystore C:\certs\nifiserver.jks -file C:\certs\nifiserver.csr`
 
 #### 3.3 Signing the NiFi server’s certificate
 Once again, change directory to OpenSSL’s `bin` subfolder, or replace `openssl` accordingly.
 
-This command will have the CA sign your NiFi server’s certificate to state that it can be trusted. It will ask for the password you chose in step 1.1.
+This command will have the CA sign your NiFi server’s certificate to state that it can be trusted. It will ask for the password you chose in [1.1](#11-creating-the-cas-private-key).
 
 `openssl x509 -sha256 -req -in C:\certs\nifiserver.csr -CA C:\certs\myCA.pem -CAkey C:\certs\myCA.key -CAcreateserial -out C:\certs\nifiserver.crt -days 730`
 
 #### 3.4 Import the CA’s public key into the keystore
 Switch back to Keytool’s folder, or replace `keytool` accordingly.
 
-This command will include the CA’s public key into your keystore, so that it may be used to verify your certificate’s validity. It will ask for the keystore’s password, which you chose in step 3.1. You will have to confirm that the certificate can be trusted by typing _yes_ in your system’s language.
+This command will include the CA’s public key into your keystore, so that it may be used to verify your certificate’s validity. It will ask for the keystore’s password, which you chose in [3.1](#31-generate-a-keystore-for-the-nifi-server). You will have to confirm that the certificate can be trusted by typing _yes_ in your system’s language.
 
 `keytool -import -keystore C:\certs\nifiserver.jks -file C:\certs\myCA.pem`
 
 #### 3.5 Import the signed NiFi server’s certificate into the keystore
-This command will import the certificate you signed in step 3.3 into the keystore. It will ask for the two passwords you chose in step 3.1: first the keystore’s password and then the private key’s password, or just one of them if they’re the same.
+This command will import the certificate you signed in [3.3](#33-signing-the-nifi-servers-certificate) into the keystore. It will ask for the two passwords you chose in [3.1](#31-generate-a-keystore-for-the-nifi-server): first the keystore’s password and then the private key’s password, or just one of them if they’re the same.
 
 `keytool -import -trustcacerts -alias nifiserver -file C:\certs\nifiserver.crt -keystore C:\certs\nifiserver.jks`
 
 #### 3.6 Configuring NiFi to use the new keystore
-Open the `nifi.properties` file (from the `conf` subfolder of your NiFi installation) and edit the following properties, using the two passwords chosen in step 3.1:
-`nifi.security.keystore=C:/certs/nifiserver.jks`
-`nifi.security.keystoreType=JKS`
-`nifi.security.keystorePassword=MyKeystorePassword`
+Open the `nifi.properties` file (from the `conf` subfolder of your NiFi installation) and edit the following properties, using the two passwords chosen in [3.1](#31-generate-a-keystore-for-the-nifi-server):
+
+`nifi.security.keystore=C:/certs/nifiserver.jks`\
+`nifi.security.keystoreType=JKS`\
+`nifi.security.keystorePassword=MyKeystorePassword`\
 `nifi.security.keyPassword=MyPrivateKeyPassword`
 
 #### 3.7 Adding the CA to your browser
@@ -113,7 +115,7 @@ It may offer you to add an exception, but at this point you might as well add th
 
 For example, to do it in Mozilla Firefox:\
 **Settings** > **Options** > **Privacy and security** > **Show certificates** (on the right, near the bottom, in the _Certificates_ section) > **Authorities** tab > **Import** > open your `myCA.pem` file and check both boxes.\
-You might need to restart your browser. Afterwards, you should be able to access NiFi. If it still says the connection cannot be trusted, you might have inserted the wrong name in step 3.1, and have to repeat steps 3.1 through 3.5.
+You might need to restart your browser. Afterwards, you should be able to access NiFi. If it still says the connection cannot be trusted, you might have inserted the wrong name in [3.1](#31-generate-a-keystore-for-the-nifi-server), and have to repeat steps [3.1](#31-generate-a-keystore-for-the-nifi-server) through [3.5](#35-import-the-signed-nifi-servers-certificate-into-the-keystore).
 
 ### Step 4: Having the CA sign the administrator’s certificate
 By having the administrator’s certificate signed by the CA, it will be recognized as valid by NiFi, since it trusts the CA.
@@ -125,29 +127,29 @@ Same command as when you created the CA’s private key. It will ask you to choo
 `openssl genrsa -aes128 -out C:\certs\admin.key 2048`
 
 #### 4.2 Generating a certificate sign request
-Like in step 3.2, this command will generate a certificate with a request to sign it. You will be asked to provide the password to the private key you just created. It will then ask you to fill the profile of the certificate, similarly to what you did with the CA. It is now important to provide the name of the administrator (for example in **Common Name**, or **Email Address**), as it will be used by NiFi to associate this certificate to the admin user account (see step 4.5 for more information). The other fields are not very meaningful, but again, try to pick something that will help you recognize the certificate.
+Like in step 3.2, this command will generate a certificate with a request to sign it. You will be asked to provide the password to the private key you just created. It will then ask you to fill the profile of the certificate, similarly to what you did with the CA. It is now important to provide the name of the administrator (for example in **Common Name**, or **Email Address**), as it will be used by NiFi to associate this certificate to the admin user account (see [4.5](#45-configure-nifi-to-find-the-administrators-name) for more information). The other fields are not very meaningful, but again, try to pick something that will help you recognize the certificate.
 
 Also note that it will ask you for a **challenge password** and an **optional company name**. The challenge password is very rarely used by some CAs when requesting to revoke a certificate. Both fields can safely be left blank.
 
 `openssl req -new -key C:\certs\admin.key -out C:\certs\admin.csr`
 
 #### 4.3 Signing the administrator’s certificate
-You can now have the CA sign your administrator’s certificate. It will ask for the password you created in step 1.1.
+You can now have the CA sign your administrator’s certificate. It will ask for the password you created in [1.1](#11-creating-the-cas-private-key).
 
 `openssl x509 -req -in C:\certs\admin.csr -CA C:\certs\myCA.pem -CAkey C:\certs\myCA.key  -CAcreateserial -out C:\certs\admin.crt -days 730`
 
 #### 4.4 Converting from crt to p12
-This command will convert the signed certificate into **p12** format. It will ask you to provide the password you chose in step 4.1, and then it will ask you to choose an export password, needed to extract the certificate from the p12 file.
+This command will convert the signed certificate into **p12** format. It will ask you to provide the password you chose in [4.1](#41-generating-the-administrators-certificates-private-key), and then it will ask you to choose an export password, needed to extract the certificate from the p12 file.
 
 `openssl pkcs12 -export -out C:\certs\admin.p12 -inkey C:\certs\admin.key -in C:\certs\admin.crt -certfile C:\certs\myCA.pem -certpbe PBE-SHA1-3DES -name “admin”`
 
 #### 4.5 Configure NiFi to find the administrator’s name
 Finally, you have to uncomment two lines from the `nifi.properties` file (inside the `conf` subfolder of your NiFi installation) and give them proper values.\
-They are regular expressions used by NiFi to find the administrator’s name inside the certificate you created in step 4.2. Configuring these two lines incorrectly can lead to 403 errors.
+They are regular expressions used by NiFi to find the administrator’s name inside the certificate you created in [4.2](#42-generating-a-certificate-sign-request). Configuring these two lines incorrectly can lead to 403 errors.
 
 The field names are: `EMAILADDRESS` (Email address), `CN` (Common Name), `OU` (Organizational Unit Name), `O` (Organization Name), `L` (Locality Name), `ST` (State or Province Name), `C` (Country Code).
 
-This particular configuration will take the administrator’s name from the `Common Name` field, but you can alter it depending on how you filled the profile during step 4.2.\
+This particular configuration will take the administrator’s name from the `Common Name` field, but you can alter it depending on how you filled the profile during [4.2](#42-generating-a-certificate-sign-request).\
 `nifi.security.identity.mapping.pattern.dn=^(EMAILADDRESS=(.*?), )?CN=(.*?), OU=(.*?), O=(.*?), L=(.*?), ST=(.*?), C=(.*?)$`\
 `nifi.security.identity.mapping.value.dn=$3`
 
@@ -179,12 +181,12 @@ Many of the fields represent NiFi API end-points and have fixed values: however,
 -	`createProcessGroupApi`: NiFi API end-point to create a process group. Should be `/nifi-api/process-groups/`
 -	`deleteProcessGroupApi`: NiFi API end-point to delete a process group. Should be `/nifi-api/process-groups/`
 -	`accessApi`: NiFi API end-point to retrieve the status of the current access. Should be `/nifi-api/access`
--	`keystorePath`: Absolute path to the certificate. Following the example in the [Certificates](#certificates) section, it would have the value `C:/certs/admin.p12`, determined in step **4.4**.
+-	`keystorePath`: Absolute path to the certificate. Following the example in the [Certificates](#certificates) section, it would have the value `C:/certs/admin.p12`, determined in step [4.4](#44-converting-from-crt-to-p12).
 -	`keystoreType`: Type of the certificate. In the example, it would have the value `PKCS12`.
--	`keystoreExportPassword`: The password for the certificate. In the example, it would have the value chosen in step **4.4**.
--	`truststorePath`: Absolute path to the truststore. In the example, it would be `C:/certs/truststore.jks`, determined in step **2.1**.
+-	`keystoreExportPassword`: The password for the certificate. In the example, it would have the value chosen in step [4.4](#44-converting-from-crt-to-p12).
+-	`truststorePath`: Absolute path to the truststore. In the example, it would be `C:/certs/truststore.jks`, determined in step [2.1](#21-creating-the-truststore).
 -	`truststoreType`: Type of the truststore. In the example, it would have the value `JKS`.
--	`truststorePassword`: Password of the truststore. In the example, it would have the value chosen in step **2.1**.
+-	`truststorePassword`: Password of the truststore. In the example, it would have the value chosen in step [2.1](#21-creating-the-truststore).
 -	`adminName`: Name of the administrator user.
 -	`ownerRole`: Role used by AAC to indicate ownership. Should be `ROLE_PROVIDER`. Will have both read and write permissions on process groups.
 -	`readRoles`: Names of the roles which will have read-only permissions on process groups. While multiple roles may be listed, separated by a comma, they would all be equivalent, so listing 1 role only is advisable. The roles field should contain all roles listed in this field and all roles listed in the `writeRoles` field, or consistency issues may arise.
