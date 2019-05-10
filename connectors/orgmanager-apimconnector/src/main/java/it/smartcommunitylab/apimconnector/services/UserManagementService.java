@@ -36,7 +36,7 @@ public class UserManagementService {
 	protected RemoteUserStoreManagerServiceStub getUMStub() throws AxisFault {
 		if (umStub == null) {
 			umStub = new RemoteUserStoreManagerServiceStub(null, umEndpoint);
-			CarbonUtils.setBasicAccessSecurityHeaders("admin", umPassword, true, umStub._getServiceClient());
+			CarbonUtils.setBasicAccessSecurityHeaders("acelepija@fbk.eu@today.com", umPassword, true, umStub._getServiceClient());
 			ServiceClient client = umStub._getServiceClient();
 			Options options = client.getOptions();
 			options.setTimeOutInMilliSeconds(TIMEOUT_IN_MILLIS);
