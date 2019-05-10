@@ -50,7 +50,7 @@ public class APIMConnector implements Component{
 		try {
 			umService.createNormalUser(userInfo.getUsername(), password, roles, claims);
 		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-			CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while creating user " + userInfo + ": " + e.getMessage());
+			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while creating user " + userInfo + ": " + e.getMessage());
 		}
 		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "User " + userInfo + " has been created.");
 	}
@@ -63,7 +63,7 @@ public class APIMConnector implements Component{
 			for (String tenant : tenants)
 				umService.updateRoles(roleModel,  userInfo.getUsername(), tenant);
 		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException | TenantMgtAdminServiceExceptionException e) {
-			CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while removing user " + userInfo + " from organization " + organizationName + ": " + e.getMessage());
+			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while removing user " + userInfo + " from organization " + organizationName + ": " + e.getMessage());
 		}
 		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "User " + userInfo + " has been removed from all tenants of organization " + organizationName + ".");
 	}
@@ -77,7 +77,7 @@ public class APIMConnector implements Component{
 		try {
 			umService.updateRoles(roleModel, userInfo.getUsername(), domain);
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException | RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-			CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while assigning role " + role + " to " + userInfo + ": " + e.getMessage());
+			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while assigning role " + role + " to " + userInfo + ": " + e.getMessage());
 		}
 		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "Role " + role + " has been assigned to user " + userInfo + ".");
 	}
@@ -91,7 +91,7 @@ public class APIMConnector implements Component{
 		try {
 			umService.updateRoles(roleModel, userInfo.getUsername(), domain);
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException | RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-			CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while revoking role " + role + " from " + userInfo + ": " + e.getMessage());
+			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while revoking role " + role + " from " + userInfo + ": " + e.getMessage());
 		}
 		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "Role " + role + " has been revoked from user " + userInfo + ".");
 	}
@@ -106,11 +106,16 @@ public class APIMConnector implements Component{
 
 	public String createTenant(String tenant, String organization, UserInfo ownerInfo) {
 		String password = new BigInteger(50, new SecureRandom()).toString(16);
-		try {
-			tmService.createTenant(tenant, ownerInfo.getUsername(), password, ownerInfo.getName(), ownerInfo.getSurname());
-		} catch (RemoteException | TenantMgtAdminServiceExceptionException e) {
-			CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while creating tenant " + tenant + ": " + e.getMessage());
-		} 
+			try {
+				tmService.createTenant(tenant, ownerInfo.getUsername(), password, ownerInfo.getName(), ownerInfo.getSurname());
+			} catch (AxisFault e) {
+				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while deleting tenant " + tenant + ": " + e.getMessage());
+			} catch (RemoteException e) {
+				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while deleting tenant " + tenant + ": " + e.getMessage());
+			} catch (TenantMgtAdminServiceExceptionException e) {
+				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while deleting tenant " + tenant + ": " + e.getMessage());
+			}
+		
 		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "Tenant " + tenant + " has been created with owner " + ownerInfo + ".");
 	}
 
@@ -118,7 +123,7 @@ public class APIMConnector implements Component{
 		try {
 			tmService.deleteTenant(tenant);
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException e) {
-			CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while deleting tenant " + tenant + ": " + e.getMessage());
+			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while deleting tenant " + tenant + ": " + e.getMessage());
 		}
 		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "Tenant " + tenant + " has been deleted.");
 	}
