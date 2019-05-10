@@ -22,6 +22,7 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
+import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonConstants;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
 import it.smartcommunitylab.orgmanager.dto.ComponentConfigurationDTO;
@@ -230,11 +231,20 @@ public class ComponentService {
 				Organization org = t.getOrganization();
 				UserInfo userInfo = new UserInfo(org.getContactsEmail(), org.getContactsName(), org.getContactsSurname());
 				if (t.getTenantId().getComponentId().equals(s))
-					componentMap.get(s).createTenant(t.getTenantId().getName(), t.getOrganization().getName(), userInfo);
+				{
+					String resultMessage = componentMap.get(s).createTenant(t.getTenantId().getName(), t.getOrganization().getName(), userInfo);
+					if(!resultMessage.contains(CommonConstants.SUCCESS_MSG)) {
+						throw new EntityNotFoundException(resultMessage);
+					}
+				}
 			}
 			for (Tenant t : tenantsToRemove) // Deletes tenants no longer in use
-				if (t.getTenantId().getComponentId().equals(s))
-					componentMap.get(s).deleteTenant(t.getTenantId().getName(), t.getOrganization().getName());
+				if (t.getTenantId().getComponentId().equals(s)) {
+					String resultMessage = componentMap.get(s).deleteTenant(t.getTenantId().getName(), t.getOrganization().getName());
+					if(!resultMessage.contains(CommonConstants.SUCCESS_MSG)) {
+						throw new EntityNotFoundException(resultMessage);
+					}
+				}
 		}
 		
 		// Prepares the updated configuration, to show it as response. It will be a list with an element for each component.

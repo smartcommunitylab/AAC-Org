@@ -1,8 +1,11 @@
 package it.smartcommunitylab.orgmanager.componentsmodel.utils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class CommonUtils {
 
+	private static Log log = LogFactory.getLog(CommonUtils.class);
 	/**
 	 * Returns a message to communicate the result of the operation.
 	 * 
@@ -16,6 +19,8 @@ public class CommonUtils {
 			op = CommonConstants.NO_ACTION;
 		else if (code > 1)
 			op = CommonConstants.ERROR_MSG;
-		return string + ": " + op + " - " + message;
+		String result = string + ": " + op + " - " + message;
+		log.info("Inside FormatResult method: " + result);
+		return result;
 	}
 }
