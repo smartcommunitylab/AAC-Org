@@ -154,7 +154,7 @@ This particular configuration will take the administrator’s name from the `Com
 `nifi.security.identity.mapping.value.dn=$3`
 
 ## Configuration
-The NiFi connector takes its configuration from the server. If you’re launching it with Docker, refer to the server's _README_ file for more information on how to configure components when using Docker.\
+The NiFi connector takes its configuration from the server. If you’re launching it with Docker, refer to the [server's README file](https://github.com/smartcommunitylab/AAC-Org/blob/master/server/README.md) for more information on how to configure components when using Docker.\
 If you are not using Docker, edit the `components.yml` file in the `src/main/resources` subfolder of the server.\
 Following is a description of what each field is needed for (order is not important).
 
@@ -181,12 +181,12 @@ Many of the fields represent NiFi API end-points and have fixed values: however,
 -	`createProcessGroupApi`: NiFi API end-point to create a process group. Should be `/nifi-api/process-groups/`
 -	`deleteProcessGroupApi`: NiFi API end-point to delete a process group. Should be `/nifi-api/process-groups/`
 -	`accessApi`: NiFi API end-point to retrieve the status of the current access. Should be `/nifi-api/access`
--	`keystorePath`: Absolute path to the certificate. Following the example in the [Certificates](#certificates) section, it would have the value `C:/certs/admin.p12`, determined in step [4.4](#44-converting-from-crt-to-p12).
+-	`keystorePath`: Absolute path to the certificate. Following the example in the [Certificates](#certificates) section, it would have the value `C:/certs/admin.p12`, determined in [4.4](#44-converting-from-crt-to-p12).
 -	`keystoreType`: Type of the certificate. In the example, it would have the value `PKCS12`.
--	`keystoreExportPassword`: The password for the certificate. In the example, it would have the value chosen in step [4.4](#44-converting-from-crt-to-p12).
--	`truststorePath`: Absolute path to the truststore. In the example, it would be `C:/certs/truststore.jks`, determined in step [2.1](#21-creating-the-truststore).
+-	`keystoreExportPassword`: The password for the certificate. In the example, it would have the value chosen in [4.4](#44-converting-from-crt-to-p12).
+-	`truststorePath`: Absolute path to the truststore. In the example, it would be `C:/certs/truststore.jks`, determined in [2.1](#21-creating-the-truststore).
 -	`truststoreType`: Type of the truststore. In the example, it would have the value `JKS`.
--	`truststorePassword`: Password of the truststore. In the example, it would have the value chosen in step [2.1](#21-creating-the-truststore).
+-	`truststorePassword`: Password of the truststore. In the example, it would have the value chosen in [2.1](#21-creating-the-truststore).
 -	`adminName`: Name of the administrator user.
 -	`ownerRole`: Role used by AAC to indicate ownership. Should be `ROLE_PROVIDER`. Will have both read and write permissions on process groups.
 -	`readRoles`: Names of the roles which will have read-only permissions on process groups. While multiple roles may be listed, separated by a comma, they would all be equivalent, so listing 1 role only is advisable. The roles field should contain all roles listed in this field and all roles listed in the `writeRoles` field, or consistency issues may arise.
