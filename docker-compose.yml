@@ -1,0 +1,22 @@
+version: '3.3'
+services:
+  org_database:
+    image: postgres
+    ports:
+      - 3306
+    environment:
+       MYSQL_ROOT_PASSWORD: postgres
+       MYSQL_DATABASE: orgmanager
+       MYSQL_USER: postres
+       MYSQL_PASSWORD: postres
+
+  aac-org:
+    image: aac-org
+    depends_on:
+      - org_database
+    env_file:
+      - dockerfiles/orgmanager-config.env
+
+  debug:
+    image: nicolaka/netshoot
+
