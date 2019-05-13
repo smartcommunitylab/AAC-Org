@@ -17,7 +17,6 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
-import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonConstants;
 import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonUtils;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
@@ -129,9 +128,13 @@ public class OrganizationMemberService {
 		// Retrieves roles prior to this new configuration, to remove roles not present in the new configuration
 		Set<Role> rolesToRemove = roleRepository.findByOrganizationMemberAndRoleNotIgnoreCase(storedMember, Constants.ROLE_PROVIDER);
 		rolesToRemove.removeAll(rolesToAdd); // Roles not present in the new configuration
-		
 		roleRepository.saveAll(rolesToAdd); // Stores the member's new roles
 		roleRepository.deleteAll(rolesToRemove); // Removes the roles not present in the new configuration
+		
+		// If the user no longer has any roles within the organization, they are removed from it
+		Set<Role> updatedRoles = roleRepository.findByOrganizationMember(storedMember);
+		if (updatedRoles.isEmpty())
+			organizationMemberRepository.delete(storedMember);
 		
 		// Updates roles in the identity provider
 		utils.idpAddRoles(userId, rolesToAdd);
@@ -148,7 +151,6 @@ public class OrganizationMemberService {
 						componentMap.get(s).createUser(userInfo);
 						userCreated = true;
 					}
-					System.out.println("Assigning " + r);
 					componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userInfo);
 				}
 			}
@@ -157,7 +159,6 @@ public class OrganizationMemberService {
 					componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), userInfo);
 		}
 		
-		Set<Role> updatedRoles = roleRepository.findByOrganizationMember(storedMember);
 		boolean isOwner = utils.containsOwnerRole(updatedRoles, organization.getSlug());
 		return new OrganizationMemberDTO(storedMember, updatedRoles, isOwner); // converts to view format
 	}
@@ -313,6 +314,11 @@ public class OrganizationMemberService {
 			rolesToRemove.add(new Role(Constants.ROOT_COMPONENTS + "/" + t.getTenantId().getComponentId() + "/" + t.getTenantId().getName(),
 					Constants.ROLE_PROVIDER, owner, t.getTenantId().getComponentId()));
 		roleRepository.deleteAll(rolesToRemove);
+		
+		// If the user no longer has any roles within the organization, they are removed from it
+		Set<Role> updatedRoles = roleRepository.findByOrganizationMember(owner);
+		if (updatedRoles.isEmpty())
+			organizationMemberRepository.delete(owner);
 		
 		// Updates roles in the identity provider
 		utils.idpRemoveRoles(ownerIdpId, rolesToRemove);
