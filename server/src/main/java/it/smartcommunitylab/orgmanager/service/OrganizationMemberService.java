@@ -8,6 +8,8 @@ import java.util.Set;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -55,6 +57,8 @@ public class OrganizationMemberService {
 	
 	@Autowired
 	private ComponentsModel componentsModel;
+	
+	private Log log = LogFactory.getLog(OrganizationMemberService.class);
 	
 	/**
 	 * Lists users within an organization.
@@ -154,10 +158,17 @@ public class OrganizationMemberService {
 			for (Role r : rolesToAdd) {
 				if (r.getComponentId().equals(s)) {
 					if (!userCreated) {
-						componentMap.get(s).createUser(userInfo);
+						String resultMessage = componentMap.get(s).createUser(userInfo);
+						if(CommonUtils.isErroneousResult(resultMessage)) {
+							throw new EntityNotFoundException(resultMessage);
+						}
 						userCreated = true;
 					}
-					componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userInfo);
+					log.info("Assigning roles inside handleUserRoles : " + r);
+					String resultMessage = componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userInfo);
+					if(CommonUtils.isErroneousResult(resultMessage)) {
+						throw new EntityNotFoundException(resultMessage);
+					}
 				}
 			}
 			for (Role r : rolesToRemove)
@@ -208,8 +219,12 @@ public class OrganizationMemberService {
 		
 		// Removes the user for the components
 		Map<String, Component> componentMap = componentsModel.getListComponents();
-		for (String s : componentMap.keySet())
-			componentMap.get(s).removeUserFromOrganization(utils.getIdpUserDetails(member.getUsername()), organization.getName(), tenantsList);
+		for (String s : componentMap.keySet()) {
+			String resultMessage = componentMap.get(s).removeUserFromOrganization(utils.getIdpUserDetails(member.getUsername()), organization.getName(), tenantsList);
+			if(CommonUtils.isErroneousResult(resultMessage)) {
+				throw new EntityNotFoundException(resultMessage);
+			}
+		}
 	}
 	
 	/**
@@ -343,8 +358,12 @@ public class OrganizationMemberService {
 		UserInfo ownerInfo = utils.getIdpUserDetails(owner.getUsername());
 		for (String s : componentMap.keySet()) {
 			componentMap.get(s).removeOwner(ownerInfo, organization.getName());
-			if (removeUser)
-				componentMap.get(s).removeUserFromOrganization(ownerInfo, organization.getName(), tenantNames);
+			if (removeUser) {
+				String resultMessage = componentMap.get(s).removeUserFromOrganization(ownerInfo, organization.getName(), tenantNames);
+				if(CommonUtils.isErroneousResult(resultMessage)) {
+					throw new EntityNotFoundException(resultMessage);
+				}
+			}
 		}
 		
 		if (!isOwner)

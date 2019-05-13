@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,6 +21,7 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
+import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonUtils;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO;
@@ -142,9 +145,16 @@ public class OrganizationService {
 		
 		// Performs the operation in the components
 		Map<String, Component> componentMap = componentsModel.getListComponents();
+		String resultMessage;
 		for (String s : componentMap.keySet()) {
-			componentMap.get(s).createUser(contactsUser);
-			componentMap.get(s).createOrganization(name, contactsUser);
+			resultMessage = componentMap.get(s).createUser(contactsUser);
+			if(CommonUtils.isErroneousResult(resultMessage)) {
+				throw new EntityNotFoundException(resultMessage);
+			}
+			resultMessage = componentMap.get(s).createOrganization(name, contactsUser);
+			if(CommonUtils.isErroneousResult(resultMessage)) {
+				throw new EntityNotFoundException(resultMessage);
+			}
 		}
 		
 		return new OrganizationDTO(organization); // re-converts into view format

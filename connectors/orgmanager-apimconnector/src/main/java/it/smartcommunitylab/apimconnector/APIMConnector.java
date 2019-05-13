@@ -71,6 +71,10 @@ public class APIMConnector implements Component{
 	public String assignRoleToUser(String fullRole, String organization, UserInfo userInfo) {
 		String domain = fullRole.substring(0, fullRole.indexOf(":"));
 		String role = fullRole.substring(fullRole.indexOf(":") + 1);
+		if(role.equals("ROLE_PROVIDER"))
+			role = "Internal/publisher";
+		else 
+			role = "Internal/subscriber";
 		List<String> rolesList = Arrays.asList(new String[]{role});
 		RoleModel roleModel = new RoleModel();
 		roleModel.setAddRoles(rolesList);
