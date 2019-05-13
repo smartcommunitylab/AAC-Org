@@ -101,8 +101,11 @@ public class OrganizationMemberService {
 		// Builds a collection of all of the organization's tenants
 		Set<String> orgTenants = new HashSet<String>();
 		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
-		for (Tenant t : tenants)
+		List<String> tenantNames = new ArrayList<String>();
+		for (Tenant t : tenants) {
 			orgTenants.add("components/" + t.toString());
+			tenantNames.add(t.getTenantId().getName());
+		}
 		
 		// If the member is already present in the database, retrieves it
 		String userName = memberDTO.getUsername();
@@ -133,8 +136,11 @@ public class OrganizationMemberService {
 		
 		// If the user no longer has any roles within the organization, they are removed from it
 		Set<Role> updatedRoles = roleRepository.findByOrganizationMember(storedMember);
-		if (updatedRoles.isEmpty())
+		boolean removeUser = false;
+		if (updatedRoles.isEmpty()) {
 			organizationMemberRepository.delete(storedMember);
+			removeUser = true;
+		}
 		
 		// Updates roles in the identity provider
 		utils.idpAddRoles(userId, rolesToAdd);
@@ -157,6 +163,8 @@ public class OrganizationMemberService {
 			for (Role r : rolesToRemove)
 				if (r.getComponentId() != null && r.getComponentId().equals(s))
 					componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), userInfo);
+			if (removeUser)
+				componentMap.get(s).removeUserFromOrganization(userInfo, organization.getName(), tenantNames);
 		}
 		
 		boolean isOwner = utils.containsOwnerRole(updatedRoles, organization.getSlug());
@@ -309,16 +317,23 @@ public class OrganizationMemberService {
 			isOwner = false;
 		rolesToRemove.add(ownerRole); // owner role
 		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
+		
 		// Former owner must also be revoked ROLE_PROVIDER role for all tenants of the organization
-		for (Tenant t : tenants)
+		List<String> tenantNames = new ArrayList<String>();
+		for (Tenant t : tenants) {
 			rolesToRemove.add(new Role(Constants.ROOT_COMPONENTS + "/" + t.getTenantId().getComponentId() + "/" + t.getTenantId().getName(),
 					Constants.ROLE_PROVIDER, owner, t.getTenantId().getComponentId()));
+			tenantNames.add(t.getTenantId().getName());
+		}
 		roleRepository.deleteAll(rolesToRemove);
 		
 		// If the user no longer has any roles within the organization, they are removed from it
 		Set<Role> updatedRoles = roleRepository.findByOrganizationMember(owner);
-		if (updatedRoles.isEmpty())
+		boolean removeUser = false;
+		if (updatedRoles.isEmpty()) {
 			organizationMemberRepository.delete(owner);
+			removeUser = true;
+		}
 		
 		// Updates roles in the identity provider
 		utils.idpRemoveRoles(ownerIdpId, rolesToRemove);
@@ -326,8 +341,11 @@ public class OrganizationMemberService {
 		// Removes the owner for the components
 		Map <String, Component> componentMap = componentsModel.getListComponents();
 		UserInfo ownerInfo = utils.getIdpUserDetails(owner.getUsername());
-		for (String s : componentMap.keySet())
+		for (String s : componentMap.keySet()) {
 			componentMap.get(s).removeOwner(ownerInfo, organization.getName());
+			if (removeUser)
+				componentMap.get(s).removeUserFromOrganization(ownerInfo, organization.getName(), tenantNames);
+		}
 		
 		if (!isOwner)
 			throw new EntityNotFoundException("User " + owner.getUsername() + " belongs to organization " + organization.getName() + ", but is not registered as owner of it.");
