@@ -99,6 +99,8 @@ Other fields are described in the documentation of the specific component’s co
 
 This section describes the available APIs. Make sure to include the **Authorization** header containing `Bearer <token value>` in every request. In case an error occurs, each API will return a response with an appropriate status code, usually with some details in the response body.
 
+The **Swagger UI** for the Org-Manager API is available at **http://localhost:7979/swagger-ui.html**.
+
 Most APIs have security restrictions that require the user to be owner of the organization they are attempting to alter, or to have administrator privileges.
 The owner of a specific organization is defined as a user with the following role in AAC: `components/<organization_slug>:ROLE_PROVIDER`\
 A user has administrator privileges when the access token they are using is a client token with the `organization.mgmt` scope, or when they have the following role in AAC:
