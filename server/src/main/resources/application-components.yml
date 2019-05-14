@@ -1,0 +1,77 @@
+# COMPONENTS DATA
+componentsconfig:
+  components:
+    # API Manager
+    - name: API Manager
+      componentId: apimanager
+      scope: apimanager
+      format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
+      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      roles: ROLE_MANAGER,ROLE_USER
+      host: https://localhost:9443
+      usermgmtEndpoint: /services/RemoteUserStoreManagerService
+      usermgmtPassword: admin
+      multitenancyEndpoint: /services/TenantMgtAdminService
+      multitenancyPassword: admin
+      
+    # Apache NiFi
+    - name: Apache NiFi
+      componentId: nifi
+      scope: components/nifi
+      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      roles: ROLE_MANAGER,ROLE_MONITOR
+      host: https://localhost:8443
+      listUsersApi: /nifi-api/tenants/users
+      createUserApi: /nifi-api/tenants/users
+      deleteUserApi: /nifi-api/tenants/users/
+      listUserGroupsApi: /nifi-api/tenants/user-groups
+      createUserGroupApi: /nifi-api/tenants/user-groups
+      updateUserGroupApi: /nifi-api/tenants/user-groups/
+      deleteUserGroupApi: /nifi-api/tenants/user-groups/
+      getPolicyApi: /nifi-api/policies/
+      createPolicyApi: /nifi-api/policies
+      updatePolicyApi: /nifi-api/policies/
+      listProcessGroupsApi: /nifi-api/process-groups/
+      getProcessGroupApi: /nifi-api/process-groups/
+      createProcessGroupApi: /nifi-api/process-groups/
+      deleteProcessGroupApi: /nifi-api/process-groups/
+      accessApi: /nifi-api/access
+      keystorePath: /certs/admin.p12
+      keystoreType: PKCS12
+      keystoreExportPassword: password
+      truststorePath: /certs/truststore.jks
+      truststoreType: JKS
+      truststorePassword: password
+      adminName: admin
+      ownerRole: ROLE_PROVIDER
+      readRoles: ROLE_MONITOR
+      writeRoles: ROLE_MANAGER
+      
+    # WSO2 DSS
+    - name: Data Services Server
+      componentId: dss
+      scope: components/dss
+      format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
+      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      roles: ROLE_MANAGER,ROLE_USER
+      
+    # Cyclotron
+    - name: Cyclotron
+      componentId: cyclotron
+      scope: components/cyclotron
+      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      roles: ROLE_MANAGER,ROLE_USER
+      
+    # Superset
+    - name: Superset
+      componentId: superset
+      scope: components/superset
+      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      roles: ROLE_MANAGER,ROLE_USER
+      
+    # Geoserver
+    - name: Geoserver
+      componentId: geoserver
+      scope: components/geoserver
+      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      roles: ROLE_MANAGER,ROLE_USER

@@ -23,13 +23,16 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: ${OMC_SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_LOB_NONCONTEXTUALCREATION:true}
+  profiles:
+    include:
+      - components
 
 # OAUTH INTEGRATION
 security:
   oauth2:
     client:
-      clientId: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTID:b24e4974-6a9b-404a-a6df-aafc3172f6e8}
-      clientSecret: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTSECRET:a4da64d0-8191-4ee9-9f59-316cdb3d07d2}
+      clientId: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTID:48ccbed6-c9d7-453c-86a4-e471ca09a0e7}
+      clientSecret: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTSECRET:33e7080f-e93b-4687-90b8-2887c4f507fc}
       accessTokenUri: ${OMC_SECURITY_OAUTH2_CLIENT_ACCESSTOKENURI:http://localhost:8080/aac/oauth/token}
       userAuthorizationUri: ${OMC_SECURITY_OAUTH2_CLIENT_USERAUTHORIZATIONURI:http://localhost:8080/aac/oauth/authorize}
       tokenInfoUri: ${OMC_SECURITY_OAUTH2_CLIENT_TOKENINFOURI:http://localhost:8080/aac/token_introspection}
@@ -69,81 +72,3 @@ swagger:
     name:  Smart Community Lab
     url: www.smartcommunitylab.it
     email: info@smartcommunitylab.it
-
-# COMPONENTS DATA
-componentsconfig:
-  components:
-    # API Manager
-    - name: API Manager
-      componentId: apimanager
-      scope: apimanager
-      format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
-      implementation: it.smartcommunitylab.apimconnector.APIMConnector
-      roles: ROLE_MANAGER,ROLE_USER
-      host: https://localhost:9443
-      usermgmtEndpoint: /services/RemoteUserStoreManagerService
-      usermgmtPassword: admin
-      multitenancyEndpoint: /services/TenantMgtAdminService
-      multitenancyPassword: admin
-      
-    # Apache NiFi
-    - name: Apache NiFi
-      componentId: nifi
-      scope: components/nifi
-      implementation: it.smartcommunitylab.nificonnector.NiFiConnector
-      roles: ROLE_MANAGER,ROLE_MONITOR
-      host: https://localhost:8443
-      listUsersApi: /nifi-api/tenants/users
-      createUserApi: /nifi-api/tenants/users
-      deleteUserApi: /nifi-api/tenants/users/
-      listUserGroupsApi: /nifi-api/tenants/user-groups
-      createUserGroupApi: /nifi-api/tenants/user-groups
-      updateUserGroupApi: /nifi-api/tenants/user-groups/
-      deleteUserGroupApi: /nifi-api/tenants/user-groups/
-      getPolicyApi: /nifi-api/policies/
-      createPolicyApi: /nifi-api/policies
-      updatePolicyApi: /nifi-api/policies/
-      listProcessGroupsApi: /nifi-api/process-groups/
-      getProcessGroupApi: /nifi-api/process-groups/
-      createProcessGroupApi: /nifi-api/process-groups/
-      deleteProcessGroupApi: /nifi-api/process-groups/
-      accessApi: /nifi-api/access
-      keystorePath: /certs/admin.p12
-      keystoreType: PKCS12
-      keystoreExportPassword: password
-      truststorePath: /certs/truststore.jks
-      truststoreType: JKS
-      truststorePassword: password
-      adminName: admin
-      ownerRole: ROLE_PROVIDER
-      readRoles: ROLE_MONITOR
-      writeRoles: ROLE_MANAGER
-      
-    # WSO2 DSS
-    - name: Data Services Server
-      componentId: dss
-      scope: components/dss
-      format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
-      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
-      roles: ROLE_MANAGER,ROLE_USER
-      
-    # Cyclotron
-    - name: Cyclotron
-      componentId: cyclotron
-      scope: components/cyclotron
-      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
-      roles: ROLE_MANAGER,ROLE_USER
-      
-    # Superset
-    - name: Superset
-      componentId: superset
-      scope: components/superset
-      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
-      roles: ROLE_MANAGER,ROLE_USER
-      
-    # Geoserver
-    - name: Geoserver
-      componentId: geoserver
-      scope: components/geoserver
-      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
-      roles: ROLE_MANAGER,ROLE_USER
