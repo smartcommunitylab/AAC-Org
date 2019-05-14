@@ -329,4 +329,5 @@ Make sure the `OMC_SECURITY_OAUTH2_CLIENTID` and `OMC_SECURITY_OAUTH2_CLIENTSECR
 In addition, make sure you replace each occurrence of `localhost` with the address AAC is running on.
 
 The **second** file will contain the configuration for the components, such as API Manager or Apache NiFi. Unlike the previous file, which creates environment variables for the server to retrieve values from, this one simply replaces a default configuration file.
-The file must be in _yml_ format and its structure is identical to the default [application-component.yml](/src/main/resources/application-components.yml) file, so you only need to change the values of the properties.
+The file must be in _yml_ format and its structure is identical to the default [application-component.yml](/server/src/main/resources/application-components.yml) file, so you only need to change the values of the properties.\
+Just like with the first file, replace occurrences of `localhost` with the addresses of the services.
