@@ -33,7 +33,7 @@ For example, the property for the port of the service appears as follows:\
 `server:`\
 &nbsp; &nbsp;`port: ${OMC_SERVER_PORT:7979}`
 
-If you are not running the server inside a Docker container, and want to use a different port, just change the 7979 part. For more information on running the server inside a Docker container, see the _**Use with Docker**_ section.
+If you are not running the server inside a Docker container, and want to use a different port, just change the 7979 part. For more information on running the server inside a Docker container, see the [Running with Docker](#running-with-docker) section.
 
 `server.port` – The port the server is running at. Sample value: `7979`
 
@@ -316,7 +316,7 @@ Removes an owner from an organization. The `id` of the owner must be known.
 **Sample request URL**: `http://localhost:7979/api/organizations/1/owners/2`
 
 
-## Use with Docker
+## Running with Docker
 
 The server contains some default configuration that, when running it with Docker, cannot be changed without recompiling the whole project.\
 To avoid this, two files are necessary for Docker to override this default configuration.
