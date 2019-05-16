@@ -105,6 +105,10 @@ public class APIMConnector implements Component{
 	public String revokeRoleFromUser(String fullRole, String organization, UserInfo userInfo, List<String> tenants) {
 		String domain = fullRole.substring(0, fullRole.indexOf(":"));
 		String role = fullRole.substring(fullRole.indexOf(":") + 1);
+		if(role.equals("ROLE_PROVIDER"))
+			role = "Internal/publisher";
+		else 
+			role = "Internal/subscriber";
 		List<String> rolesList = Arrays.asList(new String[]{role});
 		RoleModel roleModel = new RoleModel();
 		roleModel.setRemoveRoles(rolesList);

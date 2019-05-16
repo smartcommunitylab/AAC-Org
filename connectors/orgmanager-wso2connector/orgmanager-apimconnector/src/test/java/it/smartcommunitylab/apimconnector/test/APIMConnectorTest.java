@@ -18,19 +18,20 @@ public class APIMConnectorTest {
 	@Autowired
 	private APIMConnector apimConnector;
 	
-	private static final String TEST_TENANT_DOMAIN 	= "today.com";
+	private static final String TEST_TENANT_DOMAIN 	= "trying.com";
 	private static final String TEST_ORGANIZATION 	= "organization";
-	private static final String TEST_USER 			= "test-mail@test.com";
-	private static final String TEST_NAME 			= "testname";
-	private static final String TEST_SURNAME 		= "testsurname";
+	private static final String TEST_USER_PROVIDER 	= "trying_provider@gmail.com";
+	private static final String TEST_USER_SIMPLE 	= "trying_simple@gmail.com";
+	private static final String TEST_NAME 			= "TestName";
+	private static final String TEST_SURNAME 		= "TestSurname";
 	private static final String TEST_ROLE 			= "roleTest:ROLE_PROVIDER";
 	
 	@Test
-	public void testCreateTenant() {
-		UserInfo ownerInfo = new UserInfo(TEST_USER, TEST_NAME, TEST_SURNAME);
+	public void testCreateProvider() {
+		UserInfo ownerInfo = new UserInfo(TEST_USER_PROVIDER, TEST_NAME, TEST_SURNAME);
 		apimConnector.createTenant(TEST_TENANT_DOMAIN, TEST_ORGANIZATION, ownerInfo);
 	}
-	
+		
 	@Test
 	public void testDeleteTenant() {
 		apimConnector.deleteTenant(TEST_TENANT_DOMAIN, TEST_ORGANIZATION);
@@ -45,14 +46,22 @@ public class APIMConnectorTest {
 	public void testCreateUser() {
 		List<String> tenants = new ArrayList<>();
 		tenants.add(TEST_TENANT_DOMAIN);
-		apimConnector.createUser(new UserInfo(TEST_USER, TEST_NAME, TEST_SURNAME),tenants);
+		apimConnector.createUser(new UserInfo(TEST_USER_SIMPLE, TEST_NAME, TEST_SURNAME),tenants);
 	}
 		
 	@Test
 	public void testAssignRole2User() {
-		UserInfo userInfo = new UserInfo(TEST_USER, TEST_NAME, TEST_SURNAME);
+		UserInfo userInfo = new UserInfo(TEST_USER_SIMPLE, TEST_NAME, TEST_SURNAME);
 		List<String> tenants = new ArrayList<>();
 		tenants.add(TEST_TENANT_DOMAIN);
 		apimConnector.assignRoleToUser(TEST_ROLE, TEST_ORGANIZATION, userInfo, tenants);
+	}
+	
+	@Test
+	public void testRevokeRoleFromUser() {
+		UserInfo userInfo = new UserInfo(TEST_USER_SIMPLE, TEST_NAME, TEST_SURNAME);
+		List<String> tenants = new ArrayList<>();
+		tenants.add(TEST_TENANT_DOMAIN);
+		apimConnector.revokeRoleFromUser(TEST_ROLE, TEST_ORGANIZATION, userInfo, tenants);
 	}
 }

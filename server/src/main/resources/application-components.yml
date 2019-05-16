@@ -9,7 +9,7 @@ componentsconfig:
       implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
       roles: ROLE_PROVIDER
       host: https://localhost:9443
-      usermgmtEndpoint: /services/RemoteUserStoreManagerService
+      usermgmtEndpoint: /services/CustomUserStoreManagerService   #extended user store manager admin stub
       usermgmtPassword: admin
       multitenancyEndpoint: /services/TenantMgtAdminService
       multitenancyPassword: admin
@@ -54,6 +54,11 @@ componentsconfig:
       format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
       implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
       roles: ROLE_MANAGER,ROLE_USER
+      host: https://localhost:9444
+      usermgmtEndpoint: /services/CustomUserStoreManagerService   #extended user store manager admin stub
+      usermgmtPassword: admin
+      multitenancyEndpoint: /services/TenantMgtAdminService
+      multitenancyPassword: admin
       
     # Cyclotron
     - name: Cyclotron

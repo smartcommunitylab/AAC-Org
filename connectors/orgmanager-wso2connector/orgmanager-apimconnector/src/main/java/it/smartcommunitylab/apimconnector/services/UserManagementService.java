@@ -191,11 +191,11 @@ public class UserManagementService {
 		String[] toDel = {}, toAdd = {};
 		if (roleModel.getAddRoles() != null && roleModel.getAddRoles().size() > 0) {
 			toAdd = new String[roleModel.getAddRoles().size()];
-			for (int i = 0; i < toAdd.length; i++) toAdd[i] = fullName(roleModel.getAddRoles().get(i), tenantId);
+			for (int i = 0; i < toAdd.length; i++) toAdd[i] = roleModel.getAddRoles().get(i);
 		}
 		if (roleModel.getRemoveRoles() != null && roleModel.getRemoveRoles().size() > 0) {
 			toDel = new String[roleModel.getRemoveRoles().size()];
-			for (int i = 0; i < toDel.length; i++) toDel[i] = fullName(roleModel.getRemoveRoles().get(i), tenantId);
+			for (int i = 0; i < toDel.length; i++) toDel[i] = roleModel.getRemoveRoles().get(i);
 		}
 		if (toAdd != null || toDel != null) {
 			getUMStub().updateRoleListOfUser(username, toDel, toAdd, tenantId, domain);
