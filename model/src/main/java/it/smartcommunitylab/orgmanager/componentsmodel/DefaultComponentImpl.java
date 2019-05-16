@@ -16,7 +16,7 @@ import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonConstants;
 @Service("it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl")
 public class DefaultComponentImpl implements Component {
 
-	public String createUser(UserInfo user) { return CommonConstants.SUCCESS_MSG; }
+	public String createUser(UserInfo user, List<String> tenants) { return CommonConstants.SUCCESS_MSG; }
 	
 	public String removeUserFromOrganization(UserInfo userInfo, String organizationName, List<String> tenants) { return CommonConstants.SUCCESS_MSG; }
 
@@ -26,9 +26,9 @@ public class DefaultComponentImpl implements Component {
 	
 	public String deleteOrganization(String organizationName, List<String> tenants) { return CommonConstants.SUCCESS_MSG; }
 
-	public String assignRoleToUser(String role, String organization, UserInfo userInfo) { return CommonConstants.SUCCESS_MSG; }
+	public String assignRoleToUser(String role, String organization, UserInfo userInfo, List<String> tenants) { return CommonConstants.SUCCESS_MSG; }
 
-	public String revokeRoleFromUser(String role, String organization, UserInfo userInfo) { return CommonConstants.SUCCESS_MSG; }
+	public String revokeRoleFromUser(String role, String organization, UserInfo userInfo, List<String> tenants) { return CommonConstants.SUCCESS_MSG; }
 
 	public String addOwner(UserInfo ownerInfo, String organizationName) { return CommonConstants.SUCCESS_MSG; }
 
@@ -37,5 +37,7 @@ public class DefaultComponentImpl implements Component {
 	public String createTenant(String tenant, String organization, UserInfo ownerInfo) { return CommonConstants.SUCCESS_MSG; }
 
 	public String deleteTenant(String tenant, String organization) { return CommonConstants.SUCCESS_MSG; }
+
+	public String updateTenant(String tenant, String organization) { return CommonConstants.SUCCESS_MSG; }
 
 }

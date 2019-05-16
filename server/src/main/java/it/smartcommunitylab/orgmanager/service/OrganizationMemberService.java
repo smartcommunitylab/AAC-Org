@@ -103,7 +103,7 @@ public class OrganizationMemberService {
 			return null;
 		
 		// Builds a collection of all of the organization's tenants
-		Set<String> orgTenants = new HashSet<String>();
+		List<String> orgTenants = new ArrayList<String>();
 		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
 		List<String> tenantNames = new ArrayList<String>();
 		for (Tenant t : tenants) {
@@ -158,14 +158,14 @@ public class OrganizationMemberService {
 			for (Role r : rolesToAdd) {
 				if (r.getComponentId().equals(s)) {
 					if (!userCreated) {
-						String resultMessage = componentMap.get(s).createUser(userInfo);
+						String resultMessage = componentMap.get(s).createUser(userInfo, orgTenants);
 						if(CommonUtils.isErroneousResult(resultMessage)) {
 							throw new EntityNotFoundException(resultMessage);
 						}
 						userCreated = true;
 					}
 					log.info("Assigning roles inside handleUserRoles : " + r);
-					String resultMessage = componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userInfo);
+					String resultMessage = componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userInfo, orgTenants);
 					if(CommonUtils.isErroneousResult(resultMessage)) {
 						throw new EntityNotFoundException(resultMessage);
 					}
@@ -173,7 +173,7 @@ public class OrganizationMemberService {
 			}
 			for (Role r : rolesToRemove)
 				if (r.getComponentId() != null && r.getComponentId().equals(s))
-					componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), userInfo);
+					componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), userInfo, orgTenants);
 			if (removeUser)
 				componentMap.get(s).removeUserFromOrganization(userInfo, organization.getName(), tenantNames);
 		}
@@ -265,10 +265,12 @@ public class OrganizationMemberService {
 			alreadyOwner = roles.contains(ownerRole);
 		// New owner must also be given ROLE_PROVIDER role on all tenants of the organization
 		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
+		List<String> tenantNames = new ArrayList<>();
 		for (Tenant t : tenants) {
 			Role tenantRole = new Role(Constants.ROOT_COMPONENTS + "/" + t.getTenantId().getComponentId() + "/" + t.getTenantId().getName(),
 					Constants.ROLE_PROVIDER, owner, t.getTenantId().getComponentId());
 			rolesToAdd.add(tenantRole);
+			tenantNames.add(t.getTenantId().getName());
 			if (alreadyOwner)
 				alreadyOwner = roles.contains(tenantRole);
 		}
@@ -282,7 +284,7 @@ public class OrganizationMemberService {
 		Map <String, Component> componentMap = componentsModel.getListComponents();
 		UserInfo ownerInfo = utils.getIdpUserDetails(owner.getUsername());
 		for (String s : componentMap.keySet()) {
-			String resultMessage = componentMap.get(s).createUser(ownerInfo);
+			String resultMessage = componentMap.get(s).createUser(ownerInfo, tenantNames);
 			if(CommonUtils.isErroneousResult(resultMessage)) {
 				throw new EntityNotFoundException(resultMessage);
 			}
