@@ -1,10 +1,10 @@
 FROM maven:3.3-jdk-8 AS mvn
 COPY . /tmp
 WORKDIR /tmp
-RUN cd /tmp/model/orgmanager-componentsmodel && mvn clean install && \
-    cd /tmp/connectors/orgmanager-apimconnector && mvn clean install && \
-    cd /tmp/connectors/nificonnector && mvn clean install && \
-    cd /tmp/server/ && mvn clean install
+RUN cd /tmp/model/ && mvn clean install -DskipTests && \
+    cd /tmp/connectors/orgmanager-apimconnector && mvn clean install -DskipTests && \
+    cd /tmp/connectors/nificonnector && mvn clean install -DskipTests && \
+    cd /tmp/server/ && mvn clean install -DskipTests
 
 FROM openjdk:8-jdk-alpine
 ENV FOLDER=/tmp/server/target

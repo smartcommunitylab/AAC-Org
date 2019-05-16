@@ -2,13 +2,13 @@
 componentsconfig:
   components:
     # API Manager
-    - name: API Manager
+    - name: APIM
       componentId: apimanager
       scope: apimanager
       format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
-      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      implementation: it.smartcommunitylab.apimconnector.APIMConnector
       roles: ROLE_PROVIDER
-      host: https://localhost:9443
+      host: https://192.168.100.100:9443
       usermgmtEndpoint: /services/RemoteUserStoreManagerService
       usermgmtPassword: admin
       multitenancyEndpoint: /services/TenantMgtAdminService
@@ -18,9 +18,9 @@ componentsconfig:
     - name: Apache NiFi
       componentId: nifi
       scope: components/nifi
-      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      implementation: it.smartcommunitylab.nificonnector.NiFiConnector
       roles: ROLE_MANAGER,ROLE_MONITOR
-      host: https://localhost:8443
+      host: https://192.168.100.100:8443
       listUsersApi: /nifi-api/tenants/users
       createUserApi: /nifi-api/tenants/users
       deleteUserApi: /nifi-api/tenants/users/
