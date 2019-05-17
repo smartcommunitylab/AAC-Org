@@ -57,11 +57,11 @@ public class Organization implements Serializable {
 	@NotNull
 	private String contactsSurname;
 	
-	private URL contactsWeb;
+	private String contactsWeb;
 	
 	private String[] contactsPhone;
 	
-	private URL contactsLogo;
+	private String contactsLogo;
 	
 	private String[] tag;
 	
@@ -79,19 +79,12 @@ public class Organization implements Serializable {
 		contactsEmail = contacts.getEmail();
 		contactsName = contacts.getName();
 		contactsSurname = contacts.getSurname();
-		
-		URL web = contacts.getWeb();
-		try {
-			contactsWeb = web != null ? new URL(web.toString()) : null;
-		} catch (MalformedURLException e) { /* does nothing */ }
+		contactsWeb = contacts.getWeb();
 		
 		// Copies the phone numbers, getting rid of possible empty strings
 		contactsPhone = copyValidStrings(contacts.getPhone());
 		
-		URL logo = contacts.getLogo();
-		try {
-			contactsLogo = logo != null ? new URL(logo.toString()) : null;
-		} catch (MalformedURLException e) { /* does nothing */ }
+		contactsLogo = contacts.getLogo();
 		
 		// Copies the tags, getting rid of possible empty strings
 		tag = copyValidStrings(organizationDTO.getTag());
@@ -155,11 +148,11 @@ public class Organization implements Serializable {
 		this.contactsSurname = contactsSurname;
 	}
 	
-	public URL getContactsWeb() {
+	public String getContactsWeb() {
 		return contactsWeb;
 	}
 	
-	public void setContactsWeb(URL contactsWeb) {
+	public void setContactsWeb(String contactsWeb) {
 		this.contactsWeb = contactsWeb;
 	}
 	
@@ -171,11 +164,11 @@ public class Organization implements Serializable {
 		this.contactsPhone = contactsPhone;
 	}
 	
-	public URL getContactsLogo() {
+	public String getContactsLogo() {
 		return contactsLogo;
 	}
 	
-	public void setContactsLogo(URL contactsLogo) {
+	public void setContactsLogo(String contactsLogo) {
 		this.contactsLogo = contactsLogo;
 	}
 	
