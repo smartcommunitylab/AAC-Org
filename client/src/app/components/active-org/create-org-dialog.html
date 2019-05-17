@@ -30,7 +30,7 @@
                 </mat-form-field>
                 <!-- Owner Email Address -->
                 <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="Owner Email"  [formControl]="ownerEmailControl" required >
+                    <input matInput  placeholder="E-mail Address"  [formControl]="ownerEmailControl" required >
                     <mat-icon matSuffix>email</mat-icon>
                     <mat-error *ngIf="ownerEmailControl.invalid">{{getErrorMessage4ownerEmail()}}</mat-error>
                 </mat-form-field>
@@ -99,12 +99,12 @@
                 <!-- Contact Telephone -->
                 <mat-form-field class="dialog-container-form-field" >
                     <!-- <span matPrefix>+39 &nbsp;</span> -->
-                    <input type="tel" matInput placeholder="Contact Telephone" [formControl]="mobileControl">
+                    <input type="tel" matInput placeholder="Telephone Numbers" [formControl]="mobileControl">
                     <mat-icon matSuffix>phone</mat-icon>
                 </mat-form-field>
                 <!-- Tag -->
                 <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="Tag"   [formControl]="tagControl">
+                    <input matInput  placeholder="Tags"   [formControl]="tagControl">
                     <mat-icon matSuffix>mode_edit</mat-icon>
                 </mat-form-field>
                 <!-- Active or not the Org -->
