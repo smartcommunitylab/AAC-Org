@@ -150,9 +150,9 @@
                     surname:ownerSurnameControl.value,
                     web:webAddressControl.value,
                     logo:logoControl.value,
-                    phone:[mobileControl.value]
+                    phone:mobileControl.value.split(',')
                 },
-                tag:[tagControl.value],
+                tag:tagControl.value.split(','),
                 active:statusControl.value
             }"
             [disabled]="orgNameControl.invalid || ownerEmailControl.invalid || ownerNameControl.invalid || orgDescriptionControl.invalid ">OK
