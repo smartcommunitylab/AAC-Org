@@ -9,14 +9,8 @@ The idea of multi-tenancy in NiFi is that **process groups** represent tenants a
 
 Users will still be able to see other teams’ process groups on the flow, but they will only appear as rectangles that they can neither interact with or view details of. The only information they can see about them is the amount of data they are processing.
 
-The reason is that, if a user couldn’t see another team’s process group at all (without even knowing it exists), they may create objects on top of it, resulting in a cluttered flow in the eyes of anyone with permissions to view process groups of both teams.\
-Also, by being able to see the amount of data other process groups are processing, if there is a process group slowing down the whole flow, a user can tell where the problem resides. Without this ability, they would be puzzled, not knowing why their own process group isn’t receiving any data.
-
-The `it.smartcommunitylab.nificonnector` package was designed to to handle creation of tenants and users and assignment of roles on NiFi.\
-The Organization Management server will call certain methods offered by this package so that operations on organizations, tenants and users may be reflected on NiFi as well.
-
 ## Certificates
-Executing these operations in a secured NiFi instance requires specific authorizations, so the application needs to act with the permissions granted to the administrator user.\
+Executing tenant and user management operations in a secured NiFi instance requires specific authorizations, so Organization Manager needs to act with the permissions granted to the administrator user.\
 Since _OpenID Connect_ is used to secure NiFi, we have to authenticate by providing the administrator’s SSL certificate and configuring NiFi to recognize it.\
 This section describes how to do this and is heavily based on a very useful and detailed [article](https://community.hortonworks.com/content/supportkb/151106/nifi-how-to-create-your-own-certs-for-securing-nif.html) by Matt Clarke from the Hortonworks Community.
 
@@ -24,10 +18,10 @@ Two pieces of software are needed for this process:
 - [Keytool](https://docs.oracle.com/javase/6/docs/technotes/tools/windows/keytool.html): comes bundled with Java’s JRE, so you should find it in your Java installation folder, usually in `C:\Program Files\Java\jre1.8.0_191\bin`, depending on your version.
 - [OpenSSL](https://www.openssl.org/source/)
 
-The steps described in this section are written for Windows’s Command Prompt, so the syntax for paths and the like may vary depending on your OS. Remember to quote paths if they contain spaces.
+The steps described in this section are written for Windows’ _Command Prompt_, so the syntax for paths and the like may vary depending on your OS. Remember to quote paths if they contain spaces.
 
 ### Step 1: Creating a Certificate Authority (CA)
-The first thing to do is creating a _Certificate Authority (CA)_. This CA will sign the administrator’s certificate, stating that it can be trusted.\
+The first thing to do is creating a _Certificate Authority_ (_CA_). This CA will sign the administrator’s certificate, stating that it can be trusted.\
 Change directory to the `bin` subfolder of your OpenSSL installation (for example, `cd C:\OpenSSL\openssl-1.0.2j\bin`). If you don’t, you’ll need to replace `openssl` with the **path to the openssl.exe file**.
 
 #### 1.1 Creating the CA’s private key
@@ -35,13 +29,13 @@ This will create the private key for your CA and place it in the `C:\certs` fold
 
 `openssl genrsa -aes128 -out C:\certs\myCA.key 4096`
 
-#### 1.2 Creating a pem certificate
+#### 1.2 Creating a _pem_ certificate
 This command creates the CA’s certificate. You will be asked to provide the password you chose in [1.1](#11-creating-the-cas-private-key). You will then have to fill the CA’s profile (country, organization name, etc.): the data you insert in this step is not important for our purposes, but it might be preferable to pick something that will help you recognize this certificate.\
 `1095` is the validity (in days) of the certificate, feel free to change it as you see fit.
 
 `openssl req -x509 -new -key C:\certs\myCA.key -days 1095 -out C:\certs\myCA.pem`
 
-#### 1.3 Converting from pem to der
+#### 1.3 Converting from _pem_ to _der_
 Converting the certificate into **der** format is necessary for the next step, performed by Keytool.
 
 `openssl x509 -outform der -in C:\certs\myCA.pem -out C:\certs\myCA.der`
@@ -117,7 +111,7 @@ For example, to do it in Mozilla Firefox:\
 **Settings** > **Options** > **Privacy and security** > **Show certificates** (on the right, near the bottom, in the _Certificates_ section) > **Authorities** tab > **Import** > open your `myCA.pem` file and check both boxes.\
 You might need to restart your browser. Afterwards, you should be able to access NiFi. If it still says the connection cannot be trusted, you might have inserted the wrong name in [3.1](#31-generate-a-keystore-for-the-nifi-server), and have to repeat steps [3.1](#31-generate-a-keystore-for-the-nifi-server) through [3.5](#35-import-the-signed-nifi-servers-certificate-into-the-keystore).
 
-### Step 4: Having the CA sign the administrator’s certificate
+### Step 4: Make the CA sign the administrator’s certificate
 By having the administrator’s certificate signed by the CA, it will be recognized as valid by NiFi, since it trusts the CA.
 Change directory back to the `bin` subfolder of your OpenSSL installation, or replace `openssl` with the **path to the openssl.exe file**.
 
@@ -127,7 +121,8 @@ Same command as when you created the CA’s private key. It will ask you to choo
 `openssl genrsa -aes128 -out C:\certs\admin.key 2048`
 
 #### 4.2 Generating a certificate sign request
-Like in step 3.2, this command will generate a certificate with a request to sign it. You will be asked to provide the password to the private key you just created. It will then ask you to fill the profile of the certificate, similarly to what you did with the CA. It is now important to provide the name of the administrator (for example in **Common Name**, or **Email Address**), as it will be used by NiFi to associate this certificate to the admin user account (see [4.5](#45-configure-nifi-to-find-the-administrators-name) for more information). The other fields are not very meaningful, but again, try to pick something that will help you recognize the certificate.
+Like in step 3.2, this command will generate a certificate with a request to sign it. You will be asked to provide the password to the private key you just created. It will then ask you to fill the profile of the certificate, similarly to what you did with the CA.\
+It is now important to provide the name of the administrator (for example in **Common Name**, or **Email Address**), as it will be used by NiFi to associate this certificate to the admin user account (see [4.5](#45-configure-nifi-to-find-the-administrators-name) for more information). The other fields are not very meaningful, but again, try to pick something that will help you recognize the certificate.
 
 Also note that it will ask you for a **challenge password** and an **optional company name**. The challenge password is very rarely used by some CAs when requesting to revoke a certificate. Both fields can safely be left blank.
 
@@ -138,7 +133,7 @@ You can now have the CA sign your administrator’s certificate. It will ask for
 
 `openssl x509 -req -in C:\certs\admin.csr -CA C:\certs\myCA.pem -CAkey C:\certs\myCA.key  -CAcreateserial -out C:\certs\admin.crt -days 730`
 
-#### 4.4 Converting from crt to p12
+#### 4.4 Converting from _crt_ to _p12_
 This command will convert the signed certificate into **p12** format. It will ask you to provide the password you chose in [4.1](#41-generating-the-administrators-certificates-private-key), and then it will ask you to choose an export password, needed to extract the certificate from the p12 file.
 
 `openssl pkcs12 -export -out C:\certs\admin.p12 -inkey C:\certs\admin.key -in C:\certs\admin.crt -certfile C:\certs\myCA.pem -certpbe PBE-SHA1-3DES -name “admin”`
@@ -154,16 +149,12 @@ This particular configuration will take the administrator’s name from the `Com
 `nifi.security.identity.mapping.value.dn=$3`
 
 ## Configuration
-The NiFi connector takes its configuration from the server. If you’re launching it with Docker, refer to the [server's README file](https://github.com/smartcommunitylab/AAC-Org/blob/master/server/README.md) for more information on how to configure components when using Docker.\
-If you are not using Docker, edit the `components.yml` file in the `src/main/resources` subfolder of the server.\
-Following is a description of what each field is needed for (order is not important).
-
-Many of the fields represent NiFi API end-points and have fixed values: however, although unlikely, there is a chance that it may change in newer versions of NiFi. If you suspect this has happened, you should be able to find the new end-point at [this](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html) address.
+Many of the fields represent NiFi API end-points and have fixed values: although unlikely, there is a chance that they may change in newer versions of NiFi. If you suspect this has happened, you should be able to find the new end-point in the [official documentation](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html).
 
 -	`name`: Name of the component, only needed for display.
 -	`componentId`: ID of the component, should be `nifi`
 -	`scope`: Scope of the component, should be `components/nifi`
--	`implementation`: Full class name of the class implementing the component. The class designed for NiFi is `it.smartcommunitylab.nificonnector.NiFiConnector`, alternatively, the value `it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl` may be used to disable the NiFi connector. Removing the NiFi configuration entirely from the file also disables the NiFi connector.
+-	`implementation`: Full class name of the class implementing the component. The class designed for NiFi is `it.smartcommunitylab.nificonnector.NiFiConnector`; alternatively, the value `it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl` may be used to disable the NiFi connector.
 -	`roles`: Comma-separated list of roles that may be assigned to users via OMC. It should consist of all roles listed in the `readRoles` field plus all roles listed in the `writeRoles` field.
 -	`host`: URI where NiFi is hosted.
 -	`listUsersApi`: NiFi API end-point for listing users. Should be `/nifi-api/tenants/users`, unless a new version of NiFi changes it into something different.
@@ -189,5 +180,5 @@ Many of the fields represent NiFi API end-points and have fixed values: however,
 -	`truststorePassword`: Password of the truststore. In the example, it would have the value chosen in [2.1](#21-creating-the-truststore).
 -	`adminName`: Name of the administrator user.
 -	`ownerRole`: Role used by AAC to indicate ownership. Should be `ROLE_PROVIDER`. Will have both read and write permissions on process groups.
--	`readRoles`: Names of the roles which will have read-only permissions on process groups. While multiple roles may be listed, separated by a comma, they would all be equivalent, so listing 1 role only is advisable. The roles field should contain all roles listed in this field and all roles listed in the `writeRoles` field, or consistency issues may arise.
--	`writeRoles`: Names of roles which will have both read and write permissions (just like the owner role) on process groups. While multiple roles may be listed, separated by a comma, they would all be equivalent, so listing 1 role only is advisable. The roles field should contain all roles listed in this field and all roles listed in the `readRoles` field, or consistency issues may arise.
+-	`readRoles`: Names of the roles which will have read-only permissions on process groups. While multiple roles may be listed, separated by a comma, they would all be equivalent, so listing 1 role only is advisable. The `roles` field should contain all roles listed in this field and all roles listed in the `writeRoles` field, or consistency issues may arise.
+-	`writeRoles`: Names of roles which will have both read and write permissions (just like the owner role) on process groups. While multiple roles may be listed, separated by a comma, they would all be equivalent, so listing 1 role only is advisable. The `roles` field should contain all roles listed in this field and all roles listed in the `readRoles` field, or consistency issues may arise.
