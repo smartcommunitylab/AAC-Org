@@ -1,23 +1,31 @@
 # AAC-Org (server)
 
-This document explains how to set up the server side of the Organization Management Console and how to use its APIs.
+This document explains how to set up the server side of Organization Manager and how to use its APIs.
 
-## Identity provider configuration
+## Configuring the AAC identity provider
 
-The identity provider, AAC, needs to be configured to allow the server side of the Organization Management Console to access its information.
+Organization Manager requires the [AAC](https://github.com/smartcommunitylab/AAC), identity provider to work. The repository explains how to install and configure it.
 
-Access the _**Client Apps**_ menu and create an app to dedicate to OMC. Under the **redirect Web server URLs** option of the _**Settings**_ tab, add the redirect URLs for the server and client. If you’re running them on localhost, for example, add both of the following (assuming the ports are 7979 and 4200):\
+Once AAC is running, create a new app for Organization Manager by accessing the _**Client Apps**_ menu and clicking on _**NEW APP**_.
+
+In the _**Settings**_ tab, under **redirect Web server URLs**, add the redirect URLs for server and client. If you’re running them on _localhost_, for example, add both of the following (assuming the ports are _7979_ and _4200_):\
 `http://localhost:7979/login`\
 `http://localhost:4200/login`
 
-For **Grant types**, allow `Implicit`, `Authorization Code`, `Password` and `Client` credentials.\
-Under **Enabled identity providers**, add `internal`.
+To run the server within a Docker container, you need to add a third URL with the port (for example _7878_) Docker will expose the service through:\
+`http://localhost:7878/login`
 
-In the _**API Access**_ tab, grant all permissions under `Basic profile service` and under `Role Management Service` and then save the app.
+For more information on running the server inside a Docker container, see the [Running with Docker](#running-with-docker) section.
 
-Finally, all users that will be administrators of the Organization Management Console, as well as all organization owners, will need to have the following role assigned to them: `apimanager/carbon.super:profilemanager`.\
-To create the `apimanager/carbon.super` space, access AAC’s _**Space Owners menu**_, choose `apimanager` as **Parent Space**, and click on _**NEW USER**_. Insert the **Username** of the admin, then insert `carbon.super` under **New spaces** and click _**ADD**_. Click _**UPDATE**_ to create this space.\
-Now that the space has been created, all users who will be administrators of OMC, or owner of organizations, need the `profilemanager` role within this space. Access the _**User Roles**_ menu, pick `apimanager/carbon.super` as **Role Context**, and then, for each user, click _**NEW USER**_, insert the **Username**, insert `profilemanager` as **New role**, click _**ADD**_ and finally click _**UPDATE**_.
+For **Grant types**, check `Implicit` and `Client credentials`.\
+For **Enabled identity providers**, check `internal`.
+
+In the _**API Access**_ tab, grant all permissions under `Basic profile service` and under `Role Management Service` and save the app.
+
+Finally, all users that will be administrators of Organization Manager, as well as all organization owners, need the following role: `apimanager/carbon.super:profilemanager`.\
+To create the `apimanager/carbon.super` space, access the _**Space Owners**_ menu, choose `apimanager` as **Parent Space** and click on _**NEW USER**_. Insert the **Username**, insert `carbon.super` under **New spaces** and click _**ADD**_. Click _**UPDATE**_ to create this space.\
+Now that the space has been created, all users who will be administrators of Organization Manager, or owners of an organization, need the `profilemanager` role within this space.\
+Access the _**User Roles**_ menu, pick `apimanager/carbon.super` as **Role Context**, and then, for each user, click _**NEW USER**_, insert the **Username**, insert `profilemanager` as **New role**, click _**ADD**_ and then _**UPDATE**_.
 
 
 ## Setting up the server
@@ -33,11 +41,11 @@ For example, the property for the port of the service appears as follows:\
 `server:`\
 &nbsp; &nbsp;`port: ${OMC_SERVER_PORT:7979}`
 
-If you are not running the server inside a Docker container, and want to use a different port, just change the 7979 part. For more information on running the server inside a Docker container, see the [Running with Docker](#running-with-docker) section.
+If you are not running the server inside a Docker container, and want to use a different port, just change the `7979` part. For more information on running the server inside a Docker container, see the [Running with Docker](#running-with-docker) section.
 
 `server.port` – The port the server is running at. Sample value: `7979`
 
-`server.servlet.session.cookie.name` – Name of the session cookie, used to avoid conflicts with other applications that use the name JSESSIONID and may be running on the same host. Sample value: `ORMANAGERSESSIONID`
+`server.servlet.session.cookie.name` – Name of the session cookie, used to avoid conflicts with other applications that use the name _JSESSIONID_ and may be running on the same host. Sample value: `ORMANAGERSESSIONID`
 
 `spring.datasource.url` – Database server for the Organization Management server. The format may vary depending on the database type. A typical format can look like this: `jdbc:<database type>://<host>:<port>/<database name>`\
 Sample value: `jdbc:postgresql://localhost:5432/orgmanager`
@@ -82,17 +90,6 @@ There may be more properties under `spring` related to setting up the database.
 `aac.apis.currentUserRolesApi` - AAC API end-point for retrieving the authenticated user’s roles
 
 `aac.apis.currentUserProfileApi` - AAC API end-point for retrieving the authenticated user’s profile
-
-\
-The `COMPONENTS DATA` section of the file contains the configuration for all components. Two fields are required for each of them:
-
-`componentId` - identifies the component.
-
-`implementation` - full name of the connector class that takes care of reflecting the Organization Management Console’s changes on the component. The following value corresponds to a dummy class that brings no changes, which can be used if the component does not need an external class for this purpose, or to simply disable a connector.\
-`it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl`
-
-\
-Other fields are described in the documentation of the specific component’s connector.
 
 
 ## Calling APIs
