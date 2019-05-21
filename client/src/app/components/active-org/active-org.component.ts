@@ -144,30 +144,30 @@ export class CreateOrganizationDialogComponent {
     console.log('SUBMITTED', this.formDoc);
   }
   getErrorMessage4orgName() {
-    return this.orgNameControl.hasError('required') ? 'You must enter a Name of the Organization.' :
+    return this.orgNameControl.hasError('required') ? 'You must enter the name of the organization.' :
         //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
   }
   getErrorMessage4ownerName(){
-    return this.ownerNameControl.hasError('required') ? 'You must enter a Name of the Owner.' :
+    return this.ownerNameControl.hasError('required') ? 'Enter the name of the owner.' :
         //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
   }
   getErrorMessage4ownerSurname(){
-    return this.ownerNameControl.hasError('required') ? 'You must enter a Name of the Owner.' : '';
+    return this.ownerNameControl.hasError('required') ? 'Enter the surame of the owner.' : '';
   }
   getErrorMessage4ownerEmail(){
-    return this.ownerEmailControl.hasError('required') ? 'You must enter a valid email of the owner.' :
+    return this.ownerEmailControl.hasError('required') ? 'You must enter the e-mail address of the owner.' :
         this.ownerEmailControl.hasError('email') ? 'Not a valid email' :
             '';
   }
   getErrorMessage4orgDescription() {
-    return this.orgNameControl.hasError('required') ? 'You must enter Description of the Organization.' :
+    return this.orgNameControl.hasError('required') ? 'You must provide a description for the organization.' :
         //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
   }
   getErrorMessage4orgDomain() {
-    return this.orgNameControl.hasError('required') ? 'You must enter a Domain of the Organization.' :
+    return this.orgNameControl.hasError('required') ? 'You must enter the domain of the organization.' :
         //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
   }

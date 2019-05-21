@@ -62,14 +62,26 @@
             <mat-icon matSuffix>email</mat-icon>
         </mat-form-field> -->
         <!-- Contact Telephone -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input type="tel" matInput placeholder="Telephone Numbers" [(ngModel)]='data.myOrg.contacts.phone' (keyup)="onKeyChange()" >
-            <mat-icon matSuffix>phone</mat-icon>
+		<mat-list-item>Phone numbers</mat-list-item>
+        <td *ngFor="let num of data.myOrg.contacts.phone; let i = index">
+			<button mat-raised-button class="md-raised" (click)='removeStringFromArray(data.myOrg.contacts.phone, i)'>{{num}}
+				<mat-icon>close</mat-icon>
+			</button>
+        </td>
+		<mat-form-field class="dialog-container-form-field" >
+			<input type="tel" [(ngModel)]="newPhoneNumber" name="newPhoneNumber" matInput placeholder="Add Number (hit Enter to confirm)" (keyup.enter)="addStringToArray(data.myOrg.contacts.phone, newPhoneNumber); newPhoneNumber = null;" >
+			<mat-icon matSuffix>phone</mat-icon>
         </mat-form-field>
         <!-- Tag -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Tags"  [(ngModel)]='data.myOrg.tag' (keyup)="onKeyChange()" >
-            <mat-icon matSuffix>mode_edit</mat-icon>
+		<mat-list-item>Tags</mat-list-item>
+        <td *ngFor="let t of data.myOrg.tag; let i = index">
+			<button mat-raised-button class="md-raised" (click)='removeStringFromArray(data.myOrg.tag, i)'>{{t}}
+				<mat-icon>close</mat-icon>
+			</button>
+        </td>
+		<mat-form-field class="dialog-container-form-field" >
+			<input [(ngModel)]="newTag" name="newTag" matInput placeholder="Add Tag (hit Enter to confirm)" (keyup.enter)="addStringToArray(data.myOrg.tag, newTag); newTag = null;" >
+			<mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
         <!-- Provider check with boolean  -->
         <mat-slide-toggle color="primary" disabled> Active</mat-slide-toggle>
