@@ -145,12 +145,10 @@ export class CreateOrganizationDialogComponent {
   }
   getErrorMessage4orgName() {
     return this.orgNameControl.hasError('required') ? 'You must enter the name of the organization.' :
-        //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
   }
   getErrorMessage4ownerName(){
     return this.ownerNameControl.hasError('required') ? 'Enter the name of the owner.' :
-        //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
   }
   getErrorMessage4ownerSurname(){
@@ -158,17 +156,15 @@ export class CreateOrganizationDialogComponent {
   }
   getErrorMessage4ownerEmail(){
     return this.ownerEmailControl.hasError('required') ? 'You must enter the e-mail address of the owner.' :
-        this.ownerEmailControl.hasError('email') ? 'Not a valid email' :
+        this.ownerEmailControl.hasError('email') ? 'Not a valid e-mail address.' :
             '';
   }
   getErrorMessage4orgDescription() {
     return this.orgNameControl.hasError('required') ? 'You must provide a description for the organization.' :
-        //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
   }
   getErrorMessage4orgDomain() {
     return this.orgNameControl.hasError('required') ? 'You must enter the domain of the organization.' :
-        //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
   }
   onNoClick(): void {
