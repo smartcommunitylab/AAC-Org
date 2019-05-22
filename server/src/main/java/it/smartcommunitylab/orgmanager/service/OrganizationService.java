@@ -142,16 +142,12 @@ public class OrganizationService {
 		
 		// Updates the identity provider
 		utils.idpAddRole(userId, role); // updates the owner's role in the identity provider as well
-		List<String> tenantsOfOrg = new ArrayList<String>();
-		
-		for (Tenant t : tenantRepository.findByOrganization(organization))
-			tenantsOfOrg.add(t.getTenantId().getName());
 		
 		// Performs the operation in the components
 		Map<String, Component> componentMap = componentsModel.getListComponents();
 		String resultMessage;
 		for (String s : componentMap.keySet()) {
-			resultMessage = componentMap.get(s).createUser(contactsUser, tenantsOfOrg);
+			resultMessage = componentMap.get(s).createUser(contactsUser);
 			if(CommonUtils.isErroneousResult(resultMessage)) {
 				throw new EntityNotFoundException(resultMessage);
 			}

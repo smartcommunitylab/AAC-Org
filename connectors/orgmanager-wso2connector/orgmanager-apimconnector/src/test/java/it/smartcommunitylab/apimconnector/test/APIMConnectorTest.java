@@ -24,7 +24,7 @@ public class APIMConnectorTest {
 	private static final String TEST_USER_SIMPLE 	= "trying_simple@gmail.com";
 	private static final String TEST_NAME 			= "TestName";
 	private static final String TEST_SURNAME 		= "TestSurname";
-	private static final String TEST_ROLE 			= "roleTest:ROLE_PROVIDER";
+	private static final String TEST_ROLE 			= "domain.com:ROLE_PROVIDER";
 	
 	@Test
 	public void testCreateProvider() {
@@ -44,9 +44,7 @@ public class APIMConnectorTest {
 	
 	@Test
 	public void testCreateUser() {
-		List<String> tenants = new ArrayList<>();
-		tenants.add(TEST_TENANT_DOMAIN);
-		apimConnector.createUser(new UserInfo(TEST_USER_SIMPLE, TEST_NAME, TEST_SURNAME),tenants);
+		apimConnector.createUser(new UserInfo(TEST_USER_SIMPLE, TEST_NAME, TEST_SURNAME));
 	}
 		
 	@Test
@@ -54,7 +52,7 @@ public class APIMConnectorTest {
 		UserInfo userInfo = new UserInfo(TEST_USER_SIMPLE, TEST_NAME, TEST_SURNAME);
 		List<String> tenants = new ArrayList<>();
 		tenants.add(TEST_TENANT_DOMAIN);
-		apimConnector.assignRoleToUser(TEST_ROLE, TEST_ORGANIZATION, userInfo, tenants);
+		apimConnector.assignRoleToUser(TEST_ROLE, TEST_ORGANIZATION, userInfo);
 	}
 	
 	@Test
@@ -62,6 +60,6 @@ public class APIMConnectorTest {
 		UserInfo userInfo = new UserInfo(TEST_USER_SIMPLE, TEST_NAME, TEST_SURNAME);
 		List<String> tenants = new ArrayList<>();
 		tenants.add(TEST_TENANT_DOMAIN);
-		apimConnector.revokeRoleFromUser(TEST_ROLE, TEST_ORGANIZATION, userInfo, tenants);
+		apimConnector.revokeRoleFromUser(TEST_ROLE, TEST_ORGANIZATION, userInfo);
 	}
 }
