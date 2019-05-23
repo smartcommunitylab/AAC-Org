@@ -21,8 +21,8 @@
             <!-- <mat-icon matSuffix>mode_edit</mat-icon> -->
         </mat-form-field>
         <!-- Owner Email Address -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="E-mail Address" disabled value={{data.myOrg.contacts.email}}>
+		<mat-form-field class="nameInput-full-width" >
+            <input matInput placeholder="E-mail Address" name="email" [(ngModel)]='data.myOrg.contacts.email' (keyup)="onKeyChange()" >
             <mat-icon matSuffix>email</mat-icon>
         </mat-form-field>
         <!-- Name and Surname input field -->
@@ -56,31 +56,26 @@
             <input  matInput  placeholder="Logo" [(ngModel)]='data.myOrg.contacts.logo' (keyup)="onKeyChange()" >
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
-        <!-- Contact Email Address -->
-        <!-- <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Contact Email"   >
-            <mat-icon matSuffix>email</mat-icon>
-        </mat-form-field> -->
         <!-- Contact Telephone -->
         <mat-list-item>Phone numbers</mat-list-item>
         <td *ngFor="let num of data.myOrg.contacts.phone; let i = index">
-            <button mat-raised-button class="md-raised" (click)='removeStringFromArray(data.myOrg.contacts.phone, i)'>{{num}}
+            <button mat-raised-button (mousedown)='removeStringFromArray(data.myOrg.contacts.phone, i)'>{{num}}
                 <mat-icon>close</mat-icon>
             </button>
         </td>
         <mat-form-field class="dialog-container-form-field" >
-            <input type="tel" [(ngModel)]="newPhoneNumber" name="newPhoneNumber" matInput placeholder="Add Number (hit Enter to confirm)" (keyup.enter)="addStringToArray(data.myOrg.contacts.phone, newPhoneNumber); newPhoneNumber = null;" >
+            <input type="tel" [(ngModel)]="newPhoneNumber" name="newPhoneNumber" matInput placeholder="Add Number (hit Space to confirm)" (keyup.space)="addStringToArray(data.myOrg.contacts.phone, newPhoneNumber); newPhoneNumber = null;" >
             <mat-icon matSuffix>phone</mat-icon>
         </mat-form-field>
         <!-- Tag -->
         <mat-list-item>Tags</mat-list-item>
         <td *ngFor="let t of data.myOrg.tag; let i = index">
-            <button mat-raised-button class="md-raised" (click)='removeStringFromArray(data.myOrg.tag, i)'>{{t}}
+            <button mat-raised-button (mousedown)='removeStringFromArray(data.myOrg.tag, i)'>{{t}}
                 <mat-icon>close</mat-icon>
             </button>
         </td>
         <mat-form-field class="dialog-container-form-field" >
-            <input [(ngModel)]="newTag" name="newTag" matInput placeholder="Add Tag (hit Enter to confirm)" (keyup.enter)="addStringToArray(data.myOrg.tag, newTag); newTag = null;" >
+            <input [(ngModel)]="newTag" name="newTag" matInput placeholder="Add Tag (hit Space to confirm)" (keyup.space)="addStringToArray(data.myOrg.tag, newTag); newTag = null;" >
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
         <!-- Provider check with boolean  -->

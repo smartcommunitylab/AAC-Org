@@ -131,10 +131,10 @@ export class CreateOrganizationDialogComponent {
   orgDomainControl= new FormControl('');
   webAddressControl= new FormControl('');
   logoControl= new FormControl('');
-  mobileControl= new FormControl('');
-  tagControl= new FormControl('');
   statusControl= new FormControl(true);
   formDoc: FormGroup;
+  phoneNumbers: string[] = [];
+  tags: string[] = [];
   ngOnInit() {
     this.formDoc = this._fb.group({
       basicfile: []
@@ -169,5 +169,23 @@ export class CreateOrganizationDialogComponent {
   }
   onNoClick(): void {
     this.dialogRef.close();
+  }
+  
+  addPhoneNumber(num: string): void {
+	if (num && num.trim().length > 0 && !this.phoneNumbers.includes(num.trim()))
+	  this.phoneNumbers.push(num.trim());
+  }
+  
+  removePhoneNumber(index: number): void {
+	this.phoneNumbers.splice(index, 1);
+  }
+  
+  addTag(tag: string) : void {
+	if (tag && tag.trim().length > 0 && !this.tags.includes(tag.trim()))
+	  this.tags.push(tag.trim());
+  }
+  
+  removeTag(index: number): void {
+	this.tags.splice(index, 1);
   }
 }

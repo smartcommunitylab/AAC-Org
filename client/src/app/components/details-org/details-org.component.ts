@@ -405,13 +405,13 @@ export class detailsOrganizationDialogComponent {
     });
   }
   
-  addStringToArray(arr: string[], str:string): void {
-      if (str && str.trim().length > 0) {
+  addStringToArray(arr: string[], str: string): void {
+      if (str && str.trim().length > 0 && !arr.includes(str.trim())) {
         arr.push(str.trim());
         this.onKeyChange();
       }
   }
-  removeStringFromArray(arr: string[], index:number): void {
+  removeStringFromArray(arr: string[], index: number): void {
       arr.splice(index, 1);
       this.onKeyChange();
   }
