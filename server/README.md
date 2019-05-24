@@ -260,9 +260,10 @@ Lists users that belong to the indicated organization. The `id` of the organizat
 **Sample request URL**: `http://localhost:7979/api/organizations/1/members?username=john`
 
 ### Add a user to an organization
-Grants a user the roles listed in the request body. All roles they previously had within the organization, but that are not present in this new configuration, will be removed. The user will be added to the organization, in case they were previously not registered. This means that AAC must have a user with this username, otherwise an error will occur. The response will also contain the `id` of the member within the organization.
+Grants a user the roles listed in the request body. All roles they previously had within the organization, but that are not present in this new configuration, will be removed. The user will be added to the organization, in case they were previously not registered. This means that AAC must have a user with this username, otherwise an error will occur. The response will also contain the `id` of the member within the organization.\
+It is also possible, for administrators only, to grant/revoke the status of owner of the organization through this API.
 
-**Requirements**: must have administrator privileges, or be owner of the organization\
+**Requirements**: must have administrator privileges, or be owner of the organization (cannot grant/revoke owner status)\
 **End-point**: /api/organizations/<organization_id>/members\
 **Method**: POST\
 **Body**: JSON object containing the user’s name and the roles they should have:
@@ -270,6 +271,7 @@ Grants a user the roles listed in the request body. All roles they previously ha
 2. `roles` – Array of JSON objects representing the roles to add. Each role has 2 properties:
    - `contextSpace` – domain of the role. It must be one of the domains registered in the organization. It should have the following structure: `components/<component_id>/<space name>`
    - `role` – Role of the user in the domain
+3. `owner` - Boolean parameter that can only be set by administrators. If this parameter appears in a call performed without administrator rights, it will be ignored.
   
 **Sample request URL**: `http://localhost:7979/api/organizations/1/members`\
 **Sample request body**:\
@@ -281,7 +283,8 @@ Grants a user the roles listed in the request body. All roles they previously ha
 &nbsp; &nbsp;`},{`\
 &nbsp; &nbsp; &nbsp; &nbsp;`"contextSpace":"components/nifi/ferrara",`\
 &nbsp; &nbsp; &nbsp; &nbsp;`"role":"ROLE_USER"`\
-&nbsp; &nbsp;`}]`\
+&nbsp; &nbsp;`}]`\,\
+&nbsp; &nbsp;`"owner":"true"`\
 `}`
 
 ### Remove a user from an organization
@@ -291,27 +294,6 @@ Unregisters a user from an organization, stripping them of all roles they had wi
 **End-point**: /api/organizations/<organization_id>/members/<member_id>\
 **Method**: DELETE\
 **Sample request URL**: `http://localhost:7979/api/organizations/1/members/2`
-
-### Add an owner to an organization
-Adds an owner to an organization. If the new owner is not an existing user, they will be created. This means that AAC must have a user with this username, otherwise an error will occur. The response will contain the new owner.
-
-**Requirements**: must have administrator privileges\
-**End-point**: /api/organizations/<organization_id>/owners\
-**Method**: POST\
-**Sample request URL**: `http://localhost:7979/api/organizations/1/owners`\
-**Sample request body**:\
-`{`\
-&nbsp; &nbsp;`"username":"fred@test.com"`\
-`}`
-
-### Remove an owner from an organization
-Removes an owner from an organization. The `id` of the owner must be known.
-
-**Requirements**: must have administrator privileges\
-**End-point**: /api/organizations/<organization_id>/owners/<owner_id>\
-**Method**: DELETE\
-**Sample request URL**: `http://localhost:7979/api/organizations/1/owners/2`
-
 
 ## Running with Docker
 
