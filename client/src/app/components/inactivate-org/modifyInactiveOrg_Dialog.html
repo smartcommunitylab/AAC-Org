@@ -1,14 +1,14 @@
-<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleEnableOrg'">Enable an Organization</h2>
-<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDeleteOrg'">Delete an Organization</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleEnableOrg'">Enable Organization</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleDeleteOrg'">Delete Organization</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: </h2>
 <mat-dialog-content  >
     <!-- Enable Org -->
     <div *ngIf="data.dialogStatus=='TitleEnableOrg'">
-        <mat-label class="mat-h4">Do you want to enable the Organization name: {{data.org_name}}</mat-label>
+        <mat-label class="mat-h4">Enable organization {{data.org_name}}?</mat-label>
     </div>
     <!-- Delete Org -->
     <div *ngIf="data.dialogStatus=='TitleDeleteOrg'">
-        <mat-label class="mat-h4">Do you want to DELETE the Organization name: {{data.org_name}}</mat-label>
+        <mat-label class="mat-h4">Are you sure you wish to DELETE organization {{data.org_name}}? This operation cannot be undone.</mat-label>
     </div>
     <!-- Error Message -->
     <div *ngIf="data.dialogStatus=='TitleErrorMessage'">

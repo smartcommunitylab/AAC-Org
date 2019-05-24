@@ -1,10 +1,10 @@
 <!-- <div class="dialog-overflow-hidden"> -->
     <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateOrg'">Create New Organization</h2>
-    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">Disable an Organization</h2>
+    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">Disable Organization</h2>
     <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: </h2>
     <mat-dialog-content  >
         <div *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">
-            <mat-label class="mat-h4">Do you want to disable Organization: {{data.org_name}}.</mat-label>
+            <mat-label class="mat-h4">Disable organization {{data.org_name}}?</mat-label>
         </div>
         <div *ngIf="data.dialogStatus=='TitleCreateOrg'">
             <mat-label class="mat-h4">Please provide this information</mat-label>
@@ -30,7 +30,7 @@
                 </mat-form-field>
                 <!-- Owner Email Address -->
                 <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="Owner Email"  [formControl]="ownerEmailControl" required >
+                    <input matInput  placeholder="E-mail Address"  [formControl]="ownerEmailControl" required >
                     <mat-icon matSuffix>email</mat-icon>
                     <mat-error *ngIf="ownerEmailControl.invalid">{{getErrorMessage4ownerEmail()}}</mat-error>
                 </mat-form-field>
@@ -97,16 +97,23 @@
                     <mat-icon matSuffix>email</mat-icon>
                 </mat-form-field> -->
                 <!-- Contact Telephone -->
-                <mat-form-field class="dialog-container-form-field" >
-                    <!-- <span matPrefix>+39 &nbsp;</span> -->
-                    <input type="tel" matInput placeholder="Contact Telephone" [formControl]="mobileControl">
-                    <mat-icon matSuffix>phone</mat-icon>
-                </mat-form-field>
+				<mat-list-item>Phone numbers</mat-list-item>
+				<td *ngFor="let num of phoneNumbers; let i = index">
+					<button mat-raised-button (mousedown)="removePhoneNumber(i)">{{num}}<mat-icon>close</mat-icon></button>
+				</td>
+				<mat-form-field class="dialog-container-form-field" >
+					<input type="tel" [(ngModel)]="newPhoneNumber" [ngModelOptions]="{standalone: true}" name="newPhoneNumber" matInput placeholder="Add Number (hit Space to confirm)" (keyup.space)="addPhoneNumber(newPhoneNumber); newPhoneNumber = null;" >
+					<mat-icon matSuffix>phone</mat-icon>
+				</mat-form-field>
                 <!-- Tag -->
-                <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="Tag"   [formControl]="tagControl">
-                    <mat-icon matSuffix>mode_edit</mat-icon>
-                </mat-form-field>
+				<mat-list-item>Tags</mat-list-item>
+				<td *ngFor="let t of tags; let i = index">
+					<button mat-raised-button (mousedown)="removeTag(i)">{{t}}<mat-icon>close</mat-icon></button>
+				</td>
+				<mat-form-field class="dialog-container-form-field" >
+					<input [(ngModel)]="newTag" [ngModelOptions]="{standalone: true}" name="newTag" matInput placeholder="Add Tag (hit Space to confirm)" (keyup.space)="addTag(newTag); newTag = null;" >
+					<mat-icon matSuffix>mode_edit</mat-icon>
+				</mat-form-field>
                 <!-- Active or not the Org -->
                 <mat-slide-toggle  color="primary"  [formControl]="statusControl" [checked]="statusControl.value"> Activated</mat-slide-toggle>
                 
@@ -150,9 +157,9 @@
                     surname:ownerSurnameControl.value,
                     web:webAddressControl.value,
                     logo:logoControl.value,
-                    phone:[mobileControl.value]
+                    phone:phoneNumbers
                 },
-                tag:[tagControl.value],
+                tag:tags,
                 active:statusControl.value
             }"
             [disabled]="orgNameControl.invalid || ownerEmailControl.invalid || ownerNameControl.invalid || orgDescriptionControl.invalid ">OK

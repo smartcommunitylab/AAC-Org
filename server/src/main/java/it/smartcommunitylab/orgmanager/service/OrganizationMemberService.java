@@ -158,14 +158,14 @@ public class OrganizationMemberService {
 			for (Role r : rolesToAdd) {
 				if (r.getComponentId().equals(s)) {
 					if (!userCreated) {
-						String resultMessage = componentMap.get(s).createUser(userInfo, orgTenants);
+						String resultMessage = componentMap.get(s).createUser(userInfo);
 						if(CommonUtils.isErroneousResult(resultMessage)) {
 							throw new EntityNotFoundException(resultMessage);
 						}
 						userCreated = true;
 					}
 					log.info("Assigning roles inside handleUserRoles : " + r);
-					String resultMessage = componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userInfo, orgTenants);
+					String resultMessage = componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userInfo);
 					if(CommonUtils.isErroneousResult(resultMessage)) {
 						throw new EntityNotFoundException(resultMessage);
 					}
@@ -173,7 +173,7 @@ public class OrganizationMemberService {
 			}
 			for (Role r : rolesToRemove)
 				if (r.getComponentId() != null && r.getComponentId().equals(s))
-					componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), userInfo, orgTenants);
+					componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), userInfo);
 			if (removeUser)
 				componentMap.get(s).removeUserFromOrganization(userInfo, organization.getName(), tenantNames);
 		}
@@ -284,7 +284,7 @@ public class OrganizationMemberService {
 		Map <String, Component> componentMap = componentsModel.getListComponents();
 		UserInfo ownerInfo = utils.getIdpUserDetails(owner.getUsername());
 		for (String s : componentMap.keySet()) {
-			String resultMessage = componentMap.get(s).createUser(ownerInfo, tenantNames);
+			String resultMessage = componentMap.get(s).createUser(ownerInfo);
 			if(CommonUtils.isErroneousResult(resultMessage)) {
 				throw new EntityNotFoundException(resultMessage);
 			}

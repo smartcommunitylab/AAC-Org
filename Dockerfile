@@ -2,7 +2,7 @@ FROM maven:3.3-jdk-8 AS mvn
 COPY . /tmp
 WORKDIR /tmp
 RUN cd /tmp/model/ && mvn clean install -DskipTests && \
-    cd /tmp/connectors/orgmanager-apimconnector && mvn clean install -DskipTests && \
+    cd /tmp/connectors/orgmanager-wso2connector && mvn clean install -DskipTests && \
     cd /tmp/connectors/nificonnector && mvn clean install -DskipTests && \
     cd /tmp/server/ && mvn clean install -DskipTests
 

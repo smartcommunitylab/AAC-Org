@@ -1,6 +1,6 @@
 <div>
   <mat-toolbar>
-    <span>Details Organization </span>
+    <span>Organization Details</span>
     <span class="fill-remaining-space"></span>
     
     <a routerLink="/activeOrg">
@@ -32,8 +32,9 @@
             <mat-grid-tile [colspan]=1 [rowspan]=6 class="matGridList-figure">
               <mat-card class="card-logo">
                 <mat-card-content class="card-logo-content">
-                    <img *ngIf="myOrg.contacts.logo" src='{{myOrg.contacts.logo}}' onError="this.src='https://img.icons8.com/metro/100/000000/organization.png'"/>
-                    <img *ngIf="!myOrg.contacts.logo" src='https://img.icons8.com/metro/100/000000/organization.png' /> 
+                    <img *ngIf="!myOrg.contacts.logo" src='https://img.icons8.com/metro/100/000000/organization.png' />
+                    <img *ngIf="myOrg.contacts.logo.indexOf('http://') == 0 || myOrg.contacts.logo.indexOf('https://') == 0" src='{{myOrg.contacts.logo}}' onError="this.src='https://img.icons8.com/metro/100/000000/organization.png'"/>
+                    <img *ngIf="myOrg.contacts.logo && myOrg.contacts.logo.indexOf('http://') != 0 && myOrg.contacts.logo.indexOf('https://') != 0" src='http://{{myOrg.contacts.logo}}' onError="this.src='https://img.icons8.com/metro/100/000000/organization.png'"/>
                 </mat-card-content>
               </mat-card>
             </mat-grid-tile>
@@ -50,7 +51,11 @@
                 </mat-list-item>
                 <mat-list-item role="listitem">
                   <i class="material-icons">web</i>&nbsp;
-                  <a href="{{myOrg.contacts.web}}" target="_blank">{{myOrg.contacts.web}}</a>
+                  <a *ngIf="myOrg.contacts.web.indexOf('http://') == 0 || myOrg.contacts.web.indexOf('https://') == 0; else addHttp" 
+                      href="{{myOrg.contacts.web}}" target="_blank">{{myOrg.contacts.web}}</a>
+                  <ng-template #addHttp>
+                    <a href="http://{{myOrg.contacts.web}}" target="_blank">{{myOrg.contacts.web}}</a>
+                  </ng-template>
                 </mat-list-item>
                 <mat-list-item role="listitem">
                   <i class="material-icons">phone</i>&nbsp;
@@ -70,7 +75,7 @@
             <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-infoBelow" rowHeight="60px">Domain</mat-grid-tile>
             <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-infoBelow" rowHeight="60px">{{myOrg.slug}}</mat-grid-tile>
 
-            <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-infoBelow" rowHeight="60px">Name</mat-grid-tile>
+            <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-infoBelow" rowHeight="60px">Contact</mat-grid-tile>
             <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-infoBelow" rowHeight="60px">
               {{myOrg.contacts.name}}
               {{myOrg.contacts.surname}}<br/>
@@ -189,7 +194,7 @@
       
             <!-- Status Column -->
             <ng-container matColumnDef="action">
-              <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
               <mat-cell *matCellDef="let element"> 
                 <button mat-button *ngIf="element.owner" disabled><mat-icon matSuffix>mode_edit</mat-icon></button>
                 <button mat-button *ngIf="!element.owner" (click)="openDialog4ModifyUser(element.username)"><mat-icon matSuffix>mode_edit</mat-icon></button>

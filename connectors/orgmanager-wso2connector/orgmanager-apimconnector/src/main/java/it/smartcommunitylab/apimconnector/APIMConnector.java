@@ -48,19 +48,8 @@ public class APIMConnector implements Component{
 	}
 
 	@Override
-	public String createUser(UserInfo userInfo, List<String> tenants) {
-		String password = new BigInteger(50, new SecureRandom()).toString(16);
-		String [] roles = new String[] {};
-		ClaimValue [] claims = new ClaimValue[] {};
-		try {
-			for(String tenantDomain : tenants) {
-				int tenantId = tmService.getTenant(tenantDomain).getTenantId();
-				umService.createNormalUser(userInfo.getUsername(), password, roles, claims,tenantId, tenantDomain);
-			}
-		} catch (RemoteException | CustomUserStoreManagerServiceUserStoreExceptionException | TenantMgtAdminServiceExceptionException e) {
-			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while creating user " + userInfo + ": " + e.getMessage());
-		}
-		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "User " + userInfo + " has been created.");
+	public String createUser(UserInfo userInfo) {
+		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 1, "User creation is handled when a role is assigned.");
 	}
 
 	@Override
@@ -80,21 +69,41 @@ public class APIMConnector implements Component{
 	}
 
 	@Override
-	public String assignRoleToUser(String fullRole, String organization, UserInfo userInfo, List<String> tenants) {
+	public String assignRoleToUser(String fullRole, String organization, UserInfo userInfo) {
 		String domain = fullRole.substring(0, fullRole.indexOf(":"));
+		int tenantId;
+		try {
+			TenantInfoBean tenant = tmService.getTenant(domain);
+			if (tenant == null)
+				throw new TenantMgtAdminServiceExceptionException("tenant does not exist.");
+			tenantId = tenant.getTenantId();
+		} catch (RemoteException | TenantMgtAdminServiceExceptionException e) {
+			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while retrieving tenant " + domain + ": " + e.getMessage());
+		}
 		String role = fullRole.substring(fullRole.indexOf(":") + 1);
 		if(role.equals("ROLE_PROVIDER"))
 			role = "Internal/publisher";
-		else 
+		else
 			role = "Internal/subscriber";
+		
+		try {
+			List<String> currentRoles = umService.getUserRoles(userInfo.getUsername(), domain);
+			if (currentRoles == null || currentRoles.isEmpty()) {
+				String password = new BigInteger(50, new SecureRandom()).toString(16);
+				String [] roles = new String[] {role};
+				ClaimValue [] claims = new ClaimValue[] {};
+				umService.createNormalUser(userInfo.getUsername(), password, roles, claims, tenantId, domain);
+				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "User " + userInfo + " has been created with role " + role + ".");
+			}
+		} catch (RemoteException | CustomUserStoreManagerServiceUserStoreExceptionException e) {
+			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while searching or creating user " + userInfo + ": " + e.getMessage());
+		}
+		
 		List<String> rolesList = Arrays.asList(new String[]{role});
 		RoleModel roleModel = new RoleModel();
 		roleModel.setAddRoles(rolesList);
 		try {
-			for(String tenantDomain : tenants) {
-				int tenantId = tmService.getTenant(tenantDomain).getTenantId();
-				umService.updateRoles(roleModel, userInfo.getUsername(), tenantId, tenantDomain);
-			}
+			umService.updateRoles(roleModel, userInfo.getUsername(), tenantId, domain);
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException | CustomUserStoreManagerServiceUserStoreExceptionException e) {
 			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while assigning role " + role + " to " + userInfo + ": " + e.getMessage());
 		}
@@ -102,7 +111,7 @@ public class APIMConnector implements Component{
 	}
 
 	@Override
-	public String revokeRoleFromUser(String fullRole, String organization, UserInfo userInfo, List<String> tenants) {
+	public String revokeRoleFromUser(String fullRole, String organization, UserInfo userInfo) {
 		String domain = fullRole.substring(0, fullRole.indexOf(":"));
 		String role = fullRole.substring(fullRole.indexOf(":") + 1);
 		if(role.equals("ROLE_PROVIDER"))
@@ -113,10 +122,8 @@ public class APIMConnector implements Component{
 		RoleModel roleModel = new RoleModel();
 		roleModel.setRemoveRoles(rolesList);
 		try {
-			for(String tenantDomain : tenants) {
-				int tenantId = tmService.getTenant(tenantDomain).getTenantId();
-				umService.updateRoles(roleModel, userInfo.getUsername(), tenantId, tenantDomain);
-			}
+			int tenantId = tmService.getTenant(domain).getTenantId();
+			umService.updateRoles(roleModel, userInfo.getUsername(), tenantId, domain);
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException | CustomUserStoreManagerServiceUserStoreExceptionException e) {
 			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while revoking role " + role + " from " + userInfo + ": " + e.getMessage());
 		}

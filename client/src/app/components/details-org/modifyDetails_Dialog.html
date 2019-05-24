@@ -1,4 +1,4 @@
-<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleManageComponent'">List of Component</h2>
+<h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleManageComponent'">List of Components</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyOrg'">Update {{data.name}} Information</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateProviderConfig'">Create New Provider Configuration</h2>
 <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleModifyProviderConfig'">Update Provider Configuration</h2>
@@ -21,8 +21,8 @@
             <!-- <mat-icon matSuffix>mode_edit</mat-icon> -->
         </mat-form-field>
         <!-- Owner Email Address -->
-        <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Email" disabled value={{data.myOrg.contacts.email}}>
+		<mat-form-field class="nameInput-full-width" >
+            <input matInput placeholder="E-mail Address" name="email" [(ngModel)]='data.myOrg.contacts.email' (keyup)="onKeyChange()" >
             <mat-icon matSuffix>email</mat-icon>
         </mat-form-field>
         <!-- Name and Surname input field -->
@@ -56,19 +56,26 @@
             <input  matInput  placeholder="Logo" [(ngModel)]='data.myOrg.contacts.logo' (keyup)="onKeyChange()" >
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
-        <!-- Contact Email Address -->
-        <!-- <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Contact Email"   >
-            <mat-icon matSuffix>email</mat-icon>
-        </mat-form-field> -->
         <!-- Contact Telephone -->
+        <mat-list-item>Phone numbers</mat-list-item>
+        <td *ngFor="let num of data.myOrg.contacts.phone; let i = index">
+            <button mat-raised-button (mousedown)='removeStringFromArray(data.myOrg.contacts.phone, i)'>{{num}}
+                <mat-icon>close</mat-icon>
+            </button>
+        </td>
         <mat-form-field class="dialog-container-form-field" >
-            <input type="tel" matInput placeholder="Contact Telephone" [(ngModel)]='data.myOrg.contacts.phone' (keyup)="onKeyChange()" >
+            <input type="tel" [(ngModel)]="newPhoneNumber" name="newPhoneNumber" matInput placeholder="Add Number (hit Space to confirm)" (keyup.space)="addStringToArray(data.myOrg.contacts.phone, newPhoneNumber); newPhoneNumber = null;" >
             <mat-icon matSuffix>phone</mat-icon>
         </mat-form-field>
         <!-- Tag -->
+        <mat-list-item>Tags</mat-list-item>
+        <td *ngFor="let t of data.myOrg.tag; let i = index">
+            <button mat-raised-button (mousedown)='removeStringFromArray(data.myOrg.tag, i)'>{{t}}
+                <mat-icon>close</mat-icon>
+            </button>
+        </td>
         <mat-form-field class="dialog-container-form-field" >
-            <input matInput  placeholder="Tag"  [(ngModel)]='data.myOrg.tag' (keyup)="onKeyChange()" >
+            <input [(ngModel)]="newTag" name="newTag" matInput placeholder="Add Tag (hit Space to confirm)" (keyup.space)="addStringToArray(data.myOrg.tag, newTag); newTag = null;" >
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
         <!-- Provider check with boolean  -->
@@ -225,7 +232,7 @@
 
     <!-- Delete A User -->
     <div *ngIf="data.dialogStatus=='TitleDeleteUser'">
-        <mat-label class="mat-h4">Are you sure to delete this user?</mat-label>
+        <mat-label class="mat-h4">Are you sure you wish to delete this user?</mat-label>
     </div>
 
     <!-- Details Role -->

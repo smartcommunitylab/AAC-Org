@@ -5,7 +5,7 @@
     <span class="fill-remaining-space"></span>
     <button mat-raised-button color="primary" (click)="openDialog4CreateOrg()">
       <i class="material-icons">add_circle_outline</i>
-      Create Org
+      Create Organization
     </button>
   </mat-toolbar>  
 </div>
@@ -39,13 +39,13 @@
 
     <!-- provider Column -->
     <ng-container matColumnDef="provider">
-      <mat-header-cell *matHeaderCellDef> Email </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef> E-mail address</mat-header-cell>
       <mat-cell *matCellDef="let element"> {{element.contacts.email}} </mat-cell>
     </ng-container>
 
     <!-- Details Column with button redirect to another page-->
     <ng-container matColumnDef="details">
-      <mat-header-cell *matHeaderCellDef class="matTabHeaderAction"> Action </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef class="matTabHeaderAction"> Actions </mat-header-cell>
       <!-- <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell> -->
       <mat-cell *matCellDef="let element">
         <a routerLink="/detailsOrg/{{element.id}}"> <button mat-button color="primary">Details</button></a>

@@ -131,10 +131,10 @@ export class CreateOrganizationDialogComponent {
   orgDomainControl= new FormControl('');
   webAddressControl= new FormControl('');
   logoControl= new FormControl('');
-  mobileControl= new FormControl('');
-  tagControl= new FormControl('');
   statusControl= new FormControl(true);
   formDoc: FormGroup;
+  phoneNumbers: string[] = [];
+  tags: string[] = [];
   ngOnInit() {
     this.formDoc = this._fb.group({
       basicfile: []
@@ -144,34 +144,48 @@ export class CreateOrganizationDialogComponent {
     console.log('SUBMITTED', this.formDoc);
   }
   getErrorMessage4orgName() {
-    return this.orgNameControl.hasError('required') ? 'You must enter a Name of the Organization.' :
-        //this.dataset.hasError('email') ? 'Not a valid email' :
+    return this.orgNameControl.hasError('required') ? 'You must enter the name of the organization.' :
             '';
   }
   getErrorMessage4ownerName(){
-    return this.ownerNameControl.hasError('required') ? 'You must enter a Name of the Owner.' :
-        //this.dataset.hasError('email') ? 'Not a valid email' :
+    return this.ownerNameControl.hasError('required') ? 'Enter the name of the owner.' :
             '';
   }
   getErrorMessage4ownerSurname(){
-    return this.ownerNameControl.hasError('required') ? 'You must enter a Name of the Owner.' : '';
+    return this.ownerNameControl.hasError('required') ? 'Enter the surame of the owner.' : '';
   }
   getErrorMessage4ownerEmail(){
-    return this.ownerEmailControl.hasError('required') ? 'You must enter a valid email of the owner.' :
-        this.ownerEmailControl.hasError('email') ? 'Not a valid email' :
+    return this.ownerEmailControl.hasError('required') ? 'You must enter the e-mail address of the owner.' :
+        this.ownerEmailControl.hasError('email') ? 'Not a valid e-mail address.' :
             '';
   }
   getErrorMessage4orgDescription() {
-    return this.orgNameControl.hasError('required') ? 'You must enter Description of the Organization.' :
-        //this.dataset.hasError('email') ? 'Not a valid email' :
+    return this.orgNameControl.hasError('required') ? 'You must provide a description for the organization.' :
             '';
   }
   getErrorMessage4orgDomain() {
-    return this.orgNameControl.hasError('required') ? 'You must enter a Domain of the Organization.' :
-        //this.dataset.hasError('email') ? 'Not a valid email' :
+    return this.orgNameControl.hasError('required') ? 'You must enter the domain of the organization.' :
             '';
   }
   onNoClick(): void {
     this.dialogRef.close();
+  }
+  
+  addPhoneNumber(num: string): void {
+	if (num && num.trim().length > 0 && !this.phoneNumbers.includes(num.trim()))
+	  this.phoneNumbers.push(num.trim());
+  }
+  
+  removePhoneNumber(index: number): void {
+	this.phoneNumbers.splice(index, 1);
+  }
+  
+  addTag(tag: string) : void {
+	if (tag && tag.trim().length > 0 && !this.tags.includes(tag.trim()))
+	  this.tags.push(tag.trim());
+  }
+  
+  removeTag(index: number): void {
+	this.tags.splice(index, 1);
   }
 }

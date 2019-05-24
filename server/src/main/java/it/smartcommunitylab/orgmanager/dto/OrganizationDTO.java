@@ -117,23 +117,19 @@ public class OrganizationDTO {
 		private String email; // at creation of the organization, email will be interpreted as the owner of the organization
 		private String name;
 		private String surname;
-		private URL web;
+		private String web;
 		private String[] phone;
-		private URL logo;
+		private String logo;
 		
 		public Contacts() {}
 		
-		public Contacts(String email, String name, String surname, URL web, String[] phone, URL logo) {
+		public Contacts(String email, String name, String surname, String web, String[] phone, String logo) {
 			this.email = email;
 			this.name = name;
 			this.surname = surname;
-			try {
-				this.web = web != null ? new URL(web.toString()) : null;
-			} catch (MalformedURLException e) { /* do nothing */ }
+			this.web = web;
 			this.phone = phone != null ? Arrays.copyOf(phone, phone.length) : new String[0];
-			try {
-				this.logo = logo != null ? new URL(logo.toString()) : null;
-			} catch (MalformedURLException e) { /* do nothing */ }
+			this.logo = logo;
 		}
 		
 		public Contacts(Contacts c) {
@@ -164,11 +160,11 @@ public class OrganizationDTO {
 			this.surname = surname;
 		}
 		
-		public URL getWeb() {
+		public String getWeb() {
 			return web;
 		}
 		
-		public void setWeb(URL web) {
+		public void setWeb(String web) {
 			this.web = web;
 		}
 		
@@ -180,11 +176,11 @@ public class OrganizationDTO {
 			this.phone = phone;
 		}
 		
-		public URL getLogo() {
+		public String getLogo() {
 			return logo;
 		}
 		
-		public void setLogo(URL logo) {
+		public void setLogo(String logo) {
 			this.logo = logo;
 		}
 		
