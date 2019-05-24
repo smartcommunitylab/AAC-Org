@@ -21,8 +21,8 @@ public class OrganizationMemberDTO {
 		this.owner = owner;
 	}
 	
-	public OrganizationMemberDTO(OrganizationMember member, Collection<Role> memberRoles, boolean owner) {
-		this(member.getId(), member.getUsername(), convertRoles(memberRoles), owner);
+	public OrganizationMemberDTO(OrganizationMember member, Collection<Role> memberRoles) {
+		this(member.getId(), member.getUsername(), convertRoles(memberRoles), member.getOwner());
 	}
 	
 	public Long getId() {

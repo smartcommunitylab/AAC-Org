@@ -61,11 +61,11 @@ export class UsersService {
   /**
    *  set a user/owner
    * @param orgID
-   * @param ownerName
-   * @param userType like 'owners' or 'members'
+   * @param user
+   * @param userType
    */
-  setUser(orgID:string, ownerName:any, userType:string): any {
-    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, ownerName);
+  setUser(orgID:string, user:any, userType:string): any {
+    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, user);
   }
   /**
    * update an user data
@@ -76,9 +76,9 @@ export class UsersService {
   updateUser(username:string, orgID:string, userType:string): any{
     for(var i=0; i<this.usersList.length; i++){
       if(this.usersList[i].username==username){
-        // this.usersList[i].roles.splice(roleIndex, 1);
         return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, {
           "username":this.usersList[i].username,
+          "owner":this.usersList[i].owner,
           "roles":this.usersList[i].roles
         });
       }

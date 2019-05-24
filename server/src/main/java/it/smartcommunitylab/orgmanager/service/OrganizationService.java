@@ -135,7 +135,7 @@ public class OrganizationService {
 		
 		// Creates the owner and gives them the ROLE_PROVIDER role
 		Long userId = utils.getUserId(ownerName); // ID used by the identity provider for the owner
-		OrganizationMember owner = new OrganizationMember(ownerName, organization, userId);
+		OrganizationMember owner = new OrganizationMember(ownerName, organization, userId, true);
 		owner = organizationMemberRepository.save(owner); // stores the owner
 		Role role = new Role(securityConfig.getOrganizationManagementContext() + "/" + organization.getSlug(), Constants.ROLE_PROVIDER, owner, null);
 		roleRepository.save(role); // stores the owner's role

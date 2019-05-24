@@ -32,12 +32,15 @@ public class OrganizationMember implements Serializable {
 	@NotNull
 	private Long idpId; // ID used by the identity provider to identify the user
 	
+	private boolean owner;
+	
 	public OrganizationMember() {}
 	
-	public OrganizationMember(String username, Organization organization, Long idpId) {
+	public OrganizationMember(String username, Organization organization, Long idpId, boolean owner) {
 		this.username = username;
 		this.organization = organization;
 		this.idpId = idpId;
+		this.owner = owner;
 	}
 	
 	public Long getId() {
@@ -72,9 +75,17 @@ public class OrganizationMember implements Serializable {
 		this.idpId = idpId;
 	}
 	
+	public boolean getOwner() {
+		return owner;
+	}
+	
+	public void setOwner(boolean owner) {
+		this.owner = owner;
+	}
+	
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " [" + id + "]: Username=" + username + ", Identity Provider ID=" + idpId;
+		return this.getClass().getSimpleName() + " [" + id + "]: Username=" + username + ", Identity Provider ID=" + idpId + ", Owner=" + owner;
 	}
 	
 	@Override

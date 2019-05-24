@@ -4,11 +4,10 @@ export class UsersProfile{
     id: string;
     username: string;
     roles:UsersRoles[];
-    owner:string;
+    owner:boolean;
 }
 export class UsersRoles{
-    contextSpace: string;
-    role: string;
+    constructor (public contextSpace: string, public role: string) {}
 }
 export class ActivatedComponentsProfile{
     componentId: string;

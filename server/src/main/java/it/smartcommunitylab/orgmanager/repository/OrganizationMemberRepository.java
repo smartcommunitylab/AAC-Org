@@ -11,11 +11,15 @@ import it.smartcommunitylab.orgmanager.model.OrganizationMember;
 @Repository
 public interface OrganizationMemberRepository extends JpaRepository<OrganizationMember, Long> {
 	
+	List<OrganizationMember> findByOrganization(Organization organization);
+	
 	List<OrganizationMember> findByUsername(String username);
 	
 	OrganizationMember findByUsernameAndOrganization(String username, Organization organization);
 	
-	OrganizationMember findByIdAndOrganization(Long id, Organization organization);
+	OrganizationMember findByIdpIdAndOrganization(Long id, Organization organization);
+	
+	List<OrganizationMember> findByOrganizationAndOwner(Organization organization, boolean owner);
 	
 	void deleteByOrganization(Organization organization);
 	

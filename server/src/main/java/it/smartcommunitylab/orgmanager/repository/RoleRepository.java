@@ -27,4 +27,7 @@ public interface RoleRepository extends JpaRepository<Role, RoleId> {
 	
 	@Query("select r.organizationMember, r from Role r where r.organizationMember.organization.id=?1 and lower(r.organizationMember.username) like lower('%' || ?2 || '%')")
 	List<Object[]> findOrganizationMembersWithRoles(Long organizationId, String username);
+	
+	@Query("select r.organizationMember.id from Role r where r.organizationMember.organization.id=?1")
+	HashSet<Long> findOrganizationMemberIds(Long organizationId);
 }

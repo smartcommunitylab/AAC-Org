@@ -22,7 +22,6 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
-import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonConstants;
 import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonUtils;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
@@ -33,6 +32,7 @@ import it.smartcommunitylab.orgmanager.model.Organization;
 import it.smartcommunitylab.orgmanager.model.OrganizationMember;
 import it.smartcommunitylab.orgmanager.model.Role;
 import it.smartcommunitylab.orgmanager.model.Tenant;
+import it.smartcommunitylab.orgmanager.repository.OrganizationMemberRepository;
 import it.smartcommunitylab.orgmanager.repository.OrganizationRepository;
 import it.smartcommunitylab.orgmanager.repository.RoleRepository;
 import it.smartcommunitylab.orgmanager.repository.TenantRepository;
@@ -43,6 +43,9 @@ public class ComponentService {
 	
 	@Autowired
 	private OrganizationRepository organizationRepository;
+	
+	@Autowired
+	private OrganizationMemberRepository organizationMemberRepository;
 	
 	@Autowired
 	private TenantRepository tenantRepository;
@@ -171,7 +174,7 @@ public class ComponentService {
 		
 		Organization organization = organizationRepository.getOne(organizationId);
 		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
-		List<OrganizationMember> owners = listOwners(organization);
+		List<OrganizationMember> owners = organizationMemberRepository.findByOrganizationAndOwner(organization, true);
 		if (owners == null || owners.isEmpty())
 			throw new EntityNotFoundException("No owner of organization " + organization.getName() + " could be found, unable to update configuration.");
 		
@@ -204,6 +207,33 @@ public class ComponentService {
 		roleRepository.deleteAll(rolesToRemove); // removes roles for tenants no longer present in the components specified
 		tenantRepository.saveAll(newTenants); // saves new tenants
 		tenantRepository.deleteAll(tenantsToRemove); // deletes unused tenants
+		
+		// Remove members that no longer have any roles within the organization
+		HashSet<Long> allRoleMemberIds = roleRepository.findOrganizationMemberIds(organizationId);
+		List<OrganizationMember> members = organizationMemberRepository.findByOrganization(organization);
+		List<OrganizationMember> membersWithNoRoles = new ArrayList<OrganizationMember>();
+		for (OrganizationMember m : members)
+			if (!allRoleMemberIds.contains(m.getId()))
+				membersWithNoRoles.add(m);
+		organizationMemberRepository.deleteAll(membersWithNoRoles);
+		
+		// Prepares the updated configuration, to show it as response. It will be a list with an element for each component.
+		List<ComponentConfigurationDTO> updatedConfig = new ArrayList<ComponentConfigurationDTO>();
+		Map<String, ComponentConfigurationDTO> updatedConfigMap = new HashMap<String, ComponentConfigurationDTO>();
+		List<Tenant> updatedTenants = tenantRepository.findByOrganization(organization); // the organization's tenants after the update
+		List<String> tenantNames = new ArrayList<String>();
+		for (Tenant t : updatedTenants) {
+			String componentId = t.getTenantId().getComponentId();
+			ComponentConfigurationDTO conf = updatedConfigMap.get(componentId);
+			if (conf == null) {
+				conf = new ComponentConfigurationDTO(componentId, null);
+				updatedConfigMap.put(componentId, conf);
+			}
+			conf.addTenant(t.getTenantId().getName());
+			tenantNames.add(t.getTenantId().getName());
+		}
+		for (String s : updatedConfigMap.keySet())
+			updatedConfig.add(updatedConfigMap.get(s));
 		
 		// Updates roles on the identity provider
 		if (!rolesToAdd.isEmpty())
@@ -246,23 +276,14 @@ public class ComponentService {
 						throw new EntityNotFoundException(resultMessage);
 					}
 				}
-		}
-		
-		// Prepares the updated configuration, to show it as response. It will be a list with an element for each component.
-		List<ComponentConfigurationDTO> updatedConfig = new ArrayList<ComponentConfigurationDTO>();
-		Map<String, ComponentConfigurationDTO> updatedConfigMap = new HashMap<String, ComponentConfigurationDTO>();
-		List<Tenant> updatedTenants = tenantRepository.findByOrganization(organization); // the organization's tenants after the update
-		for (Tenant t : updatedTenants) {
-			String componentId = t.getTenantId().getComponentId();
-			ComponentConfigurationDTO conf = updatedConfigMap.get(componentId);
-			if (conf == null) {
-				conf = new ComponentConfigurationDTO(componentId, null);
-				updatedConfigMap.put(componentId, conf);
+			
+			// Removes members with no roles from the components
+			for (OrganizationMember m : membersWithNoRoles) {
+				String resultMessage = componentMap.get(s).removeUserFromOrganization(utils.getIdpUserDetails(m.getUsername()), organization.getName(), tenantNames);
+				if(CommonUtils.isErroneousResult(resultMessage))
+					throw new EntityNotFoundException(resultMessage);
 			}
-			conf.addTenant(t.getTenantId().getName());
 		}
-		for (String s : updatedConfigMap.keySet())
-			updatedConfig.add(updatedConfigMap.get(s));
 		
 		return updatedConfig;
 	}
@@ -314,20 +335,5 @@ public class ComponentService {
 						+ " configuration entirely.");
 		}
 		return newTenants;
-	}
-	
-	/**
-	 * Lists all owners of the organization. Usually there's only 1, but there may be multiple owners in the future.
-	 * 
-	 * @param organization - Organization to list owners of
-	 * @return - List of owners of the input organization
-	 */
-	private List<OrganizationMember> listOwners(Organization organization) {
-		List<OrganizationMember> owners = new ArrayList<OrganizationMember>();
-		// Retrieves the list of all roles that denote an owner
-		List<Role> ownerRoles = roleRepository.findByContextSpaceAndRole(securityConfig.getOrganizationManagementContext() + "/" + organization.getSlug(), Constants.ROLE_PROVIDER);
-		for (Role r : ownerRoles)
-			owners.add(r.getOrganizationMember()); // adds the owner to the result
-		return owners;
 	}
 }

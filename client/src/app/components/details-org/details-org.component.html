@@ -1,6 +1,6 @@
 <div>
   <mat-toolbar>
-    <span>Organization Details</span>
+    <span>Organization details</span>
     <span class="fill-remaining-space"></span>
     
     <a routerLink="/activeOrg">
@@ -68,7 +68,7 @@
             <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">
               <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4ModifyOrg()">
                 <mat-icon matSuffix>mode_edit</mat-icon>
-                Modify Organization Information
+                Modify organization information
               </button>
             </mat-grid-tile>
             <mat-grid-tile [colspan]=1 [rowspan]=5 class="matGridList-infoBelow" rowHeight="60px"></mat-grid-tile>
@@ -126,11 +126,11 @@
     <mat-card class="example-card">
       <mat-card-header>
         <mat-card-title>{{orgName}}</mat-card-title>
-        <mat-card-subtitle>List of Components in the Organization</mat-card-subtitle>
+        <mat-card-subtitle>List of components in the organization</mat-card-subtitle>
         <span class="fill-remaining-space"></span>
         <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4ManageComponent()">
           <mat-icon matSuffix>mode_edit</mat-icon>
-          Manage Components
+          Manage components
         </button>&nbsp;
       </mat-card-header>
       <mat-card-content>
@@ -160,11 +160,11 @@
     <mat-card class="example-card">
       <mat-card-header>
         <mat-card-title>{{orgName}}</mat-card-title>
-        <mat-card-subtitle>List of Users in the Organization</mat-card-subtitle>
+        <mat-card-subtitle>List of users in the organization</mat-card-subtitle>
         <span class="fill-remaining-space"></span>
         <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4AddUser()">
           <i class="material-icons">add_circle_outline</i>
-          Add User
+          Add user
         </button>
       </mat-card-header>
       <mat-card-content>
@@ -181,7 +181,7 @@
               <!-- <mat-cell *matCellDef="let element"> {{element.roles['0'].role}}  </mat-cell>-->
               <mat-cell *matCellDef="let element"> 
                 <button mat-button color="primary" (click)="openDialog4DetailsRole(element.id,element.username)">
-                    See Roles
+                    See roles
                 </button>
               </mat-cell>
             </ng-container>
@@ -196,9 +196,8 @@
             <ng-container matColumnDef="action">
               <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
               <mat-cell *matCellDef="let element"> 
-                <button mat-button *ngIf="element.owner" disabled><mat-icon matSuffix>mode_edit</mat-icon></button>
-                <button mat-button *ngIf="!element.owner" (click)="openDialog4ModifyUser(element.username)"><mat-icon matSuffix>mode_edit</mat-icon></button>
-                <button mat-button (click)="openDialog4DeleteUser(element.id,element.owner)"><mat-icon matSuffix>delete</mat-icon></button>
+                <button mat-button (click)="openDialog4ModifyUser(element.username)"><mat-icon matSuffix>mode_edit</mat-icon></button>
+                <button mat-button (click)="openDialog4DeleteUser(element.id)"><mat-icon matSuffix>delete</mat-icon></button>
               </mat-cell>
             </ng-container>
       

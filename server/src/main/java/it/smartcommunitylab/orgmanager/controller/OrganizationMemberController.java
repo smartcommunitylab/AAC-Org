@@ -32,14 +32,4 @@ public class OrganizationMemberController {
 	public void removeUserRoles(@PathVariable Long organizationId, @PathVariable Long memberId) {
 		organizationMemberService.removeUser(organizationId, memberId);
 	}
-	
-	@PostMapping("/api/organizations/{id}/owners")
-	public OrganizationMemberDTO addOwner(@PathVariable Long id, @RequestBody OrganizationMemberDTO memberDTO) {
-		return organizationMemberService.addOwner(id, memberDTO);
-	}
-	
-	@DeleteMapping("/api/organizations/{organizationId}/owners/{ownerId}")
-	public void removeOwner(@PathVariable Long organizationId, @PathVariable Long ownerId) {
-		organizationMemberService.removeOwner(organizationId, ownerId);
-	}
 }
