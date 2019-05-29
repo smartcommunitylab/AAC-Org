@@ -24,6 +24,7 @@ import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 import it.smartcommunitylab.orgmanager.dto.OrganizationMemberDTO;
 import it.smartcommunitylab.orgmanager.dto.RoleDTO;
+import it.smartcommunitylab.orgmanager.dto.UserRightsDTO;
 import it.smartcommunitylab.orgmanager.model.Organization;
 import it.smartcommunitylab.orgmanager.model.OrganizationMember;
 import it.smartcommunitylab.orgmanager.model.Role;
@@ -82,6 +83,11 @@ public class OrganizationMemberService {
 		for (OrganizationMember m : memberRolesMap.keySet())
 			membersListDTO.add(new OrganizationMemberDTO(m, memberRolesMap.get(m)));
 		return membersListDTO;
+	}
+	
+	public UserRightsDTO getUserRights() {
+		return new UserRightsDTO(utils.getAuthenticatedUserName(), utils.userHasAdminRights(),
+				organizationMemberRepository.findOwnedOrganizations(utils.getAuthenticatedUserId()));
 	}
 	
 	/**

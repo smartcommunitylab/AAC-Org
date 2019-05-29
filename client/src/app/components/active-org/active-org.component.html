@@ -3,11 +3,11 @@
     <!-- <span>{{ 'Sidenav.Datasets' | translate }}: {{domain}}</span> -->
     <span>Active Organizations </span>
     <span class="fill-remaining-space"></span>
-    <button mat-raised-button color="primary" (click)="openDialog4CreateOrg()">
+    <button mat-raised-button color="primary" *ngIf="userRights && userRights.admin == true" (click)="openDialog4CreateOrg()">
       <i class="material-icons">add_circle_outline</i>
       Create Organization
     </button>
-  </mat-toolbar>  
+  </mat-toolbar>
 </div>
 
 <div class="example-container mat-elevation-z8">
@@ -49,7 +49,7 @@
       <!-- <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell> -->
       <mat-cell *matCellDef="let element">
         <a routerLink="/detailsOrg/{{element.id}}"> <button mat-button color="primary">Details</button></a>
-        <button mat-button (click)="openDialog4ChangeStatusOrg(element.id,element.name)" color="primary"> Disable </button>
+        <button mat-button *ngIf="userRights && userRights.admin == true" (click)="openDialog4ChangeStatusOrg(element.id,element.name)" color="primary"> Disable </button>
       </mat-cell>
     </ng-container>
 

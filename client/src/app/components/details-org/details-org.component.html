@@ -66,7 +66,7 @@
               </mat-list>
             </mat-grid-tile>
             <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">
-              <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4ModifyOrg()">
+              <button mat-raised-button color="primary" style="max-height:40px !important" *ngIf="userRights && (userRights.admin == true || userRights.ownedOrganizations.includes(myOrg.id))" (click)="openDialog4ModifyOrg()">
                 <mat-icon matSuffix>mode_edit</mat-icon>
                 Modify organization information
               </button>
@@ -122,13 +122,13 @@
       </mat-card-content>
     </mat-card>
   </mat-tab>
-  <mat-tab label="Configuration">
+  <mat-tab label="Configuration" *ngIf="userRights && (userRights.admin == true || userRights.ownedOrganizations.includes(myOrg.id))">
     <mat-card class="example-card">
       <mat-card-header>
         <mat-card-title>{{orgName}}</mat-card-title>
         <mat-card-subtitle>List of components in the organization</mat-card-subtitle>
         <span class="fill-remaining-space"></span>
-        <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4ManageComponent()">
+        <button mat-raised-button color="primary" style="max-height:40px !important" *ngIf="userRights && userRights.admin == true" (click)="openDialog4ManageComponent()">
           <mat-icon matSuffix>mode_edit</mat-icon>
           Manage components
         </button>&nbsp;
@@ -156,13 +156,13 @@
       </mat-card-content>
     </mat-card>
   </mat-tab>
-  <mat-tab label="Users">
+  <mat-tab label="Users" *ngIf="userRights && (userRights.admin == true || userRights.ownedOrganizations.includes(myOrg.id))">
     <mat-card class="example-card">
       <mat-card-header>
         <mat-card-title>{{orgName}}</mat-card-title>
         <mat-card-subtitle>List of users in the organization</mat-card-subtitle>
         <span class="fill-remaining-space"></span>
-        <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4AddUser()">
+        <button mat-raised-button color="primary" style="max-height:40px !important" *ngIf="userRights && (userRights.admin == true || userRights.ownedOrganizations.includes(myOrg.id))" (click)="openDialog4AddUser()">
           <i class="material-icons">add_circle_outline</i>
           Add user
         </button>
@@ -197,7 +197,7 @@
               <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
               <mat-cell *matCellDef="let element"> 
                 <button mat-button (click)="openDialog4ModifyUser(element.username)"><mat-icon matSuffix>mode_edit</mat-icon></button>
-                <button mat-button (click)="openDialog4DeleteUser(element.id)"><mat-icon matSuffix>delete</mat-icon></button>
+                <button mat-button *ngIf="userRights && (userRights.admin == true || userRights.ownedOrganizations.includes(myOrg.id))" (click)="openDialog4DeleteUser(element.id)"><mat-icon matSuffix>delete</mat-icon></button>
               </mat-cell>
             </ng-container>
       

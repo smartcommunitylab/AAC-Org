@@ -33,7 +33,7 @@
   
       <!-- provider Column -->
       <ng-container matColumnDef="provider">
-        <mat-header-cell *matHeaderCellDef> Email </mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> E-mail address </mat-header-cell>
         <mat-cell *matCellDef="let element"> {{element.contacts.email}} </mat-cell>
       </ng-container>
       
@@ -41,8 +41,8 @@
       <ng-container matColumnDef="action">
         <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
         <mat-cell *matCellDef="let element">
-            <button mat-button (click)="openDialog4EnableOrg(element.id,element.name)" color="primary"> Enable </button>
-            <button mat-button (click)="openDialog4DeleteOrg(element.id,element.name)" ><mat-icon matSuffix>delete</mat-icon></button>
+            <button mat-button *ngIf="userRights && userRights.admin == true" (click)="openDialog4EnableOrg(element.id,element.name)" color="primary"> Enable </button>
+            <button mat-button *ngIf="userRights && userRights.admin == true" (click)="openDialog4DeleteOrg(element.id,element.name)" ><mat-icon matSuffix>delete</mat-icon></button>
         </mat-cell>
       </ng-container>
   

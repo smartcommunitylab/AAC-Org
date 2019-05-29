@@ -138,7 +138,10 @@
                 <mat-icon matSuffix>mode_edit</mat-icon>
                 <mat-error *ngIf="usernameControl.invalid">{{getErrorMessage4username()}}</mat-error>
             </mat-form-field>
-            <mat-slide-toggle color="primary" [formControl]="ownerControl">Owner</mat-slide-toggle>
+            <mat-slide-toggle color="primary" *ngIf="data.userRights && data.userRights.admin == true; else ownerDisabled" [formControl]="ownerControl">Owner</mat-slide-toggle>
+            <ng-template #ownerDisabled>
+              <mat-slide-toggle color="primary" disabled [formControl]="ownerControl">Owner</mat-slide-toggle>
+            </ng-template>
         </form>
         <br/>
         <div class="userRoles">
@@ -195,7 +198,10 @@
         <mat-form-field class="dialog-container-form-field">
             <input matInput  disabled value={{data.name}}>
         </mat-form-field>
-        <mat-slide-toggle color="primary" [checked]="data.userData.owner" (change)="toggleOwner(data.userData.owner)">Owner</mat-slide-toggle>
+        <mat-slide-toggle color="primary" *ngIf="data.userRights && data.userRights.admin == true; else ownerDisabled" [checked]="data.userData.owner" (change)="toggleOwner(data.userData.owner)">Owner</mat-slide-toggle>
+        <ng-template #ownerDisabled>
+          <mat-slide-toggle color="primary" disabled [checked]="data.userData.owner" >Owner</mat-slide-toggle>
+        </ng-template>
         <!-- user role -->
         <div class="userRoles" >
             <mat-label class="mat-h4">User roles</mat-label>

@@ -195,6 +195,12 @@ public class OrgManagerUtils {
 		return new Long(profile.getAsString("userId")); // ID used by the identity provider
 	}
 	
+	/**
+	 * Returns user name, name and surname registered in the identity provider for the input user name.
+	 * 
+	 * @param userName - User name
+	 * @return - An object containing user name, name and surname
+	 */
 	public UserInfo getIdpUserDetails(String userName) {
 		JSONObject profile = getIdpUserProfile(userName);
 		if (profile == null)

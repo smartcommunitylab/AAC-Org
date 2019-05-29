@@ -3,7 +3,8 @@ import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource} from '@ang
 import {ActivatedRoute} from '@angular/router';
 import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
 import {OrganizationService} from '../../services/organization.service';
-import { OrganizationProfile, contentOrg } from '../../models/profile';
+import { UsersService } from '../../services/users.service';
+import { UserRights, OrganizationProfile, contentOrg } from '../../models/profile';
 import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
@@ -13,7 +14,8 @@ import {HttpErrorResponse} from '@angular/common/http';
 })
 export class ActiveOrgComponent implements OnInit {
 
-  constructor(private organizationService: OrganizationService, private route: ActivatedRoute, public dialog: MatDialog) { }
+  constructor(private usersService: UsersService, private organizationService: OrganizationService, private route: ActivatedRoute, public dialog: MatDialog) { }
+  userRights: UserRights;
   orgProfile: OrganizationProfile[];
   orgActive: Array<OrganizationProfile>=[];
   contentOrg: contentOrg;
@@ -22,7 +24,10 @@ export class ActiveOrgComponent implements OnInit {
 
   
   ngOnInit() {
-    this.dataSource ='';
+    this.dataSource = '';
+    this.usersService.getUserRights().then(response => {
+      this.userRights = response;
+    });
     this.organizationService.getOrganizations().then(response => {
       for(var i=0; i<response["content"].length; i++){
         if(response["content"][i]["active"]){

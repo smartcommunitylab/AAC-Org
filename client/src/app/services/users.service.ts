@@ -1,15 +1,16 @@
 import { Injectable } from '@angular/core';
 import { ConfigService } from './config.service';
-import {HttpErrorResponse, HttpClient} from '@angular/common/http';
-import { UsersProfile } from '../models/profile';
+import { HttpErrorResponse, HttpClient } from '@angular/common/http';
+import { UsersProfile, UserRights } from '../models/profile';
 import 'rxjs/add/operator/map';
 
 @Injectable()
 export class UsersService {
 
   constructor(private http: HttpClient, private config: ConfigService) { }
-  usersListPromise:Promise<UsersProfile[]>;
-  usersList:UsersProfile[];
+  usersListPromise: Promise<UsersProfile[]>;
+  usersList: UsersProfile[];
+  
   /**
    * Get All Organizations
    * @param orgID
@@ -25,7 +26,7 @@ export class UsersService {
   }
 
   /**
-   * Get one user data
+   * Get a user's data
    * @param username 
    */
   getUserData(username: string): UsersProfile{
@@ -34,6 +35,14 @@ export class UsersService {
         return this.usersList[i];
       }
     }
+  }
+  
+  /**
+   * Retrieve the authenticated user's permissions
+   */
+  getUserRights(): Promise<UserRights> {
+    return this.http.get(`${ this.config.get('locUrl') }auths`)
+    .map(response => response as UserRights).toPromise();
   }
 
   setRole(username:string,contextSpace:string,role:string):any{

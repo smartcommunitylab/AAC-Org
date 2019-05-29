@@ -1,15 +1,20 @@
 import { Injectable } from '@angular/core';
 
-export class UsersProfile{
+export class UsersProfile {
     id: string;
     username: string;
-    roles:UsersRoles[];
-    owner:boolean;
+    roles: UsersRoles[];
+    owner: boolean;
 }
-export class UsersRoles{
+export class UsersRoles {
     constructor (public contextSpace: string, public role: string) {}
 }
-export class ActivatedComponentsProfile{
+export class UserRights {
+	userName: string;
+	admin: boolean;
+	ownedOrganizations: number[];
+}
+export class ActivatedComponentsProfile {
     componentId: string;
     componentName: string;
     tenants:string[];
@@ -35,7 +40,7 @@ export class ContentCompo {
     implementation: string;
     roles: string[];
 }
-export class OrganizationProfile{
+export class OrganizationProfile {
     content: contentOrg[];
     pageable: Pageable;
     totalElements: number;
@@ -48,7 +53,7 @@ export class OrganizationProfile{
     first: number;
     empty: number;
 }
-export class contentOrg{
+export class contentOrg {
     id: number;
     name: string;
     slug: string;
@@ -57,7 +62,7 @@ export class contentOrg{
     tag: string;
     active: boolean;
 }
-export class contactsOrg{
+export class contactsOrg {
     email: string;
     name: string;
     surname: string;
@@ -66,7 +71,7 @@ export class contactsOrg{
     logo: string;
 
 }
-export class Pageable{
+export class Pageable {
     sort: Sort;
     offset: number;
     pageSize: number;
@@ -74,7 +79,7 @@ export class Pageable{
     unpaged: boolean;
     paged: boolean;
 }
-export class Sort{
+export class Sort {
     unsorted: string;
     sorted: string;
     empty: string;

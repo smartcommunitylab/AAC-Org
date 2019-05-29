@@ -9,7 +9,7 @@ import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import {OrganizationService} from '../../services/organization.service';
 import {ComponentsService} from '../../services/components.service';
 import {UsersService} from '../../services/users.service';
-import { UsersProfile,UsersRoles,contentOrg,ComponentsProfile, ActivatedComponentsProfile } from '../../models/profile';
+import { UserRights, UsersProfile, UsersRoles, contentOrg, ComponentsProfile, ActivatedComponentsProfile } from '../../models/profile';
 
 @Component({
   selector: 'app-details-org',
@@ -18,7 +18,7 @@ import { UsersProfile,UsersRoles,contentOrg,ComponentsProfile, ActivatedComponen
 })
 export class DetailsOrgComponent implements OnInit {
   constructor(private organizationService: OrganizationService,private usersService:UsersService, public dialog: MatDialog, private componentsService:ComponentsService, private route: ActivatedRoute) { }
-  
+  userRights: UserRights;
   panelOpenState: boolean = false;
   components: ComponentsProfile[];
   activatedComponents:ActivatedComponentsProfile[];
@@ -34,6 +34,21 @@ export class DetailsOrgComponent implements OnInit {
 
 
   ngOnInit() {
+    this.usersService.getUserRights().then(response => {
+      this.userRights = response;
+      if (this.userRights.admin || this.userRights.ownedOrganizations.includes(parseInt(this.orgID))) {
+        // get Activated Components in this organization
+        this.componentsService.getActivatedComponents(this.orgID).then(response_activedComponents =>{
+          this.activatedComponents=response_activedComponents;
+        });
+        // get all users in this organization
+        this.usersService.getAllUsers(this.orgID).then(response_users => {
+          this.usersList=response_users;
+          this.displayedUsersColumns = ['username', 'roles', 'owner', 'action'];
+          this.dataSourceUser =new MatTableDataSource<UsersProfile>(this.usersList);
+        });
+	  }
+    });
     // get all information about this organization
     this.organizationService.getOrganizations().then(response => {
       for(var i=0; i<response["content"].length; i++){
@@ -44,16 +59,7 @@ export class DetailsOrgComponent implements OnInit {
       }
     });
     
-    // get Activated Components in this organization
-    this.componentsService.getActivatedComponents(this.orgID).then(response_activedComponents =>{
-      this.activatedComponents=response_activedComponents;
-    });
-    // get all users in this organization
-    this.usersService.getAllUsers(this.orgID).then(response_users => {
-      this.usersList=response_users;
-      this.displayedUsersColumns = ['username', 'roles', 'owner', 'action'];
-      this.dataSourceUser =new MatTableDataSource<UsersProfile>(this.usersList);
-    });
+    
   }
   tabClick(tab) {
     // only need first time
@@ -188,7 +194,7 @@ export class DetailsOrgComponent implements OnInit {
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       minWidth: '35%',
       minHeight: '61%',
-      data: { name: "", components:this.activatedComponents, newUserRoles:this.newUserRoles, dialogStatus:"TitleAddUser"  }
+      data: { name: "", components:this.activatedComponents, newUserRoles:this.newUserRoles, dialogStatus:"TitleAddUser", userRights: this.userRights }
     });
     
     dialogRef.afterClosed().subscribe(result => {

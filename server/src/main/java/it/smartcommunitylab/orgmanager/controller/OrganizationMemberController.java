@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import it.smartcommunitylab.orgmanager.dto.UserRightsDTO;
 import it.smartcommunitylab.orgmanager.dto.OrganizationMemberDTO;
 import it.smartcommunitylab.orgmanager.service.OrganizationMemberService;
 
@@ -21,6 +22,11 @@ public class OrganizationMemberController {
 	@GetMapping("/api/organizations/{id}/members")
 	public List<OrganizationMemberDTO> getUsers(@PathVariable Long id, String username) {
 		return organizationMemberService.getUsers(id, username);
+	}
+	
+	@GetMapping("/api/auths")
+	public UserRightsDTO getUserRights() {
+		return organizationMemberService.getUserRights();
 	}
 	
 	@PostMapping("/api/organizations/{id}/members")

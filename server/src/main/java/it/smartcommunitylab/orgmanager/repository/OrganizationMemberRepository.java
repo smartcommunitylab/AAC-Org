@@ -1,8 +1,10 @@
 package it.smartcommunitylab.orgmanager.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import it.smartcommunitylab.orgmanager.model.Organization;
@@ -23,4 +25,6 @@ public interface OrganizationMemberRepository extends JpaRepository<Organization
 	
 	void deleteByOrganization(Organization organization);
 	
+	@Query("select m.organization.id from OrganizationMember m where m.idpId=?1 and owner=true")
+	Collection<Long> findOwnedOrganizations(Long idpId);
 }
