@@ -1,6 +1,6 @@
 <!-- <div class="dialog-overflow-hidden"> -->
-    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateOrg'">Create New Organization</h2>
-    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">Disable Organization</h2>
+    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleCreateOrg'">Create new organization</h2>
+    <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">Disable organization</h2>
     <h2 mat-dialog-title *ngIf="data.dialogStatus=='TitleErrorMessage'">Error: </h2>
     <mat-dialog-content  >
         <div *ngIf="data.dialogStatus=='TitleChangeStatusOrg'">
@@ -11,7 +11,7 @@
             <form [formGroup]="formDoc" (ngSubmit)="onSubmit()" novalidate >
                 <!-- Organization Name -->
                 <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="Organization Name"   [formControl]="orgNameControl" required >
+                    <input matInput  placeholder="Name of the organization" [formControl]="orgNameControl" required >
                     <mat-icon matSuffix>mode_edit</mat-icon>
                     <mat-error *ngIf="orgNameControl.invalid">{{getErrorMessage4orgName()}}</mat-error>
                 </mat-form-field>
@@ -20,17 +20,17 @@
                     <!-- <input matInput  placeholder="Domain"  [formControl]="orgDomainControl"  required>
                     <mat-icon matSuffix>mode_edit</mat-icon>
                     <mat-error *ngIf="orgDomainControl.invalid">{{getErrorMessage4orgDomain()}}</mat-error> -->
-                    <input matInput  placeholder="Domain"   [formControl]="orgDomainControl" >
+                    <input matInput  placeholder="Domain" [formControl]="orgDomainControl" >
                     <mat-icon matSuffix>mode_edit</mat-icon>
                 </mat-form-field>
                 <!-- Description of the Organization -->
                 <mat-form-field class="dialog-container-form-field"  >
-                    <textarea matInput  placeholder="Description"  [formControl]="orgDescriptionControl" required ></textarea>
+                    <textarea matInput  placeholder="Description" [formControl]="orgDescriptionControl" required ></textarea>
                     <mat-error *ngIf="orgDescriptionControl.invalid">{{getErrorMessage4orgDescription()}}</mat-error>
                 </mat-form-field>
                 <!-- Owner Email Address -->
                 <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="E-mail Address"  [formControl]="ownerEmailControl" required >
+                    <input matInput  placeholder="Owner's e-mail address" [formControl]="ownerEmailControl" required >
                     <mat-icon matSuffix>email</mat-icon>
                     <mat-error *ngIf="ownerEmailControl.invalid">{{getErrorMessage4ownerEmail()}}</mat-error>
                 </mat-form-field>
@@ -40,14 +40,14 @@
                     <tr>
                         <td>
                             <mat-form-field class="nameInput-full-width">
-                                <input matInput placeholder="Name" [formControl]="ownerNameControl" required>
+                                <input matInput placeholder="Owner's name" [formControl]="ownerNameControl" required>
                                 <mat-icon matSuffix>mode_edit</mat-icon>
                                 <mat-error *ngIf="ownerNameControl.invalid">{{getErrorMessage4ownerName()}}</mat-error>
                             </mat-form-field>
                         </td>
                         <td>
                             <mat-form-field class="nameInput-full-width">
-                                <input matInput placeholder="Surname" [formControl]="ownerSurnameControl" required>
+                                <input matInput placeholder="Owner's surname" [formControl]="ownerSurnameControl" required>
                                 <mat-icon matSuffix>mode_edit</mat-icon>
                                 <mat-error *ngIf="ownerSurnameControl.invalid">{{getErrorMessage4ownerSurname()}}</mat-error>
                             </mat-form-field>
@@ -77,7 +77,7 @@
                 </div> -->
                 <!-- Organization Web Address -->
                 <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="Web Address" [formControl]="webAddressControl">
+                    <input matInput  placeholder="Web address" [formControl]="webAddressControl">
                     <mat-icon matSuffix>mode_edit</mat-icon>
                 </mat-form-field>
                 <!-- Logo upload of the Organization -->
@@ -102,7 +102,7 @@
 					<button mat-raised-button (mousedown)="removePhoneNumber(i)">{{num}}<mat-icon>close</mat-icon></button>
 				</td>
 				<mat-form-field class="dialog-container-form-field" >
-					<input type="tel" [(ngModel)]="newPhoneNumber" [ngModelOptions]="{standalone: true}" name="newPhoneNumber" matInput placeholder="Add Number (hit Space to confirm)" (keyup.space)="addPhoneNumber(newPhoneNumber); newPhoneNumber = null;" >
+					<input type="tel" [(ngModel)]="newPhoneNumber" [ngModelOptions]="{standalone: true}" name="newPhoneNumber" matInput placeholder="Add number (hit space to confirm)" (keyup.space)="addPhoneNumber(newPhoneNumber); newPhoneNumber = null;" >
 					<mat-icon matSuffix>phone</mat-icon>
 				</mat-form-field>
                 <!-- Tag -->
@@ -111,21 +111,10 @@
 					<button mat-raised-button (mousedown)="removeTag(i)">{{t}}<mat-icon>close</mat-icon></button>
 				</td>
 				<mat-form-field class="dialog-container-form-field" >
-					<input [(ngModel)]="newTag" [ngModelOptions]="{standalone: true}" name="newTag" matInput placeholder="Add Tag (hit Space to confirm)" (keyup.space)="addTag(newTag); newTag = null;" >
+					<input [(ngModel)]="newTag" [ngModelOptions]="{standalone: true}" name="newTag" matInput placeholder="Add tag (hit space to confirm)" (keyup.space)="addTag(newTag); newTag = null;" >
 					<mat-icon matSuffix>mode_edit</mat-icon>
 				</mat-form-field>
-                <!-- Active or not the Org -->
-                <mat-slide-toggle  color="primary"  [formControl]="statusControl" [checked]="statusControl.value">Enabled</mat-slide-toggle>
-                
-                <!-- Add Members -->
-                <!-- <mat-form-field class="dialog-container-form-field" >
-                    <input matInput  placeholder="Add Members"   >
-                    <mat-icon matSuffix>person_add</mat-icon>
-                </mat-form-field> -->
-                <!-- <mat-form-field>
-                    <app-input-file formControlName="basicfile" placeholder="Basic Input" ></app-input-file>
-                    <mat-icon matSuffix>folder</mat-icon>
-                </mat-form-field> -->
+                <mat-slide-toggle [style.display]="'none'" color="primary" [formControl]="statusControl" [checked]="statusControl.value">Enabled</mat-slide-toggle>
             </form>
         </div>
         <!-- Error Message -->

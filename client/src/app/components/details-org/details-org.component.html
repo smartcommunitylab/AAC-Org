@@ -16,16 +16,6 @@
   <mat-tab label="Information" *ngIf="myOrg">
     <mat-card class="example-card">
       <mat-card-header>
-        <!-- <mat-card-title>
-          <span>{{orgName}}</span> 
-          
-        </mat-card-title>
-        <mat-card-subtitle>Information of the Organization</mat-card-subtitle>
-        <span class="fill-remaining-space"></span>
-        <button mat-raised-button color="primary" style="max-height:40px !important" (click)="openDialog4ModifyOrg()">
-          <mat-icon matSuffix>mode_edit</mat-icon>
-          Modify Organization Information
-        </button> -->
       </mat-card-header>
       <mat-card-content>
         <mat-grid-list cols="4" rowHeight="60px">
@@ -68,7 +58,7 @@
             <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">
               <button mat-raised-button color="primary" style="max-height:40px !important" *ngIf="userRights && (userRights.admin == true || userRights.ownedOrganizations.includes(myOrg.id))" (click)="openDialog4ModifyOrg()">
                 <mat-icon matSuffix>mode_edit</mat-icon>
-                Modify organization information
+                Edit organization information
               </button>
             </mat-grid-tile>
             <mat-grid-tile [colspan]=1 [rowspan]=5 class="matGridList-infoBelow" rowHeight="60px"></mat-grid-tile>
@@ -82,43 +72,6 @@
               ({{myOrg.contacts.email}})
             </mat-grid-tile>
         </mat-grid-list>
-        
-
-        <!-- <mat-grid-list cols="4" rowHeight="50px" >  
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Organization Name:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.name}}</mat-grid-tile>
-
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Domain:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.slug}}</mat-grid-tile>
-
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Name:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.contacts.name}}</mat-grid-tile>
-
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Surname:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.contacts.surname}}</mat-grid-tile>
-
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Email:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.contacts.email}}</mat-grid-tile>
-
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Description:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.description}}</mat-grid-tile>
-
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Web:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.contacts.web}}</mat-grid-tile>
-
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Logo:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.contacts.logo}}</mat-grid-tile>
-
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Tag:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.tag}}</mat-grid-tile>
-
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Phone:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.contacts.phone}}</mat-grid-tile>
-
-          <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">Status:</mat-grid-tile>
-          <mat-grid-tile [colspan]=3 [rowspan]=1 class="matGridList-figure">{{myOrg.active}}</mat-grid-tile>
-
-        </mat-grid-list> -->
       </mat-card-content>
     </mat-card>
   </mat-tab>
@@ -136,23 +89,19 @@
       <mat-card-content>
         <mat-accordion>
           <mat-expansion-panel *ngFor="let component of activatedComponents">
-                <mat-expansion-panel-header>
-                    <mat-panel-title>
-                        {{component.componentId}}
-                    </mat-panel-title>
-                    <!-- <mat-panel-description>
-                        Tenants
-                    </mat-panel-description> -->
-                </mat-expansion-panel-header>
-                <mat-list>
-                  <mat-list-item *ngFor="let tenant of component.tenants; let la=last">
-                    {{tenant}}
-                    <mat-divider *ngIf="!la"></mat-divider>
-                  </mat-list-item>
-                </mat-list>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                {{component.componentId}}
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <mat-list>
+              <mat-list-item *ngFor="let tenant of component.tenants; let la=last">
+                {{tenant}}
+                <mat-divider *ngIf="!la"></mat-divider>
+              </mat-list-item>
+            </mat-list>
           </mat-expansion-panel>
-
-        </mat-accordion>          
+        </mat-accordion>
       </mat-card-content>
     </mat-card>
   </mat-tab>

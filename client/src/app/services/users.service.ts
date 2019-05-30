@@ -45,27 +45,19 @@ export class UsersService {
     .map(response => response as UserRights).toPromise();
   }
 
-  setRole(username:string,contextSpace:string,role:string):any{
-    for(var i=0; i<this.usersList.length; i++){
-      if(this.usersList[i].username==username){
-        this.usersList[i].roles.push({
+  setRole(user: UsersProfile, contextSpace: string, role: string): any {
+    user.roles.push({
           "contextSpace":contextSpace,
           "role":role
-        });
-      }
-    }
+    });
   }
   /**
    * remove one role of a perticular user
-   * @param username 
-   * @param roleIndex 
+   * @param user
+   * @param roleIndex
    */
-  removeRole(username:string, roleIndex:number){
-    for(var i=0; i<this.usersList.length; i++){
-      if(this.usersList[i].username==username){
-        this.usersList[i].roles.splice(roleIndex, 1);
-      }
-    }
+  removeRole(user: UsersProfile, roleIndex: number) {
+    user.roles.splice(roleIndex, 1);
   }
   /**
    *  set a user/owner
@@ -73,7 +65,7 @@ export class UsersService {
    * @param user
    * @param userType
    */
-  setUser(orgID:string, user:any, userType:string): any {
+  setUser(orgID: string, user: any, userType: string): any {
     return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, user);
   }
   /**
@@ -82,13 +74,13 @@ export class UsersService {
    * @param orgID 
    * @param userType 
    */
-  updateUser(username:string, orgID:string, userType:string): any{
-    for(var i=0; i<this.usersList.length; i++){
-      if(this.usersList[i].username==username){
+  updateUser(orgID: string, userType: string, data: UsersProfile): any {
+    for(var i=0; i<this.usersList.length; i++) {
+      if(this.usersList[i].username==data.username) {
         return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, {
-          "username":this.usersList[i].username,
-          "owner":this.usersList[i].owner,
-          "roles":this.usersList[i].roles
+          "username":data.username,
+          "owner":data.owner,
+          "roles":data.roles
         });
       }
     }
@@ -99,7 +91,7 @@ export class UsersService {
    * @param userID
    * @param userType like 'owners' or 'members'
    */
-  deleteUser(orgID: string, userID:string, userType:string):any{
+  deleteUser(orgID: string, userID: string, userType: string): any {
     return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}/${userID}`);
   }
 }

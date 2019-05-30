@@ -1,8 +1,6 @@
 package it.smartcommunitylab.orgmanager.model;
 
 import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Arrays;
 
 import javax.persistence.Column;

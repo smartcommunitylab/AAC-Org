@@ -1,6 +1,6 @@
 <div>
   <mat-toolbar>
-    <span>Inactive Organizations </span>
+    <span>Disabled organizations </span>
     <span class="fill-remaining-space"></span>
   </mat-toolbar>  
 </div>
@@ -22,7 +22,7 @@
       <!-- owner Column -->
       <ng-container matColumnDef="owner">
         <mat-header-cell *matHeaderCellDef> Owner </mat-header-cell>
-        <mat-cell *matCellDef="let element"> {{element.contacts.name}} </mat-cell>
+        <mat-cell *matCellDef="let element"> {{element.contacts.name}} {{element.contacts.surname}} </mat-cell>
       </ng-container>
   
       <!-- Description Column -->
@@ -39,7 +39,7 @@
       
       <!-- Action Column -->
       <ng-container matColumnDef="action">
-        <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
         <mat-cell *matCellDef="let element">
             <button mat-button *ngIf="userRights && userRights.admin == true" (click)="openDialog4EnableOrg(element.id,element.name)" color="primary"> Enable </button>
             <button mat-button *ngIf="userRights && userRights.admin == true" (click)="openDialog4DeleteOrg(element.id,element.name)" ><mat-icon matSuffix>delete</mat-icon></button>

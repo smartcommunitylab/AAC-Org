@@ -67,8 +67,9 @@ export class DetailsOrgComponent implements OnInit {
       this.ngOnInit();
     }
   }
+  
  /**
-   * Manage Organization
+   * Manage components
    */
   openDialog4ManageComponent(): void {
     this.componentsService.getComponents().then(response_components =>{
@@ -94,13 +95,13 @@ export class DetailsOrgComponent implements OnInit {
       this.componentsService.setMergeActivatedComponents(this.mergeActivatedComponents);
       let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
         width: '40%',
-        data: { name: "", components:this.componentsService.getMergeActivatedComponents(), dialogStatus:"TitleManageComponent"  }
+        data: { name: "", components: JSON.parse(JSON.stringify(this.componentsService.getMergeActivatedComponents())), dialogStatus: "TitleManageComponent" }
       });
       
       dialogRef.afterClosed().subscribe(result => {
         // have to set data for save the component in the Org
-        if(result){
-          this.componentsService.setComponents(this.orgID).subscribe(
+        if (result != null) {
+          this.componentsService.setComponents(this.orgID, result).subscribe(
             res => {
               setTimeout(()=>{  this.ngOnInit();},1000);
             },
@@ -108,7 +109,7 @@ export class DetailsOrgComponent implements OnInit {
               //open a error dialog with err.error
               let dialogRefErr = this.dialog.open(detailsOrganizationDialogComponent, {
                 width: '40%',
-                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+                data: { error: err.error, dialogStatus:"TitleErrorMessage" }
               });
               if (err.error instanceof Error) {
                 console.log('Client-side error occured.');
@@ -118,35 +119,36 @@ export class DetailsOrgComponent implements OnInit {
             }
           );
           
-        }else{
+        } else {
           console.log("result",result);
         }
       });
     });
     
   }
+  
   /**
-   * Modify Organization
+   * Modify organization
    */
   openDialog4ModifyOrg(): void {
     this.organizationService.setMyOrganization(this.myOrg);
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '40%',
-      data: { name: this.myOrg["name"], myOrg:this.organizationService.getMyOrganization(), dialogStatus:"TitleModifyOrg"  }
+      data: { name: this.myOrg["name"], myOrg: JSON.parse(JSON.stringify(this.organizationService.getMyOrganization())), dialogStatus: "TitleModifyOrg"  }
     });
     
     dialogRef.afterClosed().subscribe(result => {
       // update Organization info
-      if(result){
-        this.organizationService.updateOrganization(this.orgID).subscribe(
+      if(result != null){
+        this.organizationService.updateOrganization(this.orgID, result).subscribe(
           res => {
-            console.log('Return Data from post(create): ' + res);
+            setTimeout(()=>{ this.ngOnInit(); }, 1000); // Refreshes the data
           },
           (err: HttpErrorResponse) => {
             //open a error dialog with err.error
             let dialogRefErr = this.dialog.open(detailsOrganizationDialogComponent, {
               width: '40%',
-              data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              data: { error: err.error, dialogStatus:"TitleErrorMessage" }
             });
             if (err.error instanceof Error) {
               console.log('Client-side error occured.');
@@ -166,7 +168,7 @@ export class DetailsOrgComponent implements OnInit {
   openDialog4CreateProviderConfig(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '400px',
-      data: { name: "", dialogStatus:"TitleCreateProviderConfig"  }
+      data: { name: "", dialogStatus:"TitleCreateProviderConfig" }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -179,7 +181,7 @@ export class DetailsOrgComponent implements OnInit {
   openDialog4ModifyProviderConfig(): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       width: '350px',
-      data: { name: "", dialogStatus:"TitleModifyProviderConfig"  }
+      data: { name: "", dialogStatus:"TitleModifyProviderConfig" }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -210,15 +212,14 @@ export class DetailsOrgComponent implements OnInit {
         
         this.usersService.setUser(this.orgID,result,"members").subscribe(
           res => {
-            //for reload the table
-            setTimeout(()=>{  this.ngOnInit();},1000);
+            setTimeout(()=>{  this.ngOnInit();},1000); // Reloads the table
           },
           (err: HttpErrorResponse) => {
             //open a error dialog with err.error
             if (err.error) {
               let dialogRefErr = this.dialog.open(detailsOrganizationDialogComponent, {
                 width: '30%',
-                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+                data: { error: err.error, dialogStatus:"TitleErrorMessage" }
               });
             }
             if (err.error instanceof Error) {
@@ -239,22 +240,21 @@ export class DetailsOrgComponent implements OnInit {
   openDialog4ModifyUser(username?:string): void{
     let dialogRef = this.dialog.open(detailsOrganizationDialogComponent, {
       minWidth: '40%',
-      data: { name: username, components:this.activatedComponents, userData:this.usersService.getUserData(username), dialogStatus:"TitleModifyUser"  }
+      data: { name: username, components: this.activatedComponents, userData: JSON.parse(JSON.stringify(this.usersService.getUserData(username))), dialogStatus: "TitleModifyUser" , userRights: this.userRights }
     });
     
     dialogRef.afterClosed().subscribe(result => {
-      if(result){
-        this.usersService.updateUser(username,this.orgID,"members").subscribe(
+      if (result != null) {
+        this.usersService.updateUser(this.orgID, "members", result).subscribe(
           res => {
-            //for reload the table
-            setTimeout(()=>{  this.ngOnInit();},1000);
+            setTimeout(()=>{  this.ngOnInit();},1000); // Reloads the table
           },
           (err: HttpErrorResponse) => {
             //open a error dialog with err.error
             if(err.error){
               let dialogRefErr = this.dialog.open(detailsOrganizationDialogComponent, {
                 width: '30%',
-                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+                data: { error: err.error, dialogStatus:"TitleErrorMessage" }
               });
             }
             if (err.error instanceof Error) {
@@ -284,8 +284,7 @@ export class DetailsOrgComponent implements OnInit {
       if(result){
         this.usersService.deleteUser(this.orgID,userID,this.userType).subscribe(
           res => {
-            //for reload the table
-            setTimeout(()=>{  this.ngOnInit();},1000);
+            setTimeout(()=>{  this.ngOnInit();},1000); // Reloads the table
           },
           (err: HttpErrorResponse) => {
             //open a error dialog with err.error
@@ -368,27 +367,27 @@ export class detailsOrganizationDialogComponent {
   onNoClick(): void {
     this.dialogRef.close();
   }
-  onKeyChange():boolean{
+  onKeyChange():boolean {
     return this.tenantControl_status=true;
   }
-  addTenant(indexComponent:number):void{
-    this.componentsService.addTenant(indexComponent);
+  addTenant(components: ActivatedComponentsProfile[], indexComponent: number):void {
+    this.componentsService.addTenant(components, indexComponent);
   }
-  removeTenants(indexComponent:number, indexTenant: number): any {
+  removeTenant(components: ActivatedComponentsProfile[], indexComponent: number, indexTenant: number): any {
     this.tenantControl_status=true;
-    return this.componentsService.modifyComponent(indexComponent,indexTenant);
+    return this.componentsService.modifyComponent(components, indexComponent, indexTenant);
   }
-  removeRole(username:string, roleIndex: number){
+  removeRole(user: UsersProfile, roleIndex: number) {
     this.updateUserRole_status=true;
-    this.usersService.removeRole(username,roleIndex);
+    this.usersService.removeRole(user, roleIndex);
   }
-  addRole(username:string,selectedComponentId,selectedTenant,selectedRole){
-    let contextSpace="components/"+selectedComponentId+"/"+selectedTenant;
-    this.usersService.setRole(username,contextSpace,selectedRole);
-    this.selectedComponentId="";
-    this.selectedTenant="";
-    this.selectedRole="";
-    this.updateUserRole_status=true;
+  addRole(user: UsersProfile, selectedComponentId, selectedTenant, selectedRole) {
+    let contextSpace = "components/" + selectedComponentId + "/" + selectedTenant;
+    this.usersService.setRole(user, contextSpace, selectedRole);
+    this.selectedComponentId = "";
+    this.selectedTenant = "";
+    this.selectedRole = "";
+    this.updateUserRole_status = true;
   }
   addRoleForNewUser(roles, selectedComponentId, selectedTenant, selectedRole) {
     let contextSpace = "components/" + selectedComponentId + "/" + selectedTenant;
@@ -405,7 +404,7 @@ export class detailsOrganizationDialogComponent {
         //this.dataset.hasError('email') ? 'Not a valid email' :
             '';
   }
-  getTenantsBySelectedComponent(selectedComponentID:string){
+  getTenantsBySelectedComponent(selectedComponentID: string) {
     this.componentsService.getTenantsBySelectedComponent(selectedComponentID).then(response => {
       this.userRoles=response;
     });

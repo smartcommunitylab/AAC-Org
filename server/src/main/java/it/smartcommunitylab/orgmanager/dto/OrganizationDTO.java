@@ -1,7 +1,5 @@
 package it.smartcommunitylab.orgmanager.dto;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Arrays;
 
 import it.smartcommunitylab.orgmanager.model.Organization;

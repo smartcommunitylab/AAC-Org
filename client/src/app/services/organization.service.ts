@@ -28,13 +28,13 @@ export class OrganizationService {
   /**
    * update modified Organization
    */
-  updateOrganization(orgID: string): any{
-    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/info`, this.myOrg);
+  updateOrganization(orgID: string, data: contentOrg): any{
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/info`, data);
   }
   getMyOrganization():contentOrg{
     return this.myOrg;
   }
-  setMyOrganization(dataMyOrg:contentOrg):boolean{
+  setMyOrganization(dataMyOrg: contentOrg):boolean{
     if (dataMyOrg) {
       this.myOrg = dataMyOrg;
       return true;
@@ -55,7 +55,7 @@ export class OrganizationService {
    * @param orgID 
    * @param body 
    */
-  enableOrganization(orgID:number, body:any){
+  enableOrganization(orgID: number, body: any){
     return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/enable`,body);
   }
   /**
@@ -63,7 +63,7 @@ export class OrganizationService {
    * @param orgID 
    * @param body 
    */
-  disableOrganization(orgID:number,body:any): any {
+  disableOrganization(orgID: number, body: any): any {
     return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/disable`,body);
   }
   /**

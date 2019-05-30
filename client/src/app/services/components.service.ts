@@ -12,11 +12,13 @@ export class ComponentsService {
   /**
    * Get Component List
    */
+  
   getComponents(): Promise<ComponentsProfile[]> {
     return this.http.get(`${ this.config.get('locUrl') }components/`)
     .map(response => response as ComponentsProfile[])
     .toPromise();
   }
+  
   /**
    * Get Activated Component List
    */
@@ -25,24 +27,25 @@ export class ComponentsService {
     .map(response => response as ActivatedComponentsProfile[])
     .toPromise();
   }
+  
   /**
    * gat all tenants of a component
    * @param componentID 
    */
-  getTenantsBySelectedComponent(componentID:string):Promise<string[]>{
+  getTenantsBySelectedComponent(componentID: string):Promise<string[]>{
     return this.http.get(`${ this.config.get('locUrl') }components/${componentID}/roles`)
     .map(response => response as string[])
     .toPromise();
   }
+  
   /**
    * Set Component in a particular Org
    * param: org id, list of tenants with component ID
    */
-  setComponents(orgID: string): any {
-    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/configuration`, this.mergeActivatedComponents);
+  setComponents(orgID: string, data: ActivatedComponentsProfile[]): any {
+    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/configuration`, data);
   }
 
- 
   setMergeActivatedComponents(data: ActivatedComponentsProfile[]): boolean {
     if (data) {
       // this.mergeActivatedComponents.push(data);
@@ -52,14 +55,17 @@ export class ComponentsService {
       return false;
     }
   }
+  
   getMergeActivatedComponents(): ActivatedComponentsProfile[] {
     return this.mergeActivatedComponents;
   }
-  modifyComponent(indexComponent: number, indexTenant: number) {
-    this.mergeActivatedComponents[indexComponent].tenants.splice(indexTenant, 1);
+  
+  modifyComponent(components: ActivatedComponentsProfile[], indexComponent: number, indexTenant: number) {
+    components[indexComponent].tenants.splice(indexTenant, 1);
   }
-  addTenant(indexComponent: number) {
-    this.mergeActivatedComponents[indexComponent].tenants.push('');
+  
+  addTenant(components: ActivatedComponentsProfile[], indexComponent: number) {
+    components[indexComponent].tenants.push('');
   }
   
 }

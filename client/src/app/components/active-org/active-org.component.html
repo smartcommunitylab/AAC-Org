@@ -1,11 +1,11 @@
 <div>
   <mat-toolbar>
     <!-- <span>{{ 'Sidenav.Datasets' | translate }}: {{domain}}</span> -->
-    <span>Active Organizations </span>
+    <span>Active organizations</span>
     <span class="fill-remaining-space"></span>
     <button mat-raised-button color="primary" *ngIf="userRights && userRights.admin == true" (click)="openDialog4CreateOrg()">
       <i class="material-icons">add_circle_outline</i>
-      Create Organization
+      Create organization
     </button>
   </mat-toolbar>
 </div>
@@ -28,7 +28,7 @@
     <!-- owner Column -->
     <ng-container matColumnDef="owner">
       <mat-header-cell *matHeaderCellDef> Owner </mat-header-cell>
-      <mat-cell *matCellDef="let element"> {{element.contacts.name}} </mat-cell>
+      <mat-cell *matCellDef="let element"> {{element.contacts.name}} {{element.contacts.surname}} </mat-cell>
     </ng-container>
 
     <!-- Description Column -->
@@ -49,7 +49,7 @@
       <!-- <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell> -->
       <mat-cell *matCellDef="let element">
         <a routerLink="/detailsOrg/{{element.id}}"> <button mat-button color="primary">Details</button></a>
-        <button mat-button *ngIf="userRights && userRights.admin == true" (click)="openDialog4ChangeStatusOrg(element.id,element.name)" color="primary"> Disable </button>
+        <button mat-button *ngIf="userRights && userRights.admin == true" (click)="openDialog4ChangeStatusOrg(element.id,element.name)" color="primary">Disable</button>
       </mat-cell>
     </ng-container>
 
