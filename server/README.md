@@ -1,4 +1,4 @@
-# AAC-Org (server)
+# Server
 
 This document explains how to set up the server side of Organization Manager and how to use its APIs.
 
@@ -6,9 +6,9 @@ This document explains how to set up the server side of Organization Manager and
 
 Organization Manager requires the [AAC](https://github.com/smartcommunitylab/AAC) identity provider to work. The repository explains how to install and configure it.
 
-Once AAC is running, create a new app for Organization Manager by accessing the _**Client Apps**_ menu and clicking on _**NEW APP**_.
+Once AAC is running, create a new app for Organization Manager by accessing the **Client Apps** menu and clicking on **NEW APP**.
 
-In the _**Settings**_ tab, under **redirect Web server URLs**, add the redirect URLs for server and client. If you’re running them on _localhost_, for example, add both of the following (assuming the ports are _7979_ and _4200_):\
+In the **Settings** tab, under **redirect Web server URLs**, add the redirect URLs for server and client. If you’re running them on _localhost_, for example, add both of the following (assuming the ports are _7979_ and _4200_):\
 `http://localhost:7979/login`\
 `http://localhost:4200/login`
 
@@ -17,15 +17,17 @@ To run the server within a Docker container, you need to add a third URL with th
 
 For more information on running the server inside a Docker container, see the [Running with Docker](#running-with-docker) section.
 
-For **Grant types**, check `Implicit` and `Client credentials`.\
-For **Enabled identity providers**, check `internal`.
+For **Grant types**, check `Implicit` and `Client credentials`. For **Enabled identity providers**, check `internal`.
 
-In the _**API Access**_ tab, grant all permissions under `Basic profile service` and under `Role Management Service` and save the app.
+In the **API Access** tab, grant all permissions under `Basic profile service` and under `Role Management Service` and save the app.
 
-Finally, all users that will be administrators of Organization Manager, as well as all organization owners, need the following role: `apimanager/carbon.super:profilemanager`.\
-To create the `apimanager/carbon.super` space, access the _**Space Owners**_ menu, choose `apimanager` as **Parent Space** and click on _**NEW USER**_. Insert the **Username**, insert `carbon.super` under **New spaces** and click _**ADD**_. Click _**UPDATE**_ to create this space.\
-Now that the space has been created, all users who will be administrators of Organization Manager, or owners of an organization, need the `profilemanager` role within this space.\
-Access the _**User Roles**_ menu, pick `apimanager/carbon.super` as **Role Context**, and then, for each user, click _**NEW USER**_, insert the **Username**, insert `profilemanager` as **New role**, click _**ADD**_ and then _**UPDATE**_.
+Finally, all users that will be administrators of Organization Manager, as well as all organization owners, need the following role: `apimanager/carbon.super:profilemanager`.
+
+To create the `apimanager/carbon.super` space, access the **Space Owners** menu, choose `apimanager` as **Parent Space** and click on **NEW USER**. Insert the **Username**, insert `carbon.super` under **New spaces** and click **ADD**. Click **UPDATE** to create this space.
+
+Now that the space has been created, all users who will be administrators of Organization Manager, or owners of an organization, need the `profilemanager` role within this space.
+
+Access the **User Roles** menu, pick `apimanager/carbon.super` as **Role Context**, and then, for each user, click **NEW USER**, insert the **Username**, insert `profilemanager` as **New role**, click **ADD** and then **UPDATE**.
 
 
 ## Setting up the server
