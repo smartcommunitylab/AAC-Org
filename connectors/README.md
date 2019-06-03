@@ -9,5 +9,6 @@ Two properties are however required for all connectors:
 
 `componentId` - Identifies the component.
 
-`implementation` - Full name of the connector class that reflects tenant/user management operations on the component. The following value corresponds to a dummy class that causes no changes, to be used if the component does not need an external class for this purpose, or to simply disable a connector.\
-`it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl`
+`implementation` - Full name of the connector class that reflects tenant/user management operations on the component. The following value corresponds to a dummy class that causes no changes, to be used if the component does not need an external class for this purpose, or to simply disable a connector.
+
+	it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
