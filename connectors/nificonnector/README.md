@@ -22,7 +22,7 @@ The steps described in this section are written for Windows’ _Command Prompt_,
 
 ### Step 1: Creating a Certificate Authority (CA)
 The first thing to do is creating a _Certificate Authority_ (_CA_). This CA will sign the administrator’s certificate, stating that it can be trusted.\
-Change directory to the `bin` subfolder of your OpenSSL installation (for example, `cd C:\OpenSSL\openssl-1.0.2j\bin`). If you don’t, you’ll need to replace `openssl` with the **path to the openssl.exe file**.
+Change directory to the `bin` subfolder of your OpenSSL installation (for example, `cd C:\OpenSSL\openssl-1.0.2j\bin`). If you don’t, you will need to replace `openssl` in each command with the **path to the openssl.exe file**.
 
 #### 1.1 Creating the CA’s private key
 This will create the private key for your CA and place it in the `C:\certs` folder. If you omit the path and just write `myCA.key`, it will be in the **same folder as openssl.exe**. You will be asked to choose a password.
@@ -71,7 +71,7 @@ Finally, it will ask you to choose a password for the private key. If you just h
 `keytool -genkey -alias nifiserver -keyalg RSA -keystore C:\certs\nifiserver.jks -keysize 2048`
 
 #### 3.2 Generating a certificate sign request
-This command will generate a certificate with a request to sign it. It may ask for both the passwords you chose in [3.1](#31-generate-a-keystore-for-the-nifi-server): first the keystore’s password and then the private key’s password. If they’re the same, it will only ask once.
+This command will generate a certificate with a request to sign it. It may ask for both the passwords you chose in [3.1](#31-generate-a-keystore-for-the-nifi-server): first the keystore’s password and then the private key’s password. If they are the same, it will only ask once.
 
 `keytool -certreq -alias nifiserver -keystore C:\certs\nifiserver.jks -file C:\certs\nifiserver.csr`
 
@@ -90,7 +90,7 @@ This command will include the CA’s public key into your keystore, so that it m
 `keytool -import -keystore C:\certs\nifiserver.jks -file C:\certs\myCA.pem`
 
 #### 3.5 Import the signed NiFi server’s certificate into the keystore
-This command will import the certificate you signed in [3.3](#33-signing-the-nifi-servers-certificate) into the keystore. It will ask for the two passwords you chose in [3.1](#31-generate-a-keystore-for-the-nifi-server): first the keystore’s password and then the private key’s password, or just one of them if they’re the same.
+This command will import the certificate you signed in [3.3](#33-signing-the-nifi-servers-certificate) into the keystore. It will ask for the two passwords you chose in [3.1](#31-generate-a-keystore-for-the-nifi-server): first the keystore’s password and then the private key’s password, or just one of them if they are the same.
 
 `keytool -import -trustcacerts -alias nifiserver -file C:\certs\nifiserver.crt -keystore C:\certs\nifiserver.jks`
 
