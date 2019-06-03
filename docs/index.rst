@@ -3,8 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Organization Management's documentation!
-==================================================
+Welcome to Organization Manager's documentation!
+===================================================
+
+This documentation will guide you through what *Organization Manager* (*OrgManager* for short) is, how to install it and how to use it.
 
 Contents:
 
@@ -12,7 +14,11 @@ Contents:
    :maxdepth: 2
    :glob:
 
-   *
+   overview
+   installation
+   usage
+   serverapis
+   authors
 
 
 
