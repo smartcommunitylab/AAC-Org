@@ -1,6 +1,6 @@
 # NiFi Connector
 
-This document explains how multitenancy works in NiFi and how to configure the connector so that the Organization Management server's operations are reflected in NiFi.\
+This document explains how multitenancy works in NiFi and how to configure the connector so that tenancy operations issued by the server are performed in NiFi.\
 If you're not interested in how multi-tenancy is represented in NiFi, skip to the [Certificates](#certificates) section to create the necessary certificates.\
 If you don't need to create certificates and only need to configure the connector, skip to the [Configuration](#configuration) section.
 
@@ -10,7 +10,7 @@ The idea of multi-tenancy in NiFi is that **process groups** represent tenants a
 Users will still be able to see other teams’ process groups on the flow, but they will only appear as rectangles that they can neither interact with or view details of. The only information they can see about them is the amount of data they are processing.
 
 ## Certificates
-Executing tenant and user management operations in a secured NiFi instance requires specific authorizations, so Organization Manager needs to act with the permissions granted to the administrator user.\
+Executing tenant and user management operations in a secured NiFi instance requires specific authorizations, so Org-Manager needs to act with the permissions granted to the administrator user.\
 Since _OpenID Connect_ is used to secure NiFi, we have to authenticate by providing the administrator’s SSL certificate and configuring NiFi to recognize it.\
 This section describes how to do this and is heavily based on a very useful and detailed [article](https://community.hortonworks.com/content/supportkb/151106/nifi-how-to-create-your-own-certs-for-securing-nif.html) by Matt Clarke from the Hortonworks Community.
 
