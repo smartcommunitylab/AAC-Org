@@ -1,4 +1,4 @@
-# Organization Management
+# Organization Manager
 The Smart Community Lab's _Organization Manager_ (_OrgManager_ for short) is a tool to centralize tenant and user management for various services. It requires the [AAC](https://github.com/smartcommunitylab/AAC) identity provider to work.
 
 OrgManager is structured as follows:
