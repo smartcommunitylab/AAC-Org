@@ -99,17 +99,16 @@ There may be more properties under `spring` related to setting up the database.
 
 This section describes the available APIs. Make sure to include the **Authorization** header containing `Bearer <token value>` in every request. In case an error occurs, each API will return a response with an appropriate status code, usually with some details in the response body.
 
-The **Swagger UI** for the Org-Manager API is available at **http://localhost:7979/swagger-ui.html**.
+Assuming the server is being hosted on _localhost_ at port _7979_, the **Swagger UI** for the Org-Manager APIs is available at **http://localhost:7979/swagger-ui.html**.
 
 Most APIs have security restrictions that require the user to be owner of the organization they are attempting to alter, or to have administrator privileges.
 The owner of a specific organization is defined as a user with the following role in AAC: `components/<organization_slug>:ROLE_PROVIDER`\
 A user has administrator privileges when the access token they are using is a client token with the `organization.mgmt` scope, or when they have the following role in AAC:
 `organizations:ROLE_PROVIDER`
 
-Also keep in mind that, for some of these APIs to work correctly, the access token used needs to have the following scopes:\
-`profile`, `email`, `user.roles.me`, `profile.basicprofile.me`, `profile.accountprofile.me`
+Also keep in mind that, for some of these APIs to work correctly, the access token used must have the following scopes: `profile`, `email`, `user.roles.me`, `profile.basicprofile.me`, `profile.accountprofile.me`.
 
-### Creating an organization
+### Create organization
 This API is used to create an organization. Its response contains a JSON object that represents the newly created organization. This response will contain an additional field, `id`, necessary to recognize the organization and useful when calling other APIs.\
 Note that, since the `email` field will be interpreted as the starting owner of the organization, a user with its value as name will be created on the server side. This means that AAC must have a user with this username, otherwise an error will occur.\
 The `name` and `surname` fields inside the `contacts` object also must match the corresponding fields in AAC.
@@ -150,7 +149,8 @@ The `name` and `surname` fields inside the `contacts` object also must match the
 	}
 
 ### Search organizations
-API for searching organizations. Organizations are searched by name. Responses are returned as pages of size 20. Useful to find the `id` of an organization when only the `name` is known.
+API for searching organizations. Organizations are searched by name. Responses are returned as pages of size 20.
+
 If the authenticated user has administrator privileges, they will see all organizations, otherwise they will see only organizations they are part of.
 
 **End-point**: /api/organizations\
@@ -198,14 +198,14 @@ Disables an organization. Simply changes the `active` field to `false`. Other th
 **Sample request URL**: `http://localhost:7979/api/organizations/3/disable`
 
 ### Delete organization
-Deletes an organization. Also unregisters all members belonging to it, deletes all their roles within it, and deletes all tenants within it.
+Deletes an organization. Also unregisters all members belonging to it, deletes all their roles within it, and deletes all tenants within it. An organization must be disabled before it can be deleted.
 
 **Requirements**: must have administrator privileges\
 **End-point**: /api/organizations/<organization_id>\
 **Method**: DELETE\
 **Sample request URL**: `http://localhost:7979/api/organizations/1`
 
-### Listing available components
+### List available components
 Lists available components, together with a few properties for each of them.
 
 **End-point**: /api/components\
@@ -218,7 +218,7 @@ Returns a list of strings, representing what roles may be attributed to a user w
 **Method**: GET\
 **Sample request URL**: `http://localhost:7979/api/components/nifi/roles`
 
-### Configuring tenants for an organization
+### Configure tenants for an organization
 Allows configuring which tenants an organization should have.
 
 **Requirements**: must have administrator privileges\
