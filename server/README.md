@@ -39,9 +39,10 @@ Properties appear with the following format:\
 
 When the server is run, the value for the property is taken from the indicated environment variable (set by Docker), but, if the environment variable cannot be found (for example when not running with Docker), it uses the default value instead.
 
-For example, the property for the port of the service appears as follows:\
-`server:`\
-&nbsp; &nbsp;`port: ${OMC_SERVER_PORT:7979}`
+For example, the property for the port of the service appears as follows:
+
+	server:
+	  port: ${OMC_SERVER_PORT:7979}
 
 If you are not running the server inside a Docker container, and want to use a different port, just change the `7979` part. For more information on running the server inside a Docker container, see the [Running with Docker](#running-with-docker) section.
 
@@ -130,22 +131,23 @@ The `name` and `surname` fields inside the `contacts` object also must match the
    - `tag` – Array of strings for tags. Optional.
    - `active` – Can take `true` or `false` as values. Indicates whether the organization is enabled or disabled. Optional, will default to `true` if omitted.
 
-**Sample request body**:\
-`{`\
-&nbsp; &nbsp;`"name":"My Organization",`\
-&nbsp; &nbsp;`"slug":"my_org",`\
-&nbsp; &nbsp;`"description":"This is my test organization.",`\
-&nbsp; &nbsp;`"contacts": {`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"email":"jsmith@my_org.com ",`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"name":"John",`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"surname":"Smith",`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"web":"http://www.example.com",`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"phone":["12345","67890"],`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"logo":"http://www.example.com/images/logo.png"`\
-&nbsp; &nbsp;`},`\
-&nbsp; &nbsp;`"tag":["test","testing"],`\
-&nbsp; &nbsp;`"active":"true"`\
-`}`
+**Sample request body**:
+
+	{
+	  "name":"My Organization",
+	  "slug":"my_org",
+	  "description":"This is my test organization.",
+	  "contacts": {
+	    "email":"jsmith@my_org.com ",
+	    "name":"John",
+	    "surname":"Smith",
+	    "web":"http://www.example.com",
+	    "phone":["12345","67890"],
+	    "logo":"http://www.example.com/images/logo.png"
+	  },
+	  "tag":["test","testing"],
+	  "active":"true"
+	}
 
 ### Search organizations
 API for searching organizations. Organizations are searched by name. Responses are returned as pages of size 20. Useful to find the `id` of an organization when only the `name` is known.
@@ -166,16 +168,18 @@ Updates an organization. Only certain fields may be updated. The `id` of the org
 **End-point**: /api/organizations/<organization_id>/info\
 **Method**: PUT\
 **Body**: JSON with the fields to change. Only description, contacts and tags may be changed; any other field present in the request will be ignored. Fields will only be updated if present in the input, so if you do not want to change a field, simply omit it from the request.\
-**Sample request URL**: `http://localhost:7979/api/organizations/1/info`\
-**Sample request body**:\
-`{`\
-&nbsp; &nbsp;`"description":"New description.",`\
-&nbsp; &nbsp;`"contacts": {`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"web":"http://www.test.com",`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"phone":["12345","57575"]`\
-&nbsp; &nbsp;`},`\
-&nbsp; &nbsp;`"tag":["testing"]`\
-`}`
+**Sample request URL**: `http://localhost:7979/api/organizations/1/info`
+
+**Sample request body**:
+
+	{
+	  "description":"New description.",
+	  "contacts": {
+	    "web":"http://www.test.com",
+	    "phone":["12345","57575"]
+	  },
+	  "tag":["testing"]
+	}
 
 ### Enable organization
 Enables an organization. Simply changes the `active` field to `true`.
@@ -224,21 +228,22 @@ Allows configuring which tenants an organization should have.
 1. `componentId` – Identifies the component. Must be chosen among the values that can be found by calling the **Listing available components** API. Note that if a component is not specified in the body, it will not be altered.
 2. `tenants` – Array of strings for the tenants. If a component previously contained tenants that are not present in this new array, those tenants will be removed.
 
-**Sample request body**:\
-`[`\
-&nbsp; &nbsp;`{`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"componentId":"nifi",`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"tenants":[`\
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;`"trento",`\
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;`"ferrara"`\
-&nbsp; &nbsp; &nbsp; &nbsp;`]`\
-&nbsp; &nbsp;`},{`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"componentId":"dss",`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"tenants":[`\
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;`"reggio"`\
-&nbsp; &nbsp; &nbsp; &nbsp;`]`\
-&nbsp; &nbsp;`}`\
-`]`
+**Sample request body**:
+
+	[
+	  {
+	    "componentId":"nifi",
+	    "tenants":[
+	      "trento",
+	      "ferrara"
+	    ]
+	  },{
+	    "componentId":"dss",
+	    "tenants":[
+	      "reggio"
+	    ]
+	  }
+	]
 
 Note that only tenants for the `nifi` and `dss` components will be affected, as no other components are present in the input. For example, tenants for the component `apimanager` will not be altered, since `apimanager` was not specified in the body.
 
@@ -275,19 +280,21 @@ It is also possible, for administrators only, to grant/revoke the status of owne
    - `role` – Role of the user in the domain
 3. `owner` - Boolean parameter that can only be set by administrators. If this parameter appears in a call performed without administrator rights, it will be ignored.
   
-**Sample request URL**: `http://localhost:7979/api/organizations/1/members`\
-**Sample request body**:\
-`{`\
-&nbsp; &nbsp;`"username":"bob@test.com",`\
-&nbsp; &nbsp;`"roles": [{`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"contextSpace":"components/nifi/trento",`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"role":"ROLE_MANAGER"`\
-&nbsp; &nbsp;`},{`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"contextSpace":"components/nifi/ferrara",`\
-&nbsp; &nbsp; &nbsp; &nbsp;`"role":"ROLE_USER"`\
-&nbsp; &nbsp;`}]`\,\
-&nbsp; &nbsp;`"owner":"true"`\
-`}`
+**Sample request URL**: `http://localhost:7979/api/organizations/1/members`
+
+**Sample request body**:
+
+	{
+	  "username":"bob@test.com",
+	  "roles": [{
+	    "contextSpace":"components/nifi/trento",
+	    "role":"ROLE_MANAGER"
+	  },{
+	    "contextSpace":"components/nifi/ferrara",
+	    "role":"ROLE_USER"
+	  }],
+	  "owner":"true"
+	}
 
 ### Remove a user from an organization
 Unregisters a user from an organization, stripping them of all roles they had within it. The `id` of the organization, as well as the `id` of the member to remove, must be known.
@@ -319,14 +326,18 @@ Once you have configured these two files and Docker is running, open a console a
 This command will take some time to compile the whole project and will create an image named _orgmanager_. If you wish to name it something else, simply replace `orgmanager` with the name you wish to use.\
 Note that the final dot of the command, separated by a space, is important: without it, an error will be returned.
 
-All that remains is to run the container using this image. The following command will run the server inside a Docker container, mounting the two configuration files described earlier.\
-`docker run --env-file dockerfiles/orgmanager-config.env -v <absolute_path_to_project>/dockerfiles/application-components.yml:/tmp/server/target/config/application-components.yml -p 7878:7979 -t orgmanager`
+All that remains is to run the container using this image. The following command will run the server inside a Docker container, mounting the two configuration files described earlier.
 
-Note that you need to replace `<absolute_path_to_project>` with the full path to this project. If you're running it on Windows, the command would look similar to this:\
-`docker run --env-file dockerfiles/orgmanager-config.env -v //c/Eclipse/Workspace/AAC-Org/dockerfiles/application-components.yml:/tmp/server/target/config/application-components.yml -p 7878:7979 -t orgmanager`
+	docker run --env-file dockerfiles/orgmanager-config.env -v <absolute_path_to_project>/dockerfiles/application-components.yml:/tmp/server/target/config/application-components.yml -p 7878:7979 -t orgmanager
 
-If you have configured the NiFi connector to run, you need to provide the [certificates you created](https://github.com/smartcommunitylab/AAC-Org/tree/master/connectors/nificonnector#certificates) for it:\
-`docker run --env-file dockerfiles/orgmanager-config.env -v <absolute_path_to_certificates_folder>:/certs -v <absolute_path_to_prject>/dockerfiles/application-components.yml:/tmp/server/target/config/application-components.yml -p 7878:7979 -t orgmanager`
+Note that you need to replace `<absolute_path_to_project>` with the full path to this project. If you're running it on Windows, the command would look similar to this:
 
-The command with the NiFi certificates might look like the following:\
-`docker run --env-file dockerfiles/orgmanager-config.env -v //c/Eclipse/Workspace/AAC-Org/dockerfiles/certs:/certs -v //c/Eclipse/Workspace/AAC-Org/dockerfiles/application-components.yml:/tmp/server/target/config/application-components.yml -p 7878:7979 -t orgmanager`
+	docker run --env-file dockerfiles/orgmanager-config.env -v //c/Eclipse/Workspace/AAC-Org/dockerfiles/application-components.yml:/tmp/server/target/config/application-components.yml -p 7878:7979 -t orgmanager
+
+If you have configured the NiFi connector to run, you need to provide the [certificates you created](https://github.com/smartcommunitylab/AAC-Org/tree/master/connectors/nificonnector#certificates) for it:
+
+	docker run --env-file dockerfiles/orgmanager-config.env -v <absolute_path_to_certificates_folder>:/certs -v <absolute_path_to_prject>/dockerfiles/application-components.yml:/tmp/server/target/config/application-components.yml -p 7878:7979 -t orgmanager
+
+The command with the NiFi certificates might look like the following:
+
+	docker run --env-file dockerfiles/orgmanager-config.env -v //c/Eclipse/Workspace/AAC-Org/dockerfiles/certs:/certs -v //c/Eclipse/Workspace/AAC-Org/dockerfiles/application-components.yml:/tmp/server/target/config/application-components.yml -p 7878:7979 -t orgmanager
