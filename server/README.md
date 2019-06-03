@@ -1,12 +1,12 @@
 # Server
 
-This document explains how to set up the server side of Organization Manager and how to use its APIs.
+This document explains how to set up the server side of Org-Manager and how to use its APIs.
 
 ## Configuring the AAC identity provider
 
-Organization Manager requires the [AAC](https://github.com/smartcommunitylab/AAC) identity provider to work. The repository explains how to install and configure it.
+Org-Manager requires the [AAC](https://github.com/smartcommunitylab/AAC) identity provider to work. The repository explains how to install and configure it.
 
-Once AAC is running, create a new app for Organization Manager by accessing the **Client Apps** menu and clicking on **NEW APP**.
+Once AAC is running, create a new app for Org-Manager by accessing the **Client Apps** menu and clicking on **NEW APP**.
 
 In the **Settings** tab, under **redirect Web server URLs**, add the redirect URLs for server and client. If you’re running them on _localhost_, for example, add both of the following (assuming the ports are _7979_ and _4200_):\
 `http://localhost:7979/login`\
@@ -21,11 +21,11 @@ For **Grant types**, check `Implicit` and `Client credentials`. For **Enabled id
 
 In the **API Access** tab, grant all permissions under `Basic profile service` and under `Role Management Service` and save the app.
 
-Finally, all users that will be administrators of Organization Manager, as well as all organization owners, need the following role: `apimanager/carbon.super:profilemanager`.
+Finally, all users that will be administrators of Org-Manager, as well as all organization owners, need the following role: `apimanager/carbon.super:profilemanager`.
 
 To create the `apimanager/carbon.super` space, access the **Space Owners** menu, choose `apimanager` as **Parent Space** and click on **NEW USER**. Insert the **Username**, insert `carbon.super` under **New spaces** and click **ADD**. Click **UPDATE** to create this space.
 
-Now that the space has been created, all users who will be administrators of Organization Manager, or owners of an organization, need the `profilemanager` role within this space.
+Now that the space has been created, all users who will be administrators of Org-Manager, or owners of an organization, need the `profilemanager` role within this space.
 
 Access the **User Roles** menu, pick `apimanager/carbon.super` as **Role Context**, and then, for each user, click **NEW USER**, insert the **Username**, insert `profilemanager` as **New role**, click **ADD** and then **UPDATE**.
 
@@ -47,9 +47,9 @@ If you are not running the server inside a Docker container, and want to use a d
 
 `server.port` – The port the server is running at. Sample value: `7979`
 
-`server.servlet.session.cookie.name` – Name of the session cookie, used to avoid conflicts with other applications that use the name _JSESSIONID_ and may be running on the same host. Sample value: `ORMANAGERSESSIONID`
+`server.servlet.session.cookie.name` – Name of the session cookie, used to avoid conflicts with other applications that use the name _JSESSIONID_ and may be running on the same host. Sample value: `ORGMANAGERSESSIONID`
 
-`spring.datasource.url` – Database server for the Organization Management server. The format may vary depending on the database type. A typical format can look like this: `jdbc:<database type>://<host>:<port>/<database name>`\
+`spring.datasource.url` – Database server for the Org-Manager server. The format may vary depending on the database type. A typical format can look like this: `jdbc:<database type>://<host>:<port>/<database name>`\
 Sample value: `jdbc:postgresql://localhost:5432/orgmanager`
 
 `spring.datasource.username` – Name of the user in the database
@@ -63,9 +63,9 @@ Sample value: `jdbc:postgresql://localhost:5432/orgmanager`
 There may be more properties under `spring` related to setting up the database.
 
 \
-`security.oauth2.client.clientId` – Client ID of the Organization Management Application in the identity provider.
+`security.oauth2.client.clientId` – Client ID for Org-Manager in the identity provider.
 
-`security.oauth2.client.clientSecret` – Client secret of the Organization Management Application in the identity provider.
+`security.oauth2.client.clientSecret` – Client secret for Org-Manager in the identity provider.
 
 `security.oauth2.client.accessTokenUri` – URI for obtaining the access token
 
