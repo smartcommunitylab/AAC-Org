@@ -222,7 +222,7 @@ Step 2: Creating NiFi's Truststore
 
 A truststore lists which certificates can be trusted. It is necessary to add the CA's certificate to this truststore, otherwise the CA's signature on the administrator's certificate will be meaningless.
 
-Change directory to where **keytool.exe** is located (probably something like ``C:\Program Files\Java\jre1.8.0_191\bin``), or replace `keytool` with the **path to the keytool.exe file**.
+Change directory to where **keytool.exe** is located (probably something like ``C:\Program Files\Java\jre1.8.0_191\bin``), or replace ``keytool`` with the **path to the keytool.exe file**.
 
 1. .. _nifi-certificates-21:
 
@@ -252,7 +252,7 @@ This is not strictly related to our tenant-providing process; however, when runn
 	
 	**Generate a keystore for the NiFi server**
 	
-	Change directory to the path to **keytool.exe** (for example `cd C:\Program Files\Java\jre1.8.0_191\bin`), or replace `keytool` with the **path to keytool.exe**.
+	Change directory to the path to **keytool.exe** (for example ``cd C:\Program Files\Java\jre1.8.0_191\bin``), or replace ``keytool`` with the **path to keytool.exe**.
 
 	The following command will generate the keystore. It will ask you to choose a password for the keystore, and then to fill the profile of the certificate, similarly to what happened when generating the CA. When asked for the full name (it should be the first thing asked after password confirmation), insert your domain's name. If you're doing this on localhost, simply type `localhost`.
 
@@ -272,7 +272,7 @@ This is not strictly related to our tenant-providing process; however, when runn
 
 	**Signing the NiFi server's certificate**
 	
-	Once again, change directory to OpenSSL's `bin` subfolder, or replace `openssl` accordingly.
+	Once again, change directory to OpenSSL's ``bin`` subfolder, or replace ``openssl`` accordingly.
 	
 	This command will have the CA sign your NiFi server's certificate to state that it can be trusted. It will ask for the password you chose in :ref:`1.1 <nifi-certificates-11>`. ::
 
@@ -282,7 +282,7 @@ This is not strictly related to our tenant-providing process; however, when runn
 
 	**Import the CA's public key into the keystore**
 	
-	Switch back to Keytool's folder, or replace `keytool` accordingly.
+	Switch back to Keytool's folder, or replace ``keytool`` accordingly.
 
 	This command will include the CA's public key into your keystore, so that it may be used to verify your certificate's validity. It will ask for the keystore's password, which you chose in :ref:`3.1 <nifi-certificates-31>`. You will have to confirm that the certificate can be trusted by typing *yes* in your system's language. ::
 
@@ -325,7 +325,7 @@ Step 4: Make the CA sign the administrator's certificate
 ########################################################
 
 By having the administrator's certificate signed by the CA, it will be recognized as valid by NiFi, since it trusts the CA.
-Change directory back to the `bin` subfolder of your OpenSSL installation, or replace `openssl` with the **path to the openssl.exe file**.
+Change directory back to the ``bin`` subfolder of your OpenSSL installation, or replace ``openssl`` with the **path to the openssl.exe file**.
 
 1. .. _nifi-certificates-41:
 
