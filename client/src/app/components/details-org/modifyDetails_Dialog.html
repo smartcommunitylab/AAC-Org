@@ -79,7 +79,7 @@
             <mat-icon matSuffix>mode_edit</mat-icon>
         </mat-form-field>
         <!-- Provider check with boolean  -->
-        <mat-slide-toggle color="primary" disabled> Active</mat-slide-toggle>
+        <mat-slide-toggle color="primary" disabled [checked]="data.myOrg.active"> Active</mat-slide-toggle>
     </div>
     <!-- Manage Component  -->
     <div *ngIf="data.dialogStatus=='TitleManageComponent'" class="manageOrg">
