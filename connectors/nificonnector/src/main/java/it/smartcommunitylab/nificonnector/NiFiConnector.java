@@ -890,7 +890,10 @@ public class NiFiConnector implements Component {
 			throw new ComponentException(NiFiConnectorUtils.getComponentId() + ": error while retrieving NiFi administrator's certificate: " + e);
 		}
 	}
-
+	
+	/**
+	 * This method performs no action, as this connector does not require it, but must have it to implement the interface.
+	 */
 	@Override
 	public String updateTenant(String tenant, String organization) {
 		return null;

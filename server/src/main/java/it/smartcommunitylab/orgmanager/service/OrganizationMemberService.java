@@ -85,6 +85,11 @@ public class OrganizationMemberService {
 		return membersListDTO;
 	}
 	
+	/**
+	 * Returns an object that indicates whether or not the authenticated user has administrator rights and a list of IDs of organizations the user is owner of.
+	 * 
+	 * @return - Object that contains the authenticated user's rights
+	 */
 	public UserRightsDTO getUserRights() {
 		return new UserRightsDTO(utils.getAuthenticatedUserName(), utils.userHasAdminRights(),
 				organizationMemberRepository.findOwnedOrganizations(utils.getAuthenticatedUserId()));
@@ -112,7 +117,7 @@ public class OrganizationMemberService {
 		// Builds a collection of all of the organization's tenants
 		List<String> orgTenants = new ArrayList<String>();
 		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
-		List<String> tenantNames = new ArrayList<String>();
+		List<String> tenantNames = new ArrayList<String>(); // List of just the names of the organization's tenants, used for some connectors
 		for (Tenant t : tenants) {
 			orgTenants.add("components/" + t.toString());
 			tenantNames.add(t.getTenantId().getName());
@@ -130,22 +135,22 @@ public class OrganizationMemberService {
 		
 		if (storedMember == null) { // member is new, create it
 			userIdpId = utils.getUserId(userName); // retrieves the ID from the identity provider
-			if (!authAsAdmin)
+			if (!authAsAdmin) // if the calling user does not have administrator rights, they cannot grant owner status
 				isOwner = false;
 			storedMember = new OrganizationMember(userName, organization, userIdpId, isOwner);
 		} else {
 			userIdpId = storedMember.getIdpId();
 			if (!authAsAdmin)
-				isOwner = storedMember.getOwner();
-			storedMember.setOwner(isOwner); // Updates owner status
+				isOwner = storedMember.getOwner(); // if the calling user does not have administrator rights, owner status cannot be changed
+			storedMember.setOwner(isOwner); // Updates owner status; does not have any effect if the calling user does not have administrator rights
 		}
 		storedMember = organizationMemberRepository.save(storedMember); // stores member
 		
 		Set<RoleDTO> rolesDTO = memberDTO.getRoles();
-		Set<Role> rolesToAdd = new HashSet<Role>();
-		Set<Role> rolesToDel = roleRepository.findByOrganizationMemberAndRoleNotIgnoreCase(storedMember, Constants.ROLE_PROVIDER);
+		Set<Role> rolesToAdd = new HashSet<Role>(); // roles to grant
+		Set<Role> rolesToDel = roleRepository.findByOrganizationMemberAndRoleNotIgnoreCase(storedMember, Constants.ROLE_PROVIDER); // roles to revoke
 		
-		// Builds set of owner roles; which will be either granted or revoked based on whether the user was marked as owner or not
+		// Builds set of owner-related roles; which will be either granted or revoked based on whether the user was marked as owner or not
 		Set<Role> ownerRoles = new HashSet<Role>();
 		// Owners have ROLE_PROVIDER role on the organization
 		Role ownerRole = new Role(securityConfig.getOrganizationManagementContext() + "/" + organization.getSlug(),
@@ -158,6 +163,7 @@ public class OrganizationMemberService {
 			ownerRoles.add(tenantRole);
 		}
 		
+		// Builds set of non-owner-related (regular) roles that the request wants the member to have
 		if (rolesDTO != null) {
 			for (RoleDTO r : rolesDTO) {
 				if (!r.getRole().equals(Constants.ROLE_PROVIDER)) {
@@ -167,20 +173,20 @@ public class OrganizationMemberService {
 				}
 			}
 		}
-		rolesToDel.removeAll(rolesToAdd);
+		rolesToDel.removeAll(rolesToAdd); // all regular roles present in the request should not be revoked
 		
-		roleRepository.saveAll(rolesToAdd);
-		roleRepository.deleteAll(rolesToDel);
+		roleRepository.saveAll(rolesToAdd); // grants all regular roles present in the request
+		roleRepository.deleteAll(rolesToDel); // revokes all previously held regular roles that are not present in the new configuration
 		
-		if (isOwner)
+		if (isOwner) // if the member is owner, all owner-related roles are granted
 			roleRepository.saveAll(ownerRoles);
-		else
+		else // if the member is not owner, all owner-related roles are revoked
 			roleRepository.deleteAll(ownerRoles);
 		
 		// If the user no longer has any roles within the organization, they are removed from it
 		Set<Role> updatedRoles = roleRepository.findByOrganizationMember(storedMember);
 		boolean removeUser = false;
-		if (updatedRoles.isEmpty()) {
+		if (updatedRoles.isEmpty()) { // no roles remaining
 			organizationMemberRepository.delete(storedMember);
 			removeUser = true;
 		}
@@ -188,7 +194,7 @@ public class OrganizationMemberService {
 		// Updates roles in the identity provider
 		utils.idpAddRoles(userIdpId, rolesToAdd);
 		utils.idpRemoveRoles(userIdpId, rolesToDel);
-		if (isOwner)
+		if (isOwner) // updates owner-related roles
 			utils.idpAddRoles(userIdpId, ownerRoles);
 		else
 			utils.idpRemoveRoles(userIdpId, ownerRoles);

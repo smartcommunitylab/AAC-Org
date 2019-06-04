@@ -60,9 +60,10 @@ public class OrgManagerUtils {
 	}
 	
 	/**
-	 * Returns true if the authenticated user has admin rights.
+	 * Returns true if the authenticated user has administrator rights.
+	 * Only administrators may perform certain operations, such as creating/disabling/enabling/deleting organizations, configuring tenants, or granting/revoking owner status.
 	 * 
-	 * @return - true if the authenticated user has admin rights, false otherwise
+	 * @return - true if the authenticated user has administrator rights, false otherwise
 	 */
 	public boolean userHasAdminRights() { // user has admin rights if they are admin or have the organization management scope
 		return (userHasOrganizationMgmtScope() || userIsAdmin());
@@ -208,6 +209,12 @@ public class OrgManagerUtils {
 		return new UserInfo(profile.getAsString("username"), profile.getAsString("name"), profile.getAsString("surname"));
 	}
 	
+	/**
+	 * Obtains a JSONObject from the identity provider, representing the profile of the user with the input user name.
+	 * 
+	 * @param userName - User name to query the identity provider with
+	 * @return - Profile of the requested user
+	 */
 	private JSONObject getIdpUserProfile(String userName) {
 		if (userName == null || userName.equals("")) // invalid request
 			return null;
@@ -227,6 +234,12 @@ public class OrgManagerUtils {
 		}
 	}
 	
+	/**
+	 * Returns a map that connects each organization member to the list of roles they have.
+	 * 
+	 * @param memberRolesList - List of (member, role) pairs.
+	 * @return - (Member -> list of roles) map
+	 */
 	public Map<OrganizationMember, List<Role>> createMemberToRolesMap(List<Object[]> memberRolesList) {
 		Map<OrganizationMember, List<Role>> memberRolesMap = new HashMap<OrganizationMember, List<Role>>();
 		List<Role> roles;
