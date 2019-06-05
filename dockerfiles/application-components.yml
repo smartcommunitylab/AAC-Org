@@ -4,10 +4,10 @@ componentsconfig:
     # API Manager
     - name: APIM
       componentId: apimanager
-      scope: apimanager
+      scope: components/apimanager
       format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
       implementation: it.smartcommunitylab.apimconnector.APIMConnector
-      roles: ROLE_PROVIDER
+      roles: ROLE_PUBLISHER,ROLE_SUBSCRIBER
       host: https://192.168.100.100:9443
       usermgmtEndpoint: /services/RemoteUserStoreManagerService
       usermgmtPassword: admin
@@ -54,6 +54,18 @@ componentsconfig:
       format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
       implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
       roles: ROLE_MANAGER,ROLE_USER
+      host: https://192.168.100.100:9444
+      usermgmtEndpoint: /services/CustomUserStoreManagerService   #extended user store manager admin stub
+      usermgmtPassword: admin
+      multitenancyEndpoint: /services/TenantMgtAdminService
+      multitenancyPassword: admin
+      
+    # Resource Manager
+    - name: Resource Manager
+      componentId: resourcemanager
+      scope: components/resourcemanager
+      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      roles: ROLE_ADMIN,ROLE_USER,ROLE_RESOURCE_ADMIN,ROLE_CONSUMER_ADMIN
       
     # Cyclotron
     - name: Cyclotron

@@ -81,7 +81,7 @@ public class APIMConnector implements Component{
 			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while retrieving tenant " + domain + ": " + e.getMessage());
 		}
 		String role = fullRole.substring(fullRole.indexOf(":") + 1);
-		if(role.equals("ROLE_PROVIDER"))
+		if(role.equals("ROLE_PUBLISHER"))
 			role = "Internal/publisher";
 		else
 			role = "Internal/subscriber";
@@ -114,7 +114,7 @@ public class APIMConnector implements Component{
 	public String revokeRoleFromUser(String fullRole, String organization, UserInfo userInfo) {
 		String domain = fullRole.substring(0, fullRole.indexOf(":"));
 		String role = fullRole.substring(fullRole.indexOf(":") + 1);
-		if(role.equals("ROLE_PROVIDER"))
+		if(role.equals("ROLE_PUBLISHER"))
 			role = "Internal/publisher";
 		else 
 			role = "Internal/subscriber";

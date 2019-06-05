@@ -7,7 +7,7 @@ componentsconfig:
       scope: apimanager
       format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
       implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
-      roles: ROLE_PROVIDER
+      roles: ROLE_PUBLISHER,ROLE_SUBSCRIBER
       host: https://localhost:9443
       usermgmtEndpoint: /services/CustomUserStoreManagerService   #extended user store manager admin stub
       usermgmtPassword: admin
@@ -59,6 +59,13 @@ componentsconfig:
       usermgmtPassword: admin
       multitenancyEndpoint: /services/TenantMgtAdminService
       multitenancyPassword: admin
+      
+    # Resource Manager
+    - name: Resource Manager
+      componentId: resourcemanager
+      scope: components/resourcemanager
+      implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
+      roles: ROLE_ADMIN,ROLE_USER,ROLE_RESOURCE_ADMIN,ROLE_CONSUMER_ADMIN
       
     # Cyclotron
     - name: Cyclotron
