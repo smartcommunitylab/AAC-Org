@@ -52,6 +52,10 @@ public class APIMConnectorUtils {
 	public static String getMultitenancyPassword() {
 		return multitenancyPassword;
 	}
+	
+	public static String getHost() {
+		return host;
+	}
 
 	public static String startTenantFlow(String tenantDomain, int tenantId) {
 		System.out.println("tenant info: " + tenantId + " "+ tenantDomain);
@@ -59,7 +63,6 @@ public class APIMConnectorUtils {
             return "Invalid Tenant Domain: " + tenantDomain;
         }
         if ( !tenantDomain.equals("carbon.super")) {
-        	System.setProperty(ServerConstants.CARBON_HOME, "/home/albana/Desktop/www/DigitalHub/APIM/wso2am-example/wso2am-2.6.0");
         	PrivilegedCarbonContext.startTenantFlow();
         	PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);

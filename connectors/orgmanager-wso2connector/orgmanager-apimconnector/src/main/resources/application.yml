@@ -5,6 +5,7 @@ api:
     id: API_MGT_CLIENT_ID
     secret: YOUR_API_MNGMT_CLIENT_SECRET
   internalUrl: http://localhost:8080/aac  
+  host: https://localhost:9443
   store:
     endpoint: https://localhost:9443/api/am/store/v0.11 
   publisher:

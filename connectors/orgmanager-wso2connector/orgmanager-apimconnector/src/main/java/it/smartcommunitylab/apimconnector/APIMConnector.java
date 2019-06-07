@@ -8,12 +8,14 @@ import java.util.List;
 import java.util.Map;
 import org.apache.axis2.AxisFault;
 import org.springframework.stereotype.Service;
+import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
 import org.wso2.carbon.tenant.mgt.stub.beans.xsd.TenantInfoBean;
 import org.wso2.carbon.user.mgt.common.xsd.ClaimValue;
 
 import it.smartcommunitylab.aac.wso2.model.RoleModel;
 import it.smartcommunitylab.apim.user.stub.CustomUserStoreManagerServiceUserStoreExceptionException;
+import it.smartcommunitylab.apimconnector.services.LoginAdminService;
 import it.smartcommunitylab.apimconnector.services.TenantManagementService;
 import it.smartcommunitylab.apimconnector.services.UserManagementService;
 import it.smartcommunitylab.apimconnector.utils.APIMConnectorUtils;
@@ -26,12 +28,14 @@ public class APIMConnector implements Component{
 
 	private UserManagementService umService;
 	private TenantManagementService tmService;
+	private LoginAdminService loginService;
 	
 	@Override
 	public String init(Map<String, String> properties) {
 		APIMConnectorUtils.init(properties);
 		tmService = new TenantManagementService(APIMConnectorUtils.getMultitenancyEndpoint(), APIMConnectorUtils.getMultitenancyPassword());
 		umService = new UserManagementService(APIMConnectorUtils.getUsermgmtEndpoint(), APIMConnectorUtils.getUsermgmtPassword(), tmService);
+		loginService = new LoginAdminService(APIMConnectorUtils.getHost());
 		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "Initializaton complete.");
 	}
 
@@ -145,6 +149,7 @@ public class APIMConnector implements Component{
 		String password = new BigInteger(50, new SecureRandom()).toString(16);
 			try {
 				tmService.createTenant(tenant, ownerInfo.getUsername(), password, ownerInfo.getName(), ownerInfo.getSurname());
+				loginService.authenticate(ownerInfo.getUsername()+"@"+tenant, password);
 			} catch (AxisFault e) {
 				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while deleting tenant " + tenant + ": " + e.getMessage());
 			} catch (RemoteException e) {
