@@ -74,6 +74,7 @@ public class APIMConnector implements Component{
 
 	@Override
 	public String assignRoleToUser(String fullRole, String organization, UserInfo userInfo) {
+		// Determines the domain
 		String domain = fullRole.substring(0, fullRole.indexOf(":"));
 		int tenantId;
 		try {
@@ -84,29 +85,33 @@ public class APIMConnector implements Component{
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException e) {
 			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while retrieving tenant " + domain + ": " + e.getMessage());
 		}
+		
+		// Determines the role to assign
 		String role = fullRole.substring(fullRole.indexOf(":") + 1);
 		if(role.equals("ROLE_PUBLISHER"))
 			role = "Internal/publisher";
 		else
 			role = "Internal/subscriber";
 		
+		// User creation
+		String password = "test123";// new BigInteger(50, new SecureRandom()).toString(16);
+		String [] roles = new String[] {};
+		ClaimValue [] claims = new ClaimValue[] {};
 		try {
-			List<String> currentRoles = umService.getUserRoles(userInfo.getUsername(), domain);
-			if (currentRoles == null || currentRoles.isEmpty()) {
-				String password = new BigInteger(50, new SecureRandom()).toString(16);
-				String [] roles = new String[] {role};
-				ClaimValue [] claims = new ClaimValue[] {};
-				umService.createNormalUser(userInfo.getUsername(), password, roles, claims, tenantId, domain);
-				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "User " + userInfo + " has been created with role " + role + ".");
-			}
+			umService.createNormalUser(userInfo.getUsername(), password, roles, claims, tenantId, domain);
+		} catch (AxisFault e) {
+			// User already exists; no action
 		} catch (RemoteException | CustomUserStoreManagerServiceUserStoreExceptionException e) {
-			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while searching or creating user " + userInfo + ": " + e.getMessage());
+			// Something went wrong while creating the user
+			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while creating user " + userInfo + ": " + e.getMessage());
 		}
 		
+		// Assigns the role
 		List<String> rolesList = Arrays.asList(new String[]{role});
 		RoleModel roleModel = new RoleModel();
 		roleModel.setAddRoles(rolesList);
 		try {
+			System.out.println("Assigning " + roleModel.getAddRoles() + " to " + userInfo.getUsername() + " in " + domain + " (ID: " + tenantId + ")");
 			umService.updateRoles(roleModel, userInfo.getUsername(), tenantId, domain);
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException | CustomUserStoreManagerServiceUserStoreExceptionException e) {
 			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while assigning role " + role + " to " + userInfo + ": " + e.getMessage());
@@ -125,8 +130,11 @@ public class APIMConnector implements Component{
 		List<String> rolesList = Arrays.asList(new String[]{role});
 		RoleModel roleModel = new RoleModel();
 		roleModel.setRemoveRoles(rolesList);
+		// For whatever reason, if AddRoles does not contain at least 1 item, the stub will throw an exception
+		roleModel.setAddRoles(Arrays.asList(new String[]{null}));
 		try {
 			int tenantId = tmService.getTenant(domain).getTenantId();
+			System.out.println("Revoking " + roleModel.getRemoveRoles() + " from " + userInfo.getUsername() + " in " + domain + " (ID: " + tenantId + ")");
 			umService.updateRoles(roleModel, userInfo.getUsername(), tenantId, domain);
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException | CustomUserStoreManagerServiceUserStoreExceptionException e) {
 			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while revoking role " + role + " from " + userInfo + ": " + e.getMessage());
@@ -146,7 +154,7 @@ public class APIMConnector implements Component{
 
 	@Override
 	public String createTenant(String tenant, String organization, UserInfo ownerInfo) {
-		String password = new BigInteger(50, new SecureRandom()).toString(16);
+		String password = "test123";//new BigInteger(50, new SecureRandom()).toString(16);
 			try {
 				tmService.createTenant(tenant, ownerInfo.getUsername(), password, ownerInfo.getName(), ownerInfo.getSurname());
 				loginService.authenticate(ownerInfo.getUsername()+"@"+tenant, password);

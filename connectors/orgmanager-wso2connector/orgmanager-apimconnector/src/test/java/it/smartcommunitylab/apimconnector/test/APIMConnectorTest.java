@@ -1,8 +1,5 @@
 package it.smartcommunitylab.apimconnector.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +15,13 @@ public class APIMConnectorTest {
 	@Autowired
 	private APIMConnector apimConnector;
 	
-	private static final String TEST_TENANT_DOMAIN 	= "trying.com";
+	private static final String TEST_TENANT_DOMAIN 	= "test10.com";
 	private static final String TEST_ORGANIZATION 	= "organization";
 	private static final String TEST_USER_PROVIDER 	= "trying_provider@gmail.com";
 	private static final String TEST_USER_SIMPLE 	= "trying_simple@gmail.com";
 	private static final String TEST_NAME 			= "TestName";
 	private static final String TEST_SURNAME 		= "TestSurname";
-	private static final String TEST_ROLE 			= "domain.com:ROLE_PROVIDER";
+	private static final String TEST_ROLE 			= "test10.com:ROLE_PUBLISHER";
 	
 	@Test
 	public void testCreateProvider() {
@@ -50,16 +47,12 @@ public class APIMConnectorTest {
 	@Test
 	public void testAssignRole2User() {
 		UserInfo userInfo = new UserInfo(TEST_USER_SIMPLE, TEST_NAME, TEST_SURNAME);
-		List<String> tenants = new ArrayList<>();
-		tenants.add(TEST_TENANT_DOMAIN);
 		apimConnector.assignRoleToUser(TEST_ROLE, TEST_ORGANIZATION, userInfo);
 	}
 	
 	@Test
 	public void testRevokeRoleFromUser() {
 		UserInfo userInfo = new UserInfo(TEST_USER_SIMPLE, TEST_NAME, TEST_SURNAME);
-		List<String> tenants = new ArrayList<>();
-		tenants.add(TEST_TENANT_DOMAIN);
 		apimConnector.revokeRoleFromUser(TEST_ROLE, TEST_ORGANIZATION, userInfo);
 	}
 }
