@@ -9,7 +9,7 @@ componentsconfig:
       implementation: it.smartcommunitylab.apimconnector.APIMConnector
       roles: ROLE_PUBLISHER,ROLE_SUBSCRIBER
       host: https://192.168.100.100:9443
-      usermgmtEndpoint: /services/RemoteUserStoreManagerService
+      usermgmtEndpoint: /services/CustomUserStoreManagerService   #extended user store manager admin stub
       usermgmtPassword: admin
       multitenancyEndpoint: /services/TenantMgtAdminService
       multitenancyPassword: admin
