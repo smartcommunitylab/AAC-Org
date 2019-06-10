@@ -94,7 +94,7 @@ public class APIMConnector implements Component{
 			role = "Internal/subscriber";
 		
 		// User creation
-		String password = "test123";// new BigInteger(50, new SecureRandom()).toString(16);
+		String password = new BigInteger(50, new SecureRandom()).toString(16);
 		String [] roles = new String[] {};
 		ClaimValue [] claims = new ClaimValue[] {};
 		try {
@@ -154,7 +154,7 @@ public class APIMConnector implements Component{
 
 	@Override
 	public String createTenant(String tenant, String organization, UserInfo ownerInfo) {
-		String password = "test123";//new BigInteger(50, new SecureRandom()).toString(16);
+		String password = new BigInteger(50, new SecureRandom()).toString(16);
 			try {
 				tmService.createTenant(tenant, ownerInfo.getUsername(), password, ownerInfo.getName(), ownerInfo.getSurname());
 				loginService.authenticate(ownerInfo.getUsername()+"@"+tenant, password);
