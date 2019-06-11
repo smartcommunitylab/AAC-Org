@@ -58,7 +58,6 @@ public class APIMConnectorUtils {
 	}
 
 	public static String startTenantFlow(String tenantDomain, int tenantId) {
-		System.out.println("tenant info: " + tenantId + " "+ tenantDomain);
         if (tenantId == -1) {
             return "Invalid Tenant Domain: " + tenantDomain;
         }

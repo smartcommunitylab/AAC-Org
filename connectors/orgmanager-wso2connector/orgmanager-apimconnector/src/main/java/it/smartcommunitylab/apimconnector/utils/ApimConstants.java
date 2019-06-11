@@ -9,4 +9,7 @@ public class ApimConstants {
 	public static final String COMPONENT_ID 		= "componentId";
 	public static final String HOST 				= "host";
 	
+	public static final String INTERNAL_PUBLISHER = "Internal/publisher";
+	public static final String INTERNAL_SUBSCRIBER = "Internal/subscriber";
+	
 }

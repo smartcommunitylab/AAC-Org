@@ -3,6 +3,7 @@ package it.smartcommunitylab.apimconnector;
 import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import it.smartcommunitylab.apimconnector.services.LoginAdminService;
 import it.smartcommunitylab.apimconnector.services.TenantManagementService;
 import it.smartcommunitylab.apimconnector.services.UserManagementService;
 import it.smartcommunitylab.apimconnector.utils.APIMConnectorUtils;
+import it.smartcommunitylab.apimconnector.utils.ApimConstants;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
 import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonUtils;
@@ -59,7 +61,9 @@ public class APIMConnector implements Component{
 	@Override
 	public String removeUserFromOrganization(UserInfo userInfo, String organizationName, List<String> tenants) {
 		try {
-			List<String> rolesList = umService.getNormalUserRoles(userInfo.getUsername());
+			List<String> rolesList = new ArrayList<String>();
+			rolesList.add(ApimConstants.INTERNAL_PUBLISHER);
+			rolesList.add(ApimConstants.INTERNAL_SUBSCRIBER);
 			RoleModel roleModel = new RoleModel();
 			roleModel.setRemoveRoles(rolesList);
 			for (String tenantDomain : tenants) {
@@ -89,9 +93,9 @@ public class APIMConnector implements Component{
 		// Determines the role to assign
 		String role = fullRole.substring(fullRole.indexOf(":") + 1);
 		if(role.equals("ROLE_PUBLISHER"))
-			role = "Internal/publisher";
+			role = ApimConstants.INTERNAL_PUBLISHER;
 		else
-			role = "Internal/subscriber";
+			role = ApimConstants.INTERNAL_SUBSCRIBER;
 		
 		// User creation
 		String password = new BigInteger(50, new SecureRandom()).toString(16);
@@ -111,7 +115,6 @@ public class APIMConnector implements Component{
 		RoleModel roleModel = new RoleModel();
 		roleModel.setAddRoles(rolesList);
 		try {
-			System.out.println("Assigning " + roleModel.getAddRoles() + " to " + userInfo.getUsername() + " in " + domain + " (ID: " + tenantId + ")");
 			umService.updateRoles(roleModel, userInfo.getUsername(), tenantId, domain);
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException | CustomUserStoreManagerServiceUserStoreExceptionException e) {
 			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while assigning role " + role + " to " + userInfo + ": " + e.getMessage());
@@ -124,17 +127,14 @@ public class APIMConnector implements Component{
 		String domain = fullRole.substring(0, fullRole.indexOf(":"));
 		String role = fullRole.substring(fullRole.indexOf(":") + 1);
 		if(role.equals("ROLE_PUBLISHER"))
-			role = "Internal/publisher";
+			role = ApimConstants.INTERNAL_PUBLISHER;
 		else 
-			role = "Internal/subscriber";
+			role = ApimConstants.INTERNAL_SUBSCRIBER;
 		List<String> rolesList = Arrays.asList(new String[]{role});
 		RoleModel roleModel = new RoleModel();
 		roleModel.setRemoveRoles(rolesList);
-		// For whatever reason, if AddRoles does not contain at least 1 item, the stub will throw an exception
-		roleModel.setAddRoles(Arrays.asList(new String[]{null}));
 		try {
 			int tenantId = tmService.getTenant(domain).getTenantId();
-			System.out.println("Revoking " + roleModel.getRemoveRoles() + " from " + userInfo.getUsername() + " in " + domain + " (ID: " + tenantId + ")");
 			umService.updateRoles(roleModel, userInfo.getUsername(), tenantId, domain);
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException | CustomUserStoreManagerServiceUserStoreExceptionException e) {
 			return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, ": error while revoking role " + role + " from " + userInfo + ": " + e.getMessage());
@@ -158,12 +158,8 @@ public class APIMConnector implements Component{
 			try {
 				tmService.createTenant(tenant, ownerInfo.getUsername(), password, ownerInfo.getName(), ownerInfo.getSurname());
 				loginService.authenticate(ownerInfo.getUsername()+"@"+tenant, password);
-			} catch (AxisFault e) {
-				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while deleting tenant " + tenant + ": " + e.getMessage());
-			} catch (RemoteException e) {
-				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while deleting tenant " + tenant + ": " + e.getMessage());
-			} catch (TenantMgtAdminServiceExceptionException e) {
-				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while deleting tenant " + tenant + ": " + e.getMessage());
+			} catch (RemoteException | TenantMgtAdminServiceExceptionException e) {
+				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while creating tenant " + tenant + ": " + e.getMessage());
 			}
 		
 		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "Tenant " + tenant + " has been created with owner " + ownerInfo + ".");
@@ -189,7 +185,7 @@ public class APIMConnector implements Component{
 		} catch (RemoteException | TenantMgtAdminServiceExceptionException e) {
 			CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while activating tenant " + tenant + ": " + e.getMessage());
 		}
-		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "Tenant " + tenant + " has been updated successfully.");
+		return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 0, "Tenant " + tenant + " has been updated.");
 	}
 	
 }

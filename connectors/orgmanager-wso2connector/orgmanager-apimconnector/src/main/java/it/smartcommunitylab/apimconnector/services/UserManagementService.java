@@ -198,6 +198,9 @@ public class UserManagementService {
 			for (int i = 0; i < toDel.length; i++) toDel[i] = roleModel.getRemoveRoles().get(i);
 		}
 		if (toAdd != null || toDel != null) {
+			// For whatever reason, if toAdd does not contain at least 1 item, the stub will throw an exception
+			if (toAdd == null || toAdd.length == 0)
+				toAdd = new String[] {null};
 			getUMStub().updateRoleListOfUser(username, toDel, toAdd, tenantId, domain);
 		} 
 	}

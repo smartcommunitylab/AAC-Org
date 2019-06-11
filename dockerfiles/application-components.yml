@@ -2,7 +2,7 @@
 componentsconfig:
   components:
     # API Manager
-    - name: APIM
+    - name: API Manager
       componentId: apimanager
       scope: components/apimanager
       format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$

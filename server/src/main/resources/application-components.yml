@@ -4,7 +4,7 @@ componentsconfig:
     # API Manager
     - name: API Manager
       componentId: apimanager
-      scope: apimanager
+      scope: components/apimanager
       format: ^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$
       implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
       roles: ROLE_PUBLISHER,ROLE_SUBSCRIBER
