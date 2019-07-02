@@ -157,6 +157,7 @@ public class APIMConnector implements Component{
 		String password = new BigInteger(50, new SecureRandom()).toString(16);
 			try {
 				tmService.createTenant(tenant, ownerInfo.getUsername(), password, ownerInfo.getName(), ownerInfo.getSurname());
+				System.out.println("APIM Connector: tenant created, logging in as " + ownerInfo.getUsername()+"@"+tenant + " with password " + password);
 				loginService.authenticate(ownerInfo.getUsername()+"@"+tenant, password);
 			} catch (RemoteException | TenantMgtAdminServiceExceptionException e) {
 				return CommonUtils.formatResult(APIMConnectorUtils.getComponentId(), 2, "error while creating tenant " + tenant + ": " + e.getMessage());
