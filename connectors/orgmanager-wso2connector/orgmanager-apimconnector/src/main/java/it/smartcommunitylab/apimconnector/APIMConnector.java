@@ -99,6 +99,7 @@ public class APIMConnector implements Component{
 		
 		// User creation
 		String password = new BigInteger(50, new SecureRandom()).toString(16);
+		password = "test1234"; // TODO delete this line
 		String [] roles = new String[] {};
 		ClaimValue [] claims = new ClaimValue[] {};
 		try {
@@ -155,6 +156,7 @@ public class APIMConnector implements Component{
 	@Override
 	public String createTenant(String tenant, String organization, UserInfo ownerInfo) {
 		String password = new BigInteger(50, new SecureRandom()).toString(16);
+		password = "test1234"; // TODO delete this line
 			try {
 				tmService.createTenant(tenant, ownerInfo.getUsername(), password, ownerInfo.getName(), ownerInfo.getSurname());
 				System.out.println("APIM Connector: tenant created, logging in as " + ownerInfo.getUsername()+"@"+tenant + " with password " + password);
