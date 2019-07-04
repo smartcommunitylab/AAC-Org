@@ -32,14 +32,7 @@ Now that the space has been created, all users who will be administrators of Org
 
 Access the **User Roles** menu, pick `apimanager/carbon.super` as **Role Context**, and then, for each user, click **NEW USER**, insert the **Username**, insert `profilemanager` as **New role**, click **ADD** and then **UPDATE**.
 
-If your AAC installation does not already have an `organizations` space, it might be necessary to create it manually into the database, because it is not supposed to have a parent space and the UI may not allow the **Parent Space** field to be blank.\
-Open a SQL tool and connect it to AAC's database, then execute the following query:\
-`INSERT INTO space_role (id, context, role, space, USER_ID) VALUES (<role_id>, null, 'ROLE_PROVIDER', 'organizations', <admin_id>);`
-
-For `role_id`, pick any number that has not been used. For `admin_id`, pick the ID of the administrator user. If you don't know it, you can obtain it with the following query:\
-`SELECT id FROM user WHERE username=<admin_username>;`
-
-Since the `organizations` space has now been created, you can assign the `ROLE_PROVIDER` role to other administrator users in the same way as you did with the `profilemanager` role.
+Assign the `ROLE_PROVIDER` role to other administrator users in the same way as you did with the `profilemanager` role.
 
 ## Setting up the server
 
