@@ -21,8 +21,9 @@ For **Grant types**, check `Implicit` and `Client credentials`. For **Enabled id
 
 In the **API Access** tab, grant all permissions under `Basic profile service` and under `Role Management Service` and save the app.
 
-Finally, all users that will be administrators of Org-Manager, as well as all organization owners, need the following roles:\
+Finally, all users that will be administrators of Org-Manager, as well as all organization owners, need the following role:\
 `apimanager/carbon.super:profilemanager`.\
+Additionally, administrators will need this one too:\
 `organizations:ROLE_PROVIDER`.
 
 To create the `apimanager/carbon.super` space, access the **Space Owners** menu, choose `apimanager` as **Parent Space** and click on **NEW USER**. Insert the **Username**, insert `carbon.super` under **New spaces** and click **ADD**. Click **UPDATE** to create this space.
@@ -112,7 +113,7 @@ This section describes the available APIs. Make sure to include the **Authorizat
 Assuming the server is being hosted on _localhost_ at port _7979_, the **Swagger UI** for the Org-Manager APIs is available at **http://localhost:7979/swagger-ui.html**.
 
 Most APIs have security restrictions that require the user to be owner of the organization they are attempting to alter, or to have administrator privileges.
-The owner of a specific organization is defined as a user with the following role in AAC: `components/<organization_slug>:ROLE_PROVIDER`\
+The owner of a specific organization is defined as a user with the following role in AAC: `organizations/<organization_slug>:ROLE_PROVIDER`\
 A user has administrator privileges when the access token they are using is a client token with the `organization.mgmt` scope, or when they have the following role in AAC:
 `organizations:ROLE_PROVIDER`
 
@@ -286,7 +287,7 @@ It is also possible, for administrators only, to grant/revoke the status of owne
 **Body**: JSON object containing the user’s name and the roles they should have:
 1. `username` – Name of the user to add. Must be a valid name recognized by the identity provider.
 2. `roles` – Array of JSON objects representing the roles to add. Each role has 2 properties:
-   - `contextSpace` – domain of the role. It must be one of the domains registered in the organization. It should have the following structure: `components/<component_id>/<space name>`
+   - `contextSpace` – domain of the role. It must be one of the domains registered in the organization. It should have the following structure: `components/<component_id>/<tenant>`
    - `role` – Role of the user in the domain
 3. `owner` - Boolean parameter that can only be set by administrators. If this parameter appears in a call performed without administrator rights, it will be ignored.
   
