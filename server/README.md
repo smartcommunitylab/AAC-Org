@@ -32,7 +32,7 @@ Now that the space has been created, all users who will be administrators of Org
 
 Access the **User Roles** menu, pick `apimanager/carbon.super` as **Role Context**, and then, for each user, click **NEW USER**, insert the **Username**, insert `profilemanager` as **New role**, click **ADD** and then **UPDATE**.
 
-Assign the `ROLE_PROVIDER` role to other administrator users in the same way as you did with the `profilemanager` role.
+Assign the `organizations:ROLE_PROVIDER` role to other administrator users in the same way as you did with the `apimanager/carbon.super:profilemanager` role.
 
 ## Setting up the server
 
