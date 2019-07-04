@@ -119,7 +119,7 @@ public class OrganizationMemberService {
 		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
 		List<String> tenantNames = new ArrayList<String>(); // List of just the names of the organization's tenants, used for some connectors
 		for (Tenant t : tenants) {
-			orgTenants.add("components/" + t.toString());
+			orgTenants.add(Constants.ROOT_COMPONENTS + "/" + t.toString());
 			tenantNames.add(t.getTenantId().getName());
 		}
 		

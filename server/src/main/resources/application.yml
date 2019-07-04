@@ -41,7 +41,7 @@ security:
       authenticationScheme: ${OMC_SECURITY_OAUTH2_CLIENT_AUTHENTICATIONSCHEME:query}
       clientAuthenticationScheme: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTAUTHENTICATIONSCHEME:form}
       organizationManagementScope: ${OMC_SECURITY_OAUTH2_CLIENT_ORGANIZATIONMANAGEMENTSCOPE:organization.mgmt}
-      organizationManagementContext: ${OMC_SECURITY_OAUTH2_CLIENT_ORGANIZATIONMANAGEMENTCONTEXT:components}
+      organizationManagementContext: ${OMC_SECURITY_OAUTH2_CLIENT_ORGANIZATIONMANAGEMENTCONTEXT:organizations}
     resource:
       userInfoUri: ${OMC_SECURITY_OAUTH2_RESOURCE_USERINFOURI:profile.basicprofile.me}
 

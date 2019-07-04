@@ -186,7 +186,7 @@ public class ComponentService {
 		for (Tenant t : newTenants) { // loops on all tenants listed in the new configuration
 			previousTenants.remove(t); // tenant is still in use
 			for (OrganizationMember owner : owners)
-				rolesToAdd.add(new Role(securityConfig.getOrganizationManagementContext() + "/" + t, Constants.ROLE_PROVIDER, owner, t.getTenantId().getComponentId())); // prepare role for this tenant
+				rolesToAdd.add(new Role(Constants.ROOT_COMPONENTS + "/" + t, Constants.ROLE_PROVIDER, owner, t.getTenantId().getComponentId())); // prepare role for this tenant
 		}
 		Set<String> componentIds = new HashSet<String>(); // component IDs that appear in the new configuration
 		for (ComponentConfigurationDTO conf : configurationDTOList) {
