@@ -32,19 +32,13 @@ public class LoginAdminService {
 		String sessionCookie = null;
 		try {
 			URL url = new URL(endPoint);
-			System.out.println("APIM LoginAdminService: URL is " + endPoint);
 			String hostname = url.getHost();
-			System.out.println("APIM LoginAdminService: hostname is " + hostname);
-			log.info(url + ", " + hostname);
-			System.out.println("APIM LoginAdminService: attempting login; u:" + userName + ", p:" + password + ", h:" + hostname);
 			if (authenticationAdminStub.login(userName, password, hostname)) {
 				log.info("Login Successful");
 				ServiceContext serviceContext = authenticationAdminStub._getServiceClient().getLastOperationContext()
 						.getServiceContext();
 				sessionCookie = (String) serviceContext.getProperty(HTTPConstants.COOKIE_STRING);
 				log.info(sessionCookie);
-			} else {
-				System.out.println("APIM LoginAdminService: login failed");
 			}
 		} catch (MalformedURLException | RemoteException | LoginAuthenticationExceptionException e) {
 			log.info("Error during authentication of user: " + e.getMessage());
