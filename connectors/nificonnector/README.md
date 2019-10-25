@@ -3,7 +3,7 @@
 This document explains how multitenancy works in NiFi and how to configure the connector so that tenancy operations issued by the server are performed in NiFi.\
 - If you're not interested in how multi-tenancy is represented in NiFi, skip to the [Certificates](#certificates) section to create the necessary certificates.\
 - If you don't need to create certificates and only need to configure the connector, skip to the [Configuration](#configuration) section.
-- Alternativelly, in order to create a secure NiFi cluster, we need to automatically genrate a keystore and truststore for each node in the cluster, and a client certificate that we can load in our browser to access the UI. <br/>
+- Alternativelly, in order to create a secure NiFi cluster, we need to automatically generate a keystore and truststore for each node in the cluster, and a client certificate that we can load in our browser to access the UI. <br/>
 At this point many people get frustrated with all of the steps required to generate certificates,<br/>
 but you can enter the [NIFI Tls Toolkit](#nifi-tls-toolkit)
 
