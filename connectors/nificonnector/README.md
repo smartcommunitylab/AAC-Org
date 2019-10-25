@@ -1,8 +1,12 @@
 # NiFi Connector
 
 This document explains how multitenancy works in NiFi and how to configure the connector so that tenancy operations issued by the server are performed in NiFi.\
-If you're not interested in how multi-tenancy is represented in NiFi, skip to the [Certificates](#certificates) section to create the necessary certificates.\
-If you don't need to create certificates and only need to configure the connector, skip to the [Configuration](#configuration) section.
+- If you're not interested in how multi-tenancy is represented in NiFi, skip to the [Certificates](#certificates) section to create the necessary certificates.\
+- If you don't need to create certificates and only need to configure the connector, skip to the [Configuration](#configuration) section.
+- Alternativelly, in order to create a secure NiFi cluster, we need to automatically genrate a keystore and truststore for each node in the cluster, and a client certificate that we can load in our browser to access the UI. <br/>
+At this point many people get frustrated with all of the steps required to generate certificates,<br/>
+but you can enter the [NIFI Tls Toolkit](#nifi-tls-toolkit)
+
 
 ## Multi-tenancy in NiFi
 The idea of multi-tenancy in NiFi is that **process groups** represent tenants and have **policies** defined for them, listing which **users** or **user groups** are allowed to view or alter them. User groups are equivalent to teams, so if permission to view a process group is given to a user group, all users belonging to it can view it.
@@ -148,6 +152,35 @@ This particular configuration will take the administrator’s name from the `Com
 
 	nifi.security.identity.mapping.pattern.dn=^(EMAILADDRESS=(.*?), )?CN=(.*?), OU=(.*?), O=(.*?), L=(.*?), ST=(.*?), C=(.*?)$
 	nifi.security.identity.mapping.value.dn=$3
+
+## NIFI Tls Toolkit
+
+The [**Apache NiFi Toolkit**](https://nifi.apache.org/docs/nifi-docs/html/toolkit-guide.html#overview) will be an additional artifact produced when building NiFi, and will provide common utilities outside of the normal NiFi application. The first tool provided will be a TLS toolkit to help generate certificates.<br/>
+Otherwise you may download the NiFi Toolkit for your release of NiFi @ https://nifi.apache.org/download.html and extract it on each node. <br/>
+Navigate to the toolkit’s bin directory (e.g. /opt/nifi-toolkit/bin/)
+- Initially run the help 
+
+>
+	./bin/tls-toolkit.sh standalone -h
+
+- Run tls-toolkit.sh to generate a truststore, keystore, and updated nifi.properties file with the following syntax:
+
+>
+	./nifi-toolkit-1.9.2/bin/tls-toolkit.sh standalone -n '<DOMAIN_NAME>' -O -o ../keystore_output
+	$ tree keystore_output/
+	keystore_output/
+	├── CN=scarroll_OU=NIFI.p12
+	├── CN=scarroll_OU=NIFI.password
+	├── DOMAIN_NAME
+	│  ├── keystore.jks
+	│  ├── nifi.properties
+	│  └── truststore.jks
+	├── nifi-cert.pem
+	└── nifi-key.key
+
+Copy the resultant keystore.jks, truststore.jks, and nifi.properties files to the NiFi instance’s conf/ directory.
+
+
 
 ## Configuration
 Many of the fields represent NiFi API end-points and have fixed values: although unlikely, there is a chance that they may change in newer versions of NiFi. If you suspect this has happened, you should be able to find the new end-point in the [official documentation](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html).
