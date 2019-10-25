@@ -87,3 +87,18 @@ componentsconfig:
       scope: components/geoserver
       implementation: it.smartcommunitylab.orgmanager.componentsmodel.DefaultComponentImpl
       roles: ROLE_MANAGER,ROLE_USER
+      
+    # Grafana
+    - name: Grafana
+      componentId: grafana
+      scope: components/grafana
+      implementation: it.smartcommunitylab.grafanaconnector.GrafanaConnector
+      host: http://localhost:3000
+      username:  admin      # Used in Basic Auth for Admin Organizations API
+      password:  albana88C.     # Used in Basic Auth for Admin Organizations API
+      crudOrganization: /api/orgs
+      crudUser: /api/users
+      crudAdminUser: /api/admin/users
+      userStaticPassword: password
+      roles: ROLE_MANAGER,ROLE_USER
+

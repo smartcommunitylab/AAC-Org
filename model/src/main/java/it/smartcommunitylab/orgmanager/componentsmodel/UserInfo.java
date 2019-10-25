@@ -1,10 +1,19 @@
 package it.smartcommunitylab.orgmanager.componentsmodel;
 
+/**
+ * Class that contains the data structure for the user that is going to be handled
+ *
+ */
 public class UserInfo {
 	private String username;
 	private String name;
 	private String surname;
-	
+	/**
+	 * Constructor for creating new user
+	 * @param username
+	 * @param name
+	 * @param surname
+	 */
 	public UserInfo(String username, String name, String surname) {
 		this.username = username;
 		this.name = name;
