@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.smartcommunitylab.orgmanager</groupId>
 	<artifactId>orgmanager-apimconnector</artifactId>
-	<version>1.0.0-RELEASE</version>
+	<version>1.0.0.RELEASE</version>
 	<name>Connector for APIM Integration</name>
 	<description>Connector for APIM Integration</description>
 
