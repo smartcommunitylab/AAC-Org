@@ -95,7 +95,7 @@ componentsconfig:
       implementation: it.smartcommunitylab.grafanaconnector.GrafanaConnector
       host: http://localhost:3000
       username:  admin      # Used in Basic Auth for Admin Organizations API
-      password:  albana88C.     # Used in Basic Auth for Admin Organizations API
+      password:  admin      # Used in Basic Auth for Admin Organizations API
       crudOrganization: /api/orgs
       crudUser: /api/users
       crudAdminUser: /api/admin/users

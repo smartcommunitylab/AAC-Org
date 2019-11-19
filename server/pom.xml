@@ -84,8 +84,13 @@
 		<dependency>
 			<groupId>it.smartcommunitylab.orgmanager</groupId>
 			<artifactId>orgmanager-apimconnector</artifactId>
-			<version>1.0.0-RELEASE</version>
+			<version>1.0.0.RELEASE</version>
 		</dependency>
+    <dependency>
+      <groupId>it.smartcommunitylab.orgmanager</groupId>
+      <artifactId>orgmanager-grafanaconnector</artifactId>
+      <version>1.0.0.RELEASE</version>
+    </dependency>
 		<dependency>
 			<groupId>it.smartcommunitylab</groupId>
 			<artifactId>aac.client</artifactId>
