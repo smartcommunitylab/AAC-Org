@@ -2,8 +2,6 @@ package it.smartcommunitylab.orgmanager.dto;
 
 import java.util.Objects;
 
-import it.smartcommunitylab.orgmanager.model.Role;
-
 public class RoleDTO {
 	private String contextSpace; // contains both the context and the space of the domain
 	private String role;
@@ -13,10 +11,6 @@ public class RoleDTO {
 	public RoleDTO(String contextSpace, String role) {
 		this.contextSpace = contextSpace;
 		this.role = role;
-	}
-	
-	public RoleDTO(Role role) {
-		this(role.getRoleId().getContextSpace(), role.getRoleId().getRole());
 	}
 	
 	public String getContextSpace() {

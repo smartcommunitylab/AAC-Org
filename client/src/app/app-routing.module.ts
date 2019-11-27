@@ -1,10 +1,8 @@
 import { NgModule, Injectable } from '@angular/core';
 import { RouterModule, Routes, Router, CanActivate, CanActivateChild, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
-import { LoginComponent } from './components/login/login.component';
 import { ActiveOrgComponent } from './components/active-org/active-org.component';
 import { InactivateOrgComponent } from './components/inactivate-org/inactivate-org.component';
-import { BlockOrgComponent } from './components/block-org/block-org.component';
 import { DetailsOrgComponent } from './components/details-org/details-org.component';
 
 import { LoginService } from './services/auth/login.service';
@@ -44,8 +42,6 @@ const routes: Routes = [
   { path: 'activeOrg', component: ActiveOrgComponent, canActivate: [AuthGuard] },
   { path: 'detailsOrg/:id', component: DetailsOrgComponent, canActivate: [AuthGuard] },
   { path: 'inactiveOrg', component: InactivateOrgComponent, canActivate: [AuthGuard] },
-  { path: 'blockOrg', component: BlockOrgComponent, canActivate: [AuthGuard] },
-  { path: 'login', component: LoginComponent },
   { path: '**', redirectTo: 'activeOrg/', pathMatch: 'full'}
 ];
 

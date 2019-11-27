@@ -1,11 +1,10 @@
 import { Component, OnInit, Inject } from '@angular/core';
-import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource} from '@angular/material';
-import {ActivatedRoute} from '@angular/router';
-import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
-import {OrganizationService} from '../../services/organization.service';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource } from '@angular/material';
+import { FormControl, Validators, FormBuilder, FormGroup } from '@angular/forms';
+import { OrganizationService } from '../../services/organization.service';
 import { UsersService } from '../../services/users.service';
-import { UserRights, OrganizationProfile, contentOrg } from '../../models/profile';
-import {HttpErrorResponse} from '@angular/common/http';
+import { UserRights, OrganizationProfile, ContentOrg } from '../../models/profile';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-active-org',
@@ -14,29 +13,33 @@ import {HttpErrorResponse} from '@angular/common/http';
 })
 export class ActiveOrgComponent implements OnInit {
 
-  constructor(private usersService: UsersService, private organizationService: OrganizationService, private route: ActivatedRoute, public dialog: MatDialog) { }
+  constructor(
+    private usersService: UsersService,
+    private organizationService: OrganizationService,
+    public dialog: MatDialog
+  ) { }
   userRights: UserRights;
   orgProfile: OrganizationProfile[];
-  orgActive: Array<OrganizationProfile>=[];
-  contentOrg: contentOrg;
+  orgActive: Array<OrganizationProfile> = [];
+  contentOrg: ContentOrg;
   dataSource: any;
   displayedColumns: any;
 
-  
+
   ngOnInit() {
     this.dataSource = '';
     this.usersService.getUserRights().then(response => {
       this.userRights = response;
     });
     this.organizationService.getOrganizations().then(response => {
-      for(var i=0; i<response["content"].length; i++){
-        if(response["content"][i]["active"]){
-          this.orgActive.push(response["content"][i]);
+      for (let i = 0; i < response['content'].length; i++) {
+        if (response['content'][i]['active']) {
+          this.orgActive.push(response['content'][i]);
         }
       }
       this.orgProfile = response;
       this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'details'];
-      this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgActive);
+      this.dataSource = new MatTableDataSource<OrganizationProfile>(this.orgActive);
     });
 
   }
@@ -46,31 +49,31 @@ export class ActiveOrgComponent implements OnInit {
    * Create New Organization
    */
   openDialog4CreateOrg(): void {
-    let dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
+    const dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
       width: '40%',
-      data: { org_name: "", org_domain:"", org_description:"", dialogStatus:"TitleCreateOrg"  }
+      data: { org_name: '', org_domain: '', org_description: '', dialogStatus: 'TitleCreateOrg' }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if(result){
+      if (result) {
         this.organizationService.setOrganization(result).subscribe(
           res => {
-            //for reload the table
-            setTimeout(()=>{  this.ngOnInit();},1000);
+            // for reload the table
+            setTimeout(() => { this.ngOnInit(); }, 1000);
           },
           (err: HttpErrorResponse) => {
-            //open a error dialog with err.error
-            if(err.error){
-              let dialogRefErr = this.dialog.open(CreateOrganizationDialogComponent, {
+            // open a error dialog with err.error
+            if (err.error) {
+              const dialogRefErr = this.dialog.open(CreateOrganizationDialogComponent, {
                 width: '30%',
-                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+                data: { error: err.error, dialogStatus: 'TitleErrorMessage' }
               });
             }
-            
+
             if (err.error instanceof Error) {
               console.log('Client-side error occured.');
             } else {
-              console.log('Server-side error occured.',err);
+              console.log('Server-side error occured.', err);
             }
           }
         );
@@ -80,29 +83,29 @@ export class ActiveOrgComponent implements OnInit {
 
   /**
    * Delete an Org
-   * @param orgID 
-   * @param orgName 
+   * @param orgID
+   * @param orgName
    */
   openDialog4ChangeStatusOrg(orgID, orgName): void {
 
-    let dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
+    const dialogRef = this.dialog.open(CreateOrganizationDialogComponent, {
       width: '25%',
-      data: { org_name: orgName, org_id:orgID, dialogStatus:"TitleChangeStatusOrg"  }
+      data: { org_name: orgName, org_id: orgID, dialogStatus: 'TitleChangeStatusOrg' }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if(result){
-        this.organizationService.disableOrganization(orgID,orgName).subscribe(
+      if (result) {
+        this.organizationService.disableOrganization(orgID, orgName).subscribe(
           res => {
-            //for reload the table
-            setTimeout(()=>{  this.ngOnInit();},1000);
+            // for reload the table
+            setTimeout(() => { this.ngOnInit(); }, 1000);
           },
           (err: HttpErrorResponse) => {
-            //open a error dialog with err.error
-            if(err.error){
-              let dialogRefErr = this.dialog.open(CreateOrganizationDialogComponent, {
+            // open a error dialog with err.error
+            if (err.error) {
+              const dialogRefErr = this.dialog.open(CreateOrganizationDialogComponent, {
                 width: '30%',
-                data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+                data: { error: err.error, dialogStatus: 'TitleErrorMessage' }
               });
             }
             if (err.error instanceof Error) {
@@ -112,7 +115,7 @@ export class ActiveOrgComponent implements OnInit {
             }
           }
         );
-        
+
       }
     });
   }
@@ -121,25 +124,30 @@ export class ActiveOrgComponent implements OnInit {
  * Component for Dialog
  */
 @Component({
-  selector : 'create-org-dialog',
-  templateUrl : 'create-org-dialog.html',
+  selector: 'create-org-dialog',
+  templateUrl: 'create-org-dialog.html',
   styleUrls: ['./active-org.component.css']
 })
-export class CreateOrganizationDialogComponent {
-  constructor(public dialogRef: MatDialogRef<CreateOrganizationDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any,  private _fb: FormBuilder) { }
-  checkedProvider= false;
+export class CreateOrganizationDialogComponent implements OnInit {
+  constructor(
+    public dialogRef: MatDialogRef<CreateOrganizationDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any, private _fb: FormBuilder
+  ) { }
+
+  checkedProvider = false;
   orgNameControl = new FormControl('', [Validators.required]);
   ownerNameControl = new FormControl('', [Validators.required]);
   ownerSurnameControl = new FormControl('', [Validators.required]);
-  ownerEmailControl= new FormControl('', [Validators.required, Validators.email]);
-  orgDescriptionControl= new FormControl('', [Validators.required]);
-  orgDomainControl= new FormControl('');
-  webAddressControl= new FormControl('');
-  logoControl= new FormControl('');
-  statusControl= new FormControl(true);
+  ownerEmailControl = new FormControl('', [Validators.required, Validators.email]);
+  orgDescriptionControl = new FormControl('', [Validators.required]);
+  orgDomainControl = new FormControl('');
+  webAddressControl = new FormControl('');
+  logoControl = new FormControl('');
+  statusControl = new FormControl(true);
   formDoc: FormGroup;
   phoneNumbers: string[] = [];
   tags: string[] = [];
+
   ngOnInit() {
     this.formDoc = this._fb.group({
       basicfile: []
@@ -150,47 +158,49 @@ export class CreateOrganizationDialogComponent {
   }
   getErrorMessage4orgName() {
     return this.orgNameControl.hasError('required') ? 'You must enter the name of the organization.' :
-            '';
+      '';
   }
-  getErrorMessage4ownerName(){
+  getErrorMessage4ownerName() {
     return this.ownerNameControl.hasError('required') ? 'Enter the name of the owner.' :
-            '';
+      '';
   }
-  getErrorMessage4ownerSurname(){
+  getErrorMessage4ownerSurname() {
     return this.ownerNameControl.hasError('required') ? 'Enter the surame of the owner.' : '';
   }
-  getErrorMessage4ownerEmail(){
+  getErrorMessage4ownerEmail() {
     return this.ownerEmailControl.hasError('required') ? 'You must enter the e-mail address of the owner.' :
-        this.ownerEmailControl.hasError('email') ? 'Not a valid e-mail address.' :
-            '';
+      this.ownerEmailControl.hasError('email') ? 'Not a valid e-mail address.' :
+        '';
   }
   getErrorMessage4orgDescription() {
     return this.orgNameControl.hasError('required') ? 'You must provide a description for the organization.' :
-            '';
+      '';
   }
   getErrorMessage4orgDomain() {
     return this.orgNameControl.hasError('required') ? 'You must enter the domain of the organization.' :
-            '';
+      '';
   }
   onNoClick(): void {
     this.dialogRef.close();
   }
-  
+
   addPhoneNumber(num: string): void {
-	if (num && num.trim().length > 0 && !this.phoneNumbers.includes(num.trim()))
-	  this.phoneNumbers.push(num.trim());
+    if (num && num.trim().length > 0 && !this.phoneNumbers.includes(num.trim())) {
+      this.phoneNumbers.push(num.trim());
+    }
   }
-  
+
   removePhoneNumber(index: number): void {
-	this.phoneNumbers.splice(index, 1);
+    this.phoneNumbers.splice(index, 1);
   }
-  
-  addTag(tag: string) : void {
-	if (tag && tag.trim().length > 0 && !this.tags.includes(tag.trim()))
-	  this.tags.push(tag.trim());
+
+  addTag(tag: string): void {
+    if (tag && tag.trim().length > 0 && !this.tags.includes(tag.trim())) {
+      this.tags.push(tag.trim());
+    }
   }
-  
+
   removeTag(index: number): void {
-	this.tags.splice(index, 1);
+    this.tags.splice(index, 1);
   }
 }

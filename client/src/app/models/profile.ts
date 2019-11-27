@@ -10,14 +10,14 @@ export class UsersRoles {
     constructor (public contextSpace: string, public role: string) {}
 }
 export class UserRights {
-	userName: string;
-	admin: boolean;
-	ownedOrganizations: number[];
+    userName: string;
+    admin: boolean;
+    ownedOrganizations: number[];
 }
 export class ActivatedComponentsProfile {
     componentId: string;
     componentName: string;
-    tenants:string[];
+    tenants: string[];
 }
 export class ComponentsProfile {
     content: ContentCompo[];
@@ -41,7 +41,7 @@ export class ContentCompo {
     roles: string[];
 }
 export class OrganizationProfile {
-    content: contentOrg[];
+    content: ContentOrg[];
     pageable: Pageable;
     totalElements: number;
     totalPages: number;
@@ -53,16 +53,16 @@ export class OrganizationProfile {
     first: number;
     empty: number;
 }
-export class contentOrg {
+export class ContentOrg {
     id: number;
     name: string;
     slug: string;
     description: string;
-    contacts: contactsOrg;
+    contacts: ContactsOrg;
     tag: string;
     active: boolean;
 }
-export class contactsOrg {
+export class ContactsOrg {
     email: string;
     name: string;
     surname: string;

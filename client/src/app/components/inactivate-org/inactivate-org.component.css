@@ -9,3 +9,8 @@
 .dialog-container-form-field > * {
     width: 100%;
 }
+
+.descr-short {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

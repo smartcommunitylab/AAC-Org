@@ -17,13 +17,9 @@ import {MatRadioModule} from '@angular/material/radio';
 import {  AuthGuard, AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HeaderComponent } from './components/header/header.component';
-import { LoginComponent } from './components/login/login.component';
 import { ActiveOrgComponent, CreateOrganizationDialogComponent } from './components/active-org/active-org.component';
 import { InactivateOrgComponent, ModifyInactiveOrgDialogComponent } from './components/inactivate-org/inactivate-org.component';
-import { BlockOrgComponent } from './components/block-org/block-org.component';
-import { DetailsOrgComponent, detailsOrganizationDialogComponent} from './components/details-org/details-org.component';
-import { InputFileComponent } from './components/input-file/input-file.component';
-import { UsersComponent } from './components/users/users/users.component';
+import { DetailsOrgComponent, DetailsOrganizationDialogComponent} from './components/details-org/details-org.component';
 
 import { ConfigService } from './services/config.service';
 import { ComponentsService } from './services/components.service';
@@ -33,28 +29,23 @@ import { LoginService } from './services/auth/login.service';
 import { TokenInterceptor } from './services/auth/token.interceptor';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { HttpModule } from '@angular/http';
 
 
 @NgModule({
   declarations: [
     AppComponent,
     HeaderComponent,
-    LoginComponent,
     ActiveOrgComponent,
     InactivateOrgComponent,
-    BlockOrgComponent,
     CreateOrganizationDialogComponent,
     ModifyInactiveOrgDialogComponent,
     DetailsOrgComponent,
-    detailsOrganizationDialogComponent,
-    InputFileComponent,
-    UsersComponent
+    DetailsOrganizationDialogComponent
   ],
   entryComponents: [
     CreateOrganizationDialogComponent,
     ModifyInactiveOrgDialogComponent,
-    detailsOrganizationDialogComponent,
+    DetailsOrganizationDialogComponent,
   ],
   imports: [
     BrowserModule,

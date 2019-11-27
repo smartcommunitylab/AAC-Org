@@ -35,7 +35,7 @@ public class OrganizationMemberController {
 	}
 	
 	@DeleteMapping("api/organizations/{organizationId}/members/{memberId}")
-	public void removeUserRoles(@PathVariable Long organizationId, @PathVariable Long memberId) {
+	public void removeUserRoles(@PathVariable Long organizationId, @PathVariable String memberId) {
 		organizationMemberService.removeUser(organizationId, memberId);
 	}
 }

@@ -1,11 +1,14 @@
 package it.smartcommunitylab.orgmanager.service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -17,23 +20,19 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.smartcommunitylab.orgmanager.common.Constants;
+import it.smartcommunitylab.aac.model.BasicProfile;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
 import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
 import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonUtils;
-import it.smartcommunitylab.orgmanager.config.SecurityConfig;
+import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
+import it.smartcommunitylab.orgmanager.dto.ComponentConfigurationDTO;
 import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO.Contacts;
 import it.smartcommunitylab.orgmanager.model.Organization;
-import it.smartcommunitylab.orgmanager.model.OrganizationMember;
-import it.smartcommunitylab.orgmanager.model.Role;
-import it.smartcommunitylab.orgmanager.model.Tenant;
-import it.smartcommunitylab.orgmanager.repository.OrganizationMemberRepository;
 import it.smartcommunitylab.orgmanager.repository.OrganizationRepository;
-import it.smartcommunitylab.orgmanager.repository.RoleRepository;
-import it.smartcommunitylab.orgmanager.repository.TenantRepository;
 
 @Service
 @Transactional
@@ -42,23 +41,16 @@ public class OrganizationService {
 	private OrganizationRepository organizationRepository;
 	
 	@Autowired
-	private OrganizationMemberRepository organizationMemberRepository;
-	
-	@Autowired
-	private RoleRepository roleRepository;
-	
-	@Autowired
-	private TenantRepository tenantRepository;
-	
-	@Autowired
 	private OrgManagerUtils utils;
-	
-	@Autowired
-	private SecurityConfig securityConfig;
 	
 	@Autowired
 	private ComponentsModel componentsModel;
 	
+	@Autowired
+	private RoleService roleService;
+	@Autowired
+	private ComponentService componentService;
+
 	@Transactional(readOnly=true)
 	/**
 	 * Lists the organizations in pages. The organizations may be filtered by name (case insensitive).
@@ -75,19 +67,10 @@ public class OrganizationService {
 		List<Organization> organizations = organizationRepository.findByNameIgnoreCaseContaining(name, pageable);
 		List<OrganizationDTO> organizationsListDTO = new ArrayList<OrganizationDTO>();
 		
-		if (utils.userHasAdminRights()) { // user has admin rights if they are admin or have the organization management scope
-			for (Organization o : organizations) // users with admin rights can see all organizations
-				organizationsListDTO.add(new OrganizationDTO(o));
-		} else { // users without admin rights can only see organizations they are part of
-			String userName = utils.getAuthenticatedUserName(); // user name of the authenticated user
-			List<OrganizationMember> memberOrgs = organizationMemberRepository.findByUsername(userName); // organizations the user is part of
-			Set<Long> belongsToOrgIds = new HashSet<Long>();
-			for (OrganizationMember m : memberOrgs)
-				belongsToOrgIds.add(m.getOrganization().getId());
-			for (Organization o : organizations) {
-				if (belongsToOrgIds.contains(o.getId())) // organization is one the user is part of
-					organizationsListDTO.add(new OrganizationDTO(o)); // user can view this organization
-			}
+		for (Organization o : organizations) // users with admin rights can see all organizations
+			organizationsListDTO.add(new OrganizationDTO(o));
+		if (!utils.userHasAdminRights()) {  // users without admin rights can only see organizations they are part of
+			organizationsListDTO = organizationsListDTO.stream().filter(o -> utils.userIsMember(o.getSlug())).collect(Collectors.toList());
 		}
 		return new PageImpl<OrganizationDTO>(organizationsListDTO, pageable, organizationsListDTO.size()); // returns results as a page
 	}
@@ -129,19 +112,18 @@ public class OrganizationService {
 		// Checks that the input name and surname match the data saved on the identity provider
 		String ownerName = organization.getContactsEmail();
 		UserInfo contactsUser = new UserInfo(ownerName, organization.getContactsName(), organization.getContactsSurname());
-		UserInfo idpUser = utils.getIdpUserDetails(ownerName);
+		BasicProfile profile = utils.getIdpUserProfile(ownerName);
+		UserInfo idpUser = new UserInfo(profile.getUsername(), profile.getName(), profile.getSurname());
 		if (!contactsUser.equals(idpUser))
 			throw new IllegalArgumentException("The owner " + contactsUser + " does not match the user registered in AAC: " + idpUser);
 		
 		// Creates the owner and gives them the ROLE_PROVIDER role
-		Long userId = utils.getUserId(ownerName); // ID used by the identity provider for the owner
-		OrganizationMember owner = new OrganizationMember(ownerName, organization, userId, true);
-		owner = organizationMemberRepository.save(owner); // stores the owner
-		Role role = new Role(securityConfig.getOrganizationManagementContext() + "/" + organization.getSlug(), Constants.ROLE_PROVIDER, owner, null);
-		roleRepository.save(role); // stores the owner's role
-		
-		// Updates the identity provider
-		utils.idpAddRole(userId, role); // updates the owner's role in the identity provider as well
+		String userId = profile.getUserId(); // ID used by the identity provider for the owner
+		User toAdd = new User();
+		toAdd.setUserId(userId);
+		toAdd.setUsername(ownerName);
+		toAdd.setRoles(Collections.singleton(AACRoleDTO.orgOwner(organization.getSlug())));
+		roleService.addRoles(Collections.singleton(toAdd));
 		
 		// Performs the operation in the components
 		Map<String, Component> componentMap = componentsModel.getListComponents();
@@ -170,11 +152,10 @@ public class OrganizationService {
 	public OrganizationDTO updateOrganization(Long id, OrganizationDTO organizationDTO) {
 		if (organizationDTO == null)
 			return null; // nothing to update
-		Organization organization = organizationRepository.getOne(id); // finds the organization to change
-		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
+		Organization organization = organizationRepository.findById(id).orElse(null); // finds the organization
 		
 		// Checks if the user has permission to perform this action
-		if (!utils.userHasAdminRights() && !utils.userIsOwner(organization))
+		if (!utils.userHasAdminRights() && !utils.userIsOwner(organization.getSlug()))
 			throw new AccessDeniedException("Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
 		
 		// Only description, contacts and tags may be changed
@@ -203,7 +184,8 @@ public class OrganizationService {
 				organization.setContactsSurname(contacts.getSurname());
 			}
 			UserInfo contactsUser = new UserInfo(contacts.getEmail(), contacts.getName(), contacts.getSurname());
-			UserInfo idpUser = utils.getIdpUserDetails(contacts.getEmail());
+			BasicProfile profile = utils.getIdpUserProfile(contacts.getEmail());
+			UserInfo idpUser = new UserInfo(profile.getUsername(), profile.getName(), profile.getSurname());
 			if (!contactsUser.equals(idpUser))
 				throw new IllegalArgumentException("The owner " + contactsUser + " does not match the user registered in AAC: " + idpUser);
 			
@@ -230,7 +212,7 @@ public class OrganizationService {
 	public OrganizationDTO enableOrganization(Long id) {
 		if (!utils.userHasAdminRights())
 			throw new AccessDeniedException("Access is denied: user does not have administrator rights.");
-		Organization organization = organizationRepository.getOne(id);
+		Organization organization = organizationRepository.findById(id).orElse(null); // finds the organization
 		organization.setActive(true);
 		return new OrganizationDTO(organizationRepository.save(organization));
 	}
@@ -244,7 +226,7 @@ public class OrganizationService {
 	public OrganizationDTO disableOrganization(Long id) {
 		if (!utils.userHasAdminRights())
 			throw new AccessDeniedException("Access is denied: user does not have administrator rights.");
-		Organization organization = organizationRepository.getOne(id);
+		Organization organization = organizationRepository.findById(id).orElse(null); // finds the organization
 		organization.setActive(false);
 		return new OrganizationDTO(organizationRepository.save(organization));
 	}
@@ -258,37 +240,28 @@ public class OrganizationService {
 		if (!utils.userHasAdminRights())
 			throw new AccessDeniedException("Access is denied: user does not have administrator rights.");
 		
-		Organization organization = organizationRepository.getOne(id);
-		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
+		Organization organization = organizationRepository.findById(id).orElse(null); // finds the organization
 		
 		if (organization.getActive())
 			throw new IllegalStateException("Unable to delete organization with ID " + id + ": the organization must first be disabled.");
 		
-		// Retrieves the list of members belonging to the organization
-//		List<OrganizationMember> members = organizationMemberRepository.findByOrganization(organization);
-		
-		// Maps each member to the roles they have in the organization
-		List<Object[]> memberRolesList = roleRepository.findOrganizationMembersWithRoles(organization.getId(), "");
-		Map<OrganizationMember, List<Role>> memberRolesMap = utils.createMemberToRolesMap(memberRolesList);
-		List<Role> rolesToRemove = new ArrayList<Role>();
-		for (OrganizationMember m : memberRolesMap.keySet())
-			rolesToRemove.addAll(memberRolesMap.get(m));
-		List<String> tenantsToDelete = new ArrayList<String>();
-		for (Tenant t : tenantRepository.findByOrganization(organization))
-			tenantsToDelete.add(t.getTenantId().getName());
-		
-		roleRepository.deleteAll(rolesToRemove);
-		tenantRepository.deleteByOrganization(organization); // delete all tenants within such organization
-		organizationMemberRepository.deleteByOrganization(organization); // all members are removed from the organization
-		organizationRepository.delete(organization); // deletes the organization
-		
-		// Updates roles in the identity provider
-		for (OrganizationMember m : memberRolesMap.keySet())
-			utils.idpRemoveRoles(m.getIdpId(), memberRolesMap.get(m));
+		List<ComponentConfigurationDTO> componentConfigs = componentService.getConfigurations(id);
+		final Map<String, List<String>> tenantsToDelete = new HashMap<>();
+		componentConfigs.forEach(c -> {
+			tenantsToDelete.put(c.getComponentId(), new LinkedList<String>(c.getTenants()));
+			c.setTenants(Collections.<String>emptySet());	
+		});
+		componentService.updateConfigurations(id, componentConfigs);
+		Set<User> organizationMembers = roleService.getOrganizationMembers(organization.getSlug());
+		roleService.deleteRoles(organizationMembers);
 		
 		// Deletes the organization in the components
 		Map<String, Component> componentMap = componentsModel.getListComponents();
 		for (String s : componentMap.keySet())
-			componentMap.get(s).deleteOrganization(organization.getName(), tenantsToDelete);
+			componentMap.get(s).deleteOrganization(organization.getName(), tenantsToDelete.get(s));
+		
+		organizationRepository.delete(organization); // deletes the organization
+		
+
 	}
 }

@@ -12,13 +12,12 @@ export class ComponentsService {
   /**
    * Get Component List
    */
-  
   getComponents(): Promise<ComponentsProfile[]> {
     return this.http.get(`${ this.config.get('locUrl') }components/`)
     .map(response => response as ComponentsProfile[])
     .toPromise();
   }
-  
+
   /**
    * Get Activated Component List
    */
@@ -27,17 +26,17 @@ export class ComponentsService {
     .map(response => response as ActivatedComponentsProfile[])
     .toPromise();
   }
-  
+
   /**
    * gat all tenants of a component
-   * @param componentID 
+   * @param componentID
    */
-  getTenantsBySelectedComponent(componentID: string):Promise<string[]>{
+  getTenantsBySelectedComponent(componentID: string): Promise<string[]> {
     return this.http.get(`${ this.config.get('locUrl') }components/${componentID}/roles`)
     .map(response => response as string[])
     .toPromise();
   }
-  
+
   /**
    * Set Component in a particular Org
    * param: org id, list of tenants with component ID
@@ -55,17 +54,17 @@ export class ComponentsService {
       return false;
     }
   }
-  
+
   getMergeActivatedComponents(): ActivatedComponentsProfile[] {
     return this.mergeActivatedComponents;
   }
-  
+
   modifyComponent(components: ActivatedComponentsProfile[], indexComponent: number, indexTenant: number) {
     components[indexComponent].tenants.splice(indexTenant, 1);
   }
-  
+
   addTenant(components: ActivatedComponentsProfile[], indexComponent: number) {
     components[indexComponent].tenants.push('');
   }
-  
+
 }

@@ -89,7 +89,6 @@
                     {{component.componentName}}
                 </mat-panel-title>
                 <mat-panel-description>
-                    Add tenants
                 </mat-panel-description>
             </mat-expansion-panel-header>
             <div *ngFor="let tenant of component.tenants; let indexTenant = index;  trackBy: trackByTenant">
@@ -258,12 +257,11 @@
 
     <!-- Details Role -->
     <div *ngIf="data.dialogStatus=='TitleDetailsRole'">
-        <mat-card *ngFor="let role of data.userData.roles; let in=index">
-            <mat-card-header>
-                <mat-card-title class="mat-h4">{{role.contextSpace}}/{{role.role}}</mat-card-title>
-            </mat-card-header>
-        </mat-card> 
-        <br/> 
+        <table class="mat-table">
+            <tr class="mat-header-row"><th class="mat-header-cell">Component</th><th class="mat-header-cell">Tenant</th><th class="mat-header-cell">Role</th></tr>
+            <tr class="mat-row" *ngFor="let e of data.roles"><td class="mat-cell">{{e.component}}</td><td class="mat-cell">{{e.tenant}}</td><td class="mat-cell">{{e.role}}</td></tr>
+            </tbody>
+        </table>
     </div>
 
     <!-- Error Message -->

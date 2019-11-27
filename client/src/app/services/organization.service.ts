@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { ConfigService } from './config.service';
 import {HttpErrorResponse, HttpClient} from '@angular/common/http';
-import { OrganizationProfile, contentOrg } from '../models/profile';
+import { OrganizationProfile, ContentOrg } from '../models/profile';
 import 'rxjs/add/operator/map';
 
 @Injectable()
 export class OrganizationService {
 
   constructor(private http: HttpClient, private config: ConfigService) { }
-  myOrg: contentOrg;
+  myOrg: ContentOrg;
   /**
    * Get All Organizations
    */
@@ -22,19 +22,19 @@ export class OrganizationService {
    * Set Organizations
    * param: list of Organizations information
    */
-  setOrganization(data: contentOrg): any {
+  setOrganization(data: ContentOrg): any {
     return this.http.post(`${ this.config.get('locUrl') }organizations/`, data);
   }
   /**
    * update modified Organization
    */
-  updateOrganization(orgID: string, data: contentOrg): any{
+  updateOrganization(orgID: string, data: ContentOrg): any {
     return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/info`, data);
   }
-  getMyOrganization():contentOrg{
+  getMyOrganization(): ContentOrg {
     return this.myOrg;
   }
-  setMyOrganization(dataMyOrg: contentOrg):boolean{
+  setMyOrganization(dataMyOrg: ContentOrg): boolean {
     if (dataMyOrg) {
       this.myOrg = dataMyOrg;
       return true;
@@ -46,25 +46,25 @@ export class OrganizationService {
    * Delete An Organization
    * @param orgID
    */
-  deleteOrganization(orgID: number):any{
+  deleteOrganization(orgID: number): any {
     return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}`);
   }
 
   /**
    * Enable Organization
-   * @param orgID 
-   * @param body 
+   * @param orgID
+   * @param body
    */
-  enableOrganization(orgID: number, body: any){
-    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/enable`,body);
+  enableOrganization(orgID: number, body: any) {
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/enable`, body);
   }
   /**
    * Disable an Organization
-   * @param orgID 
-   * @param body 
+   * @param orgID
+   * @param body
    */
   disableOrganization(orgID: number, body: any): any {
-    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/disable`,body);
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/disable`, body);
   }
   /**
    * Get Active Organizations

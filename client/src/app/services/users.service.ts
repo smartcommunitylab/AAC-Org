@@ -10,33 +10,33 @@ export class UsersService {
   constructor(private http: HttpClient, private config: ConfigService) { }
   usersListPromise: Promise<UsersProfile[]>;
   usersList: UsersProfile[];
-  
+
   /**
    * Get All Organizations
    * @param orgID
    */
   getAllUsers(orgID: string): Promise<UsersProfile[]> {
-    this.usersListPromise= this.http.get(`${ this.config.get('locUrl') }organizations/${orgID}/members`)
+    this.usersListPromise = this.http.get(`${ this.config.get('locUrl') }organizations/${orgID}/members`)
     .map(response => response as UsersProfile[])
     .toPromise();
-    this.usersListPromise.then(res=>{
-      this.usersList=res;
+    this.usersListPromise.then(res => {
+      this.usersList = res;
     });
     return this.usersListPromise;
   }
 
   /**
    * Get a user's data
-   * @param username 
+   * @param username
    */
-  getUserData(username: string): UsersProfile{
-    for(var i=0; i<this.usersList.length; i++){
-      if(this.usersList[i].username==username){
+  getUserData(username: string): UsersProfile {
+    for (let i = 0; i < this.usersList.length; i++) {
+      if (this.usersList[i].username === username) {
         return this.usersList[i];
       }
     }
   }
-  
+
   /**
    * Retrieve the authenticated user's permissions
    */
@@ -47,8 +47,8 @@ export class UsersService {
 
   setRole(user: UsersProfile, contextSpace: string, role: string): any {
     user.roles.push({
-          "contextSpace":contextSpace,
-          "role":role
+          'contextSpace': contextSpace,
+          'role': role
     });
   }
   /**
@@ -70,17 +70,17 @@ export class UsersService {
   }
   /**
    * update an user data
-   * @param username 
-   * @param orgID 
-   * @param userType 
+   * @param username
+   * @param orgID
+   * @param userType
    */
   updateUser(orgID: string, userType: string, data: UsersProfile): any {
-    for(var i=0; i<this.usersList.length; i++) {
-      if(this.usersList[i].username==data.username) {
+    for (let i = 0; i < this.usersList.length; i++) {
+      if (this.usersList[i].username === data.username) {
         return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, {
-          "username":data.username,
-          "owner":data.owner,
-          "roles":data.roles
+          'username': data.username,
+          'owner': data.owner,
+          'roles': data.roles
         });
       }
     }

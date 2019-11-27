@@ -1,10 +1,9 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource} from '@angular/material';
-import {ActivatedRoute} from '@angular/router';
-import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
+import {FormBuilder, FormGroup} from '@angular/forms';
 import {OrganizationService} from '../../services/organization.service';
 import { UsersService } from '../../services/users.service';
-import { OrganizationProfile, contentOrg, UserRights } from '../../models/profile';
+import { OrganizationProfile, ContentOrg, UserRights } from '../../models/profile';
 import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
@@ -14,53 +13,56 @@ import {HttpErrorResponse} from '@angular/common/http';
 })
 export class InactivateOrgComponent implements OnInit {
 
-  constructor(private usersService: UsersService, private organizationService: OrganizationService,private route: ActivatedRoute, public dialog: MatDialog) { }
+  constructor(
+    private usersService: UsersService,
+    private organizationService: OrganizationService,
+    public dialog: MatDialog) { }
   userRights: UserRights;
   orgProfile: OrganizationProfile[];
-  orgInActive: Array<OrganizationProfile>=[];
-  contentOrg: contentOrg;
+  orgInActive: Array<OrganizationProfile>= [];
+  contentOrg: ContentOrg;
   dataSource: any;
   displayedColumns: any;
 
   ngOnInit() {
-    this.dataSource ="";
+    this.dataSource = '';
     this.usersService.getUserRights().then(response => {
       this.userRights = response;
     });
     this.organizationService.getOrganizations().then(response => {
-      for(var i=0; i<response["content"].length; i++){
-        if(!response["content"][i]["active"]){
-          this.orgInActive.push(response["content"][i]);
+      for (let i = 0; i < response['content'].length; i++) {
+        if (!response['content'][i]['active']) {
+          this.orgInActive.push(response['content'][i]);
         }
       }
       this.orgProfile = response;
       this.displayedColumns = ['name', 'domain', 'owner', 'description', 'provider', 'action'];
-      this.dataSource =new MatTableDataSource<OrganizationProfile>(this.orgInActive);
+      this.dataSource = new MatTableDataSource<OrganizationProfile>(this.orgInActive);
     });
   }
   /**
-   * 
-   * @param orgID 
-   * @param orgName 
+   *
+   * @param orgID
+   * @param orgName
    */
-  openDialog4EnableOrg(orgID, orgName){
-    let dialogRef = this.dialog.open(ModifyInactiveOrgDialogComponent, {
+  openDialog4EnableOrg(orgID, orgName) {
+    const dialogRef = this.dialog.open(ModifyInactiveOrgDialogComponent, {
       width: '25%',
-      data: { org_name: orgName,  dialogStatus:"TitleEnableOrg"  }
+      data: { org_name: orgName,  dialogStatus: 'TitleEnableOrg'  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if(result){
-        this.organizationService.enableOrganization(orgID,orgName).subscribe(
+      if (result) {
+        this.organizationService.enableOrganization(orgID, orgName).subscribe(
           res => {
-            //for reload the table
-            setTimeout(()=>{  this.ngOnInit();},1000);
+            // for reload the table
+            setTimeout(() => {  this.ngOnInit(); }, 1000);
           },
           (err: HttpErrorResponse) => {
-            //open a error dialog with err.error
-            let dialogRefErr = this.dialog.open(ModifyInactiveOrgDialogComponent, {
+            // open a error dialog with err.error
+            const dialogRefErr = this.dialog.open(ModifyInactiveOrgDialogComponent, {
               width: '40%',
-              data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              data: { error: err.error, dialogStatus: 'TitleErrorMessage'  }
             });
             if (err.error instanceof Error) {
               console.log('Client-side error occured.');
@@ -69,33 +71,33 @@ export class InactivateOrgComponent implements OnInit {
             }
           }
         );
-        
+
       }
     });
   }
   /**
    * Delete an Org
-   * @param orgID 
-   * @param orgName 
+   * @param orgID
+   * @param orgName
    */
   openDialog4DeleteOrg(orgID, orgName): void {
-    let dialogRef = this.dialog.open(ModifyInactiveOrgDialogComponent, {
+    const dialogRef = this.dialog.open(ModifyInactiveOrgDialogComponent, {
       width: '25%',
-      data: { org_name: orgName,  dialogStatus:"TitleDeleteOrg"  }
+      data: { org_name: orgName,  dialogStatus: 'TitleDeleteOrg'  }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if(result){
+      if (result) {
         this.organizationService.deleteOrganization(orgID).subscribe(
           res => {
-            //for reload the table
-            setTimeout(()=>{  this.ngOnInit();},1000);
+            // for reload the table
+            setTimeout(() => {  this.ngOnInit(); }, 1000);
           },
           (err: HttpErrorResponse) => {
-            //open a error dialog with err.error
-            let dialogRefErr = this.dialog.open(ModifyInactiveOrgDialogComponent, {
+            // open a error dialog with err.error
+            const dialogRefErr = this.dialog.open(ModifyInactiveOrgDialogComponent, {
               width: '40%',
-              data: { error: err.error, dialogStatus:"TitleErrorMessage"  }
+              data: { error: err.error, dialogStatus: 'TitleErrorMessage'  }
             });
             if (err.error instanceof Error) {
               console.log('Client-side error occured.');
@@ -104,7 +106,7 @@ export class InactivateOrgComponent implements OnInit {
             }
           }
         );
-       
+
       }
     });
   }
@@ -119,9 +121,13 @@ export class InactivateOrgComponent implements OnInit {
   templateUrl : 'modifyInactiveOrg_Dialog.html',
   styleUrls: ['./inactivate-org.component.css']
 })
-export class ModifyInactiveOrgDialogComponent {
-  constructor(public dialogRef: MatDialogRef<ModifyInactiveOrgDialogComponent>,@Inject(MAT_DIALOG_DATA) public data: any,  private _fb: FormBuilder) { }
+export class ModifyInactiveOrgDialogComponent implements OnInit {
+  constructor(
+    public dialogRef: MatDialogRef<ModifyInactiveOrgDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any,  private _fb: FormBuilder
+  ) { }
   formDoc: FormGroup;
+
   ngOnInit() {
     this.formDoc = this._fb.group({
       basicfile: []

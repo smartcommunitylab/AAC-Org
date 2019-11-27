@@ -33,26 +33,16 @@ security:
     client:
       clientId: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTID:48ccbed6-c9d7-453c-86a4-e471ca09a0e7}
       clientSecret: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTSECRET:33e7080f-e93b-4687-90b8-2887c4f507fc}
-      accessTokenUri: ${OMC_SECURITY_OAUTH2_CLIENT_ACCESSTOKENURI:http://localhost:8080/aac/oauth/token}
-      userAuthorizationUri: ${OMC_SECURITY_OAUTH2_CLIENT_USERAUTHORIZATIONURI:http://localhost:8080/aac/oauth/authorize}
-      tokenInfoUri: ${OMC_SECURITY_OAUTH2_CLIENT_TOKENINFOURI:http://localhost:8080/aac/token_introspection}
-      tokenName: ${OMC_SECURITY_OAUTH2_CLIENT_TOKENNAME:token}
-      userIdField: ${OMC_SECURITY_OAUTH2_CLIENT_USERIDFIELD:aac_user_id}
-      authenticationScheme: ${OMC_SECURITY_OAUTH2_CLIENT_AUTHENTICATIONSCHEME:query}
-      clientAuthenticationScheme: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTAUTHENTICATIONSCHEME:form}
-      organizationManagementScope: ${OMC_SECURITY_OAUTH2_CLIENT_ORGANIZATIONMANAGEMENTSCOPE:organization.mgmt}
-      organizationManagementContext: ${OMC_SECURITY_OAUTH2_CLIENT_ORGANIZATIONMANAGEMENTCONTEXT:organizations}
+      organizationManagementScope: ${OMC_SECURITY_OAUTH2_CLIENT_ORGANIZATIONMANAGEMENTSCOPE:orgmanagement}
     resource:
-      userInfoUri: ${OMC_SECURITY_OAUTH2_RESOURCE_USERINFOURI:profile.basicprofile.me}
+#      userInfoUri: ${OMC_SECURITY_OAUTH2_RESOURCE_USERINFOURI:profile.basicprofile.me}
+      id: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTID:48ccbed6-c9d7-453c-86a4-e471ca09a0e7}
+      jwk:
+        keySetUri: http://localhost:8080/aac/jwk
 
 # AAC APIS
 aac:
   uri: ${OMC_AAC_URI:http://localhost:8080/aac/}
-  apis:
-    manageRolesApi: ${OMC_AAC_APIS_MANAGEROLESAPI:userroles/user}
-    userProfilesApi: ${OMC_AAC_APIS_USERPROFILESAPI:basicprofile/all}
-    currentUserRolesApi: ${OMC_AAC_APIS_CURRENTUSERROLESAPI:userroles/me}
-    currentUserProfileApi: ${OMC_AAC_APIS_CURRENTUSERPROFILEAPI:basicprofile/me}
 
 # LOGGING
 logging:

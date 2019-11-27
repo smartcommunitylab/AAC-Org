@@ -22,7 +22,7 @@
                     <mat-error *ngIf="orgDomainControl.invalid">{{getErrorMessage4orgDomain()}}</mat-error> -->
                     <input matInput  placeholder="Domain" [formControl]="orgDomainControl" >
                     <mat-icon matSuffix>mode_edit</mat-icon>
-                </mat-form-field>
+                </mat-form-field> 
                 <!-- Description of the Organization -->
                 <mat-form-field class="dialog-container-form-field"  >
                     <textarea matInput  placeholder="Description" [formControl]="orgDescriptionControl" required ></textarea>
@@ -86,8 +86,6 @@
                     <mat-icon matSuffix>attach_file</mat-icon>
                 </mat-form-field> -->
                 <mat-form-field class="dialog-container-form-field">
-                    <!-- <app-input-file formControlName="basicfile" placeholder="Logo Upload" ></app-input-file> -->
-                    <!-- <mat-icon matSuffix>attach_file</mat-icon> -->
                     <input matInput  placeholder="Logo URL" [formControl]="logoControl">
                     <mat-icon matSuffix>mode_edit</mat-icon>
                 </mat-form-field>

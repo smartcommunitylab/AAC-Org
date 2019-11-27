@@ -38,3 +38,8 @@ mat-header-cell > .matTabHeaderAction {
 .dialog-overflow-hidden {
     overflow: hidden !important;
 }
+
+.descr-short {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

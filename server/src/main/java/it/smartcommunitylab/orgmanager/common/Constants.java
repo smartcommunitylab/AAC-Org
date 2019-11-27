@@ -8,10 +8,13 @@ package it.smartcommunitylab.orgmanager.common;
 public class Constants {
 	
 	public static final String ROLE_PROVIDER 					= "ROLE_PROVIDER";
+	public static final String ROLE_MEMBER						= "ROLE_USER";
 	public static final String ROOT_COMPONENTS 					= "components";
+	public static final String ROOT_ORGANIZATIONS 				= "organizations";
+	
 	public static final String PATH_COMPONENTS_CONFIG 			= "/config/components.yml";
 	public static final String SCOPE_USER_PROFILES 				= "profile.basicprofile.all,profile.accountprofile.all";
-	public static final String SCOPE_MANAGE_ROLES	 			= "user.roles.write,user.roles.read,user.roles.read.all,client.roles.read.all";
+	public static final String SCOPE_MANAGE_ROLES	 			= "user.roles.write,user.roles.read,user.roles.read.all,client.roles.read.all,user.roles.manage.all";
 
 	//ComponentConfig
 	public static final String FIELD_NAME 						= "name";

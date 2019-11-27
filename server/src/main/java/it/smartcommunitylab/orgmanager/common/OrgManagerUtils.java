@@ -1,14 +1,9 @@
 package it.smartcommunitylab.orgmanager.common;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
@@ -18,45 +13,27 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.stereotype.Service;
 
-import com.nimbusds.oauth2.sdk.ParseException;
-import com.nimbusds.oauth2.sdk.http.HTTPRequest;
-import com.nimbusds.oauth2.sdk.http.HTTPResponse;
-
-import it.smartcommunitylab.aac.AACService;
-import it.smartcommunitylab.aac.model.TokenData;
-import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
+import it.smartcommunitylab.aac.AACException;
+import it.smartcommunitylab.aac.AACProfileService;
+import it.smartcommunitylab.aac.model.BasicProfile;
+import it.smartcommunitylab.aac.model.BasicProfiles;
+import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
-import it.smartcommunitylab.orgmanager.model.Organization;
-import it.smartcommunitylab.orgmanager.model.OrganizationMember;
-import it.smartcommunitylab.orgmanager.model.Role;
-import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
+import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 
 @Service
 public class OrgManagerUtils {
 		
-	private AACService aacService;
+	private AACProfileService aacProfileService;
 	
 	@Autowired
 	private SecurityConfig securityConfig;
 	
-	/**
-	 * Initializes the service to obtain client tokens.
-	 */
-	@PostConstruct
-	private void init() {
-		// Generates the service to obtain the proper client tokens needed for certain calls to the identity provider's APIs
-		aacService = securityConfig.getAACService();
-//		TokenData td; // this commented part is to get a token easily, for testing purposes
-//		try {
-//			td = aacService.generateUserToken("admin", "admin", "profile,email,profile.basicprofile.me,profile.accountprofile.me,user.roles.me");
-//			System.out.println(td.getToken_type() + " " + td.getAccess_token());
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
+	@PostConstruct 
+	public void init() {
+		aacProfileService = securityConfig.getAACProfileService();
 	}
 	
 	/**
@@ -76,22 +53,9 @@ public class OrgManagerUtils {
 	 * @return - True if the authenticated user is admin, false otherwise
 	 */
 	private boolean userIsAdmin() {
-		HTTPResponse response = callIdentityProviderAPI(securityConfig.getCurrentUserRolesUri(), HTTPRequest.Method.GET, null);
-		try {
-			JSONArray responseJSON = response.getContentAsJSONArray();
-			JSONObject roleJSON;
-			String space, role;
-			for (Object o : responseJSON) { // searches for the admin role
-				roleJSON = (JSONObject) o;
-				space = roleJSON.getAsString("space");
-				role = roleJSON.getAsString("role");
-				if (space != null && space.equals(securityConfig.getOrganizationManagementContext()) && role != null && role.equals(Constants.ROLE_PROVIDER))
-					return true; // authenticated user is admin
-			}
-			return false;
-		} catch (ParseException e) {
-			throw new IdentityProviderAPIException("API call to the identity provider to determine if the user is admin returned an unexpected response: " + e.getMessage());
-		}
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String orgManager = new AACRoleDTO(null, Constants.ROOT_ORGANIZATIONS, Constants.ROLE_PROVIDER).getAuthority();
+		return authentication.getAuthorities().stream().anyMatch(ga -> orgManager.equals(ga.getAuthority()));
 	}
 	
 	/**
@@ -106,10 +70,7 @@ public class OrgManagerUtils {
 			if (request != null) {
 				Set<String> scopeSet = request.getScope();
 				if (scopeSet != null) { // searches for the scope
-					for (String scope : scopeSet) {
-						if (scope.equalsIgnoreCase(securityConfig.getOrganizationManagementScope()))
-							return true; // authenticated user has the organization management scope
-					}
+					return scopeSet.stream().anyMatch(s -> s.equalsIgnoreCase(securityConfig.getOrganizationManagementScope()));
 				}
 			}
 		}
@@ -122,51 +83,42 @@ public class OrgManagerUtils {
 	 * @param organization - The organization whose owner might be the authenticated user
 	 * @return - true if the authenticated user is owner, false otherwise
 	 */
-	public boolean userIsOwner(Organization organization) {
-		HTTPResponse response = callIdentityProviderAPI(securityConfig.getCurrentUserRolesUri(), HTTPRequest.Method.GET, null);
-		try {
-			JSONArray responseJSON = response.getContentAsJSONArray();
-			JSONObject roleJSON;
-			String context, space, role;
-			for (Object o : responseJSON) { // searches for the role that identifies ownership
-				roleJSON = (JSONObject) o;
-				context = roleJSON.getAsString("context");
-				space = roleJSON.getAsString("space");
-				role = roleJSON.getAsString("role");
-				if (context != null && context.equals(securityConfig.getOrganizationManagementContext()) && 
-						space != null && space.equals(organization.getSlug())
-						&& role != null && role.equals(Constants.ROLE_PROVIDER))
-					return true; // authenticated user is owner
-			}
-			return false;
-		} catch (ParseException e) {
-			throw new IdentityProviderAPIException("API call to the identity provider to determine if the user is admin returned an unexpected response: " + e.getMessage());
-		}
+	public boolean userIsOwner(String organization) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String orgOwner = AACRoleDTO.orgOwner(organization).getAuthority();
+		return authentication.getAuthorities().stream().anyMatch(ga -> orgOwner.equals(ga.getAuthority()));
 	}
 	
+	/**
+	 * Returns true if the authenticated user is owner of the organization
+	 * @param organization - The organization whose owner might be the authenticated user
+	 * @return
+	 */
+	public boolean userIsMember(String organization) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Role orgMember = AACRoleDTO.orgMember(organization);
+		return authentication.getAuthorities().stream().anyMatch(ga -> AACRoleDTO.matchContextSpace(orgMember, ga.getAuthority()));
+	}
+
 	/**
 	 * Returns the ID used by the identity provider to identify the currently authenticated user.
 	 * 
 	 * @return - ID used by the identity provider to identify the currently authenticated user
 	 */
-	public Long getAuthenticatedUserId() {
-		Object obj = SecurityContextHolder.getContext().getAuthentication().getDetails(); // retrieves token
-		if (!(obj instanceof OAuth2AuthenticationDetails)) { // cannot find token value, needed to find the ID
+	@SuppressWarnings("unchecked")
+	public String getAuthenticatedUserId() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		// claims
+		if (!(auth instanceof OAuth2Authentication)) { // cannot find token value, needed to find the ID
 			throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve authenticated user's name.");
 		}
-		OAuth2AuthenticationDetails det = (OAuth2AuthenticationDetails) obj;
-		String urlString = securityConfig.getTokenInfoUri() + "?" + securityConfig.getTokenName() + "=" + det.getTokenValue();
-		HTTPResponse response = callIdentityProviderAPI(urlString, HTTPRequest.Method.POST, getTokenWithScope(Constants.SCOPE_USER_PROFILES)); // API call to get token info
-		
-		String userId = null;
-		try {
-			JSONObject responseJSON = response.getContentAsJSONObject();
-			userId = responseJSON.getAsString(securityConfig.getUserIdField()); // ID of the authenticated user
-		} catch (ParseException e) {
-			throw new IdentityProviderAPIException("API call to the identity provider to find the authenticated user's ID returned an unexpected response: " + e.getMessage());
+		OAuth2Authentication oauth = (OAuth2Authentication) auth;
+		Map<String, Object> claims = (Map<String, Object>) oauth.getUserAuthentication().getDetails();
+		if (claims == null || !claims.containsKey("sub")) {
+			throw new IdentityProviderAPIException("Incorrect OAuth2 claims.");
 		}
 		
-		return new Long(userId);
+		return claims.get("sub").toString();
 	}
 	
 	/**
@@ -175,206 +127,67 @@ public class OrgManagerUtils {
 	 * @return - User name used by the identity provider to identify the currently authenticated user
 	 */
 	public String getAuthenticatedUserName() {
-		HTTPResponse response = callIdentityProviderAPI(securityConfig.getCurrentUserProfileUri(), HTTPRequest.Method.GET, null);
-		try {
-			JSONObject responseJSON = response.getContentAsJSONObject();
-			String userName = responseJSON.getAsString("username"); // user name of the authenticated user
-			return userName;
-		} catch (ParseException e) {
-			throw new IdentityProviderAPIException("API call to the identity provider to find the authenticated user's name returned an unexpected response: " + e.getMessage());
-		}
+		Authentication obj = SecurityContextHolder.getContext().getAuthentication(); // retrieves token
+		return obj.getPrincipal().toString();
 	}
 	
 	/**
-	 * Returns the ID used by the identity provider to identify the user with the given username.
-	 * 
-	 * @param userName - Name of the user whose ID will be returned
-	 * @return - ID of the input user
-	 */
-	public Long getUserId(String userName) {
-		JSONObject profile = getIdpUserProfile(userName);
-		return new Long(profile.getAsString("userId")); // ID used by the identity provider
-	}
-	
-	/**
-	 * Returns user name, name and surname registered in the identity provider for the input user name.
-	 * 
-	 * @param userName - User name
-	 * @return - An object containing user name, name and surname
-	 */
-	public UserInfo getIdpUserDetails(String userName) {
-		JSONObject profile = getIdpUserProfile(userName);
-		if (profile == null)
-			return null;
-		return new UserInfo(profile.getAsString("username"), profile.getAsString("name"), profile.getAsString("surname"));
-	}
-	
-	/**
-	 * Obtains a JSONObject from the identity provider, representing the profile of the user with the input user name.
+	 * Obtains a BasicProfile from the identity provider, representing the profile of the user with the input user name.
 	 * 
 	 * @param userName - User name to query the identity provider with
 	 * @return - Profile of the requested user
 	 */
-	private JSONObject getIdpUserProfile(String userName) {
+	public BasicProfile getIdpUserProfile(String userName) {
 		if (userName == null || userName.equals("")) // invalid request
 			return null;
-		String urlString = securityConfig.getUserProfilesUri() + "?username=" + userName;
-		HTTPResponse httpResponse = callIdentityProviderAPI(urlString, HTTPRequest.Method.GET, getTokenWithScope(Constants.SCOPE_USER_PROFILES));
 		try {
-			JSONObject responseJSON = httpResponse.getContentAsJSONObject();
-			JSONArray profiles = (JSONArray) responseJSON.get("profiles"); // a profiles array should be returned
-			if (profiles == null || profiles.size() == 0 || profiles.get(0) == null) // no user found
+			BasicProfiles profiles = aacProfileService.searchUsersByUsername(getToken(), userName);
+			if (profiles == null || profiles.getProfiles() == null || profiles.getProfiles().isEmpty())
 				throw new EntityNotFoundException("Profile for user " + userName + " could not be found; unable to continue.");
-			if (profiles.size() > 1) // Multiple users found, cannot determine which one is the right one
-				throw new AmbiguousIdentifierException("The identity provider returned multiple profiles, cannot determine the correct user. Unable to continue.");
-			JSONObject profile = (JSONObject) profiles.get(0);
+			return profiles.getProfiles().get(0);
+		} catch (SecurityException | AACException e) {
+			throw new IdentityProviderAPIException("Unable to obtain profile information: " + e.getMessage());			
+		}
+	}
+	
+	/**
+	 * Obtains a BasicProfile from the identity provider, representing the profile of the user with the input user name.
+	 * 
+	 * @param userName - User name to query the identity provider with
+	 * @return - Profile of the requested user
+	 */
+	public BasicProfile getIdpUserProfileById(String userId) {
+		if (userId == null || userId.equals("")) // invalid request
+			return null;
+		try {
+			BasicProfile profile = aacProfileService.getUser(getToken(), userId);
+			if (profile == null)
+				throw new EntityNotFoundException("Profile for user " + userId + " could not be found; unable to continue.");
 			return profile;
-		} catch (ParseException e) {
-			throw new IdentityProviderAPIException("API call to the identity provider to find " + userName + "'s ID returned an unexpected response: " + e.getMessage());
+		} catch (SecurityException | AACException e) {
+			throw new IdentityProviderAPIException("Unable to obtain profile information: " + e.getMessage());			
 		}
 	}
-	
-	/**
-	 * Returns a map that connects each organization member to the list of roles they have.
-	 * 
-	 * @param memberRolesList - List of (member, role) pairs.
-	 * @return - (Member -> list of roles) map
-	 */
-	public Map<OrganizationMember, List<Role>> createMemberToRolesMap(List<Object[]> memberRolesList) {
-		Map<OrganizationMember, List<Role>> memberRolesMap = new HashMap<OrganizationMember, List<Role>>();
-		List<Role> roles;
-		OrganizationMember member;
-		for (Object[] a : memberRolesList) { // builds a (member -> roles) map
-			member = (OrganizationMember) a[0];
-			roles = memberRolesMap.get(member);
-			if (roles == null) { // member doesn't have a list of roles assigned yet
-				roles = new ArrayList<Role>();
-				memberRolesMap.put(member, roles);
-			}
-			roles.add((Role) a[1]);
-		}
-		return memberRolesMap;
-	}
-	
-	/**
-	 * Calls identity provider API to add a single role to a user.
-	 * 
-	 * @param userId - ID of the user
-	 * @param role - Role to add
-	 */
-	public void idpAddRole(Long userId, Role role) {
-		List<Role> roles = new ArrayList<Role>();
-		roles.add(role); // list with just 1 element
-		idpAddRoles(userId, roles); // calls method on the single-element list
-	}
-	
-	/**
-	 * Calls identity provider API to add roles to a user.
-	 * 
-	 * @param userId - ID of the user
-	 * @param roles - Roles to add
-	 */
-	public void idpAddRoles(Long userId, Collection<Role> roles) {
-		idpHandleRoles(userId, roles, HTTPRequest.Method.PUT);
-	}
-	
-	/**
-	 * Calls identity provider API to revoke roles from a user.
-	 * 
-	 * @param userId - ID of the user
-	 * @param roles - Roles to remove
-	 */
-	public void idpRemoveRoles(Long userId, Collection<Role> roles) {
-		idpHandleRoles(userId, roles, HTTPRequest.Method.DELETE);
-	}
-	
-	/**
-	 * Calls identity provider API to add or remove roles to/from a user.
-	 * 
-	 * @param userId - ID of the user
-	 * @param roles - Roles to add/remove
-	 * @param method - PUT or DELETE
-	 */
-	private void idpHandleRoles(Long userId, Collection<Role> roles, HTTPRequest.Method method) {
-		if (roles == null || roles.isEmpty())
-			return;
-		String urlString = securityConfig.getManageRolesUri() + "/" + userId + "?roles=";
-		Iterator<Role> iter = roles.iterator();
-		while (iter.hasNext()) { // multiple roles can be handled at once
-			urlString += iter.next();
-			if (iter.hasNext()) // checks that it's not the last role
-				urlString += ","; // separates roles with a comma
-		}
-		callIdentityProviderAPI(urlString, method, getTokenWithScope(Constants.SCOPE_MANAGE_ROLES));
-	}
-	
 	/**
 	 * Generates a client access token with the input scope.
 	 * 
 	 * @param scope - Scope the token needs to have
 	 * @return - Access token with the desired scope
 	 */
-	private String getTokenWithScope(String scope) {
-		try {
-			TokenData dt = aacService.generateClientToken(scope);
-			return dt.getToken_type() + " " + dt.getAccess_token();
-		} catch (Exception e) {
-			throw new IdentityProviderAPIException("Unable to generate an access token with the desired scope.");
-		}
+	private String getToken() {
+		return securityConfig.getToken(Constants.SCOPE_USER_PROFILES);
 	}
-	
+
 	/**
-	 * Calls one of the identity provider's APIs.
-	 * 
-	 * @param urlString - Endpoint to call
-	 * @param method - GET, PUT, POST, DELETE, etc.
-	 * @param token - Token to use for the request
-	 * @return - The identity provider's response
+	 * @return
 	 */
-	private static HTTPResponse callIdentityProviderAPI(String urlString, HTTPRequest.Method method, String token) {
-		try {
-			URL url = new URL(urlString); // generates a URL from the input string
-			HTTPRequest httpRequest = new HTTPRequest(method, url);
-			String accessToken = token;
-			if (accessToken == null) { // if token was not specified, retrieves it from the context
-				Object obj = SecurityContextHolder.getContext().getAuthentication().getDetails();
-				if (obj instanceof OAuth2AuthenticationDetails) {
-					OAuth2AuthenticationDetails det = (OAuth2AuthenticationDetails) obj;
-					accessToken = det.getTokenType() + " " + det.getTokenValue();
-				}
-			}
-			httpRequest.setAuthorization(accessToken); // sets authorization header
-			HTTPResponse httpResponse = httpRequest.send();
-			if (httpResponse.getStatusCode() >= 400) {// some error occurred 
-				String provideErrorDesc = provideErrorDescription(httpResponse);
-				throw new IOException(provideErrorDesc);
-			}
-			return httpResponse;
-		} catch (IOException e) {
-			throw new IdentityProviderAPIException("API call to the identity provider failed: " + e.getMessage());
-		}
+	public Collection<String> findOwnedOrganizations() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		return authentication.getAuthorities().stream()
+				.map(ga -> AACRoleDTO.parse(ga.getAuthority()))
+				.filter(r -> Constants.ROOT_ORGANIZATIONS.equals(r.getContext()) && Constants.ROLE_PROVIDER.equals(r.getRole()))
+				.map(r -> r.getSpace())
+				.collect(Collectors.toSet());
 	}
-	
-	/**
-	 * Elaborate the reason of the thrown error in order to be as understandable as possible 
-	 * 
-	 * @param httpResponse - Response containing an error
-	 * @return - Detailed error description
-	 */
-	private static String provideErrorDescription(HTTPResponse httpResponse) {
-		String errorMessage = httpResponse.getStatusCode() + ": " + httpResponse.getStatusMessage();
-		JSONObject object;
-		try {
-			object = httpResponse.getContentAsJSONObject();
-			String error_description = object.getAsString("error_description");
-			String error_message = object.getAsString("errorMessage");
-			if(error_description != null)
-				errorMessage += " : " + error_description;
-			if(error_message != null)
-				errorMessage += " : " + error_message;
-		} catch (ParseException e) {
-			throw new IdentityProviderAPIException("Error inside provideErrorDesc: " + e.getMessage());
-		}
-		return errorMessage;
-	}
+
 }
