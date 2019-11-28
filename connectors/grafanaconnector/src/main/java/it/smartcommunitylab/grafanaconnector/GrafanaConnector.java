@@ -26,40 +26,12 @@ public class GrafanaConnector implements Component {
 
 	@Override
 	public String createOrganization(String organizationName, UserInfo owner) {
-		GrafanaConnectorUtils.logInfo("Starting to create Organization in Grafana", log);
-		try {
-			String url 		= GrafanaConnectorUtils.getCrudOrganizationURL();
-			OrganizationDTO organizationDTO = new OrganizationDTO(organizationName);
-			Map<String, String> response = GrafanaConnectorUtils.requestPOSTApi(url, organizationDTO, HttpMethod.POST);
-			GrafanaConnectorUtils.logInfo("Ending successfully the creation of new Organization in Grafana", log);
-			return CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 0, "Organization has been successfully created. " + response.get("message"));
-		} catch(Exception e) {
-			String error = CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 2, "Something went wrong during the Organization creation: " + e.getMessage());
-			GrafanaConnectorUtils.logError(error, log);
-			return error;
-		}
+		return CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 1, "Organization provisioning not supported. The Grafana organization is covered on tenant creation");
 	}
 
 	@Override
 	public String deleteOrganization(String organizationName, List<String> tenants) {
-		GrafanaConnectorUtils.logInfo("Starting to delete Organization in Grafana", log);
-		try {
-			String url 		= GrafanaConnectorUtils.getCrudOrganizationURL();
-			// get the proper organization id belonging to the provided organization name
-			String orgId 	= retrieveOrganizationId(organizationName); 
-			if(orgId != null) {
-				url += "/"+orgId;
-				Map<String, String> response = GrafanaConnectorUtils.requestDELETEApi(url);
-				GrafanaConnectorUtils.logInfo("Ending successfully the deletion of Organization name: " + organizationName + ", id: " + orgId + " in Grafana", log);
-				return CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 0, "Organization has been successfully deleted. " + response.get("message"));
-			} else {
-				return CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 2, "Not able to find the organization");
-			}
-		} catch (GrafanaException e) {
-			String error = CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 2, "Something went wrong during the Organization deletion process: " + e.getMessage());
-			GrafanaConnectorUtils.logInfo(error, log);
-			return error;
-		}
+		return CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 1, "Organization deletion not supported. The Grafana organization is covered on tenant deletion");
 	}
 
 	@Override
@@ -159,7 +131,18 @@ public class GrafanaConnector implements Component {
 
 	@Override
 	public String createTenant(String tenant, String organization, UserInfo userInfo) {
-		return CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 1, "Tenant provisioning not supported");
+		GrafanaConnectorUtils.logInfo("Starting to create Organization in Grafana", log);
+		try {
+			String url 		= GrafanaConnectorUtils.getCrudOrganizationURL();
+			OrganizationDTO organizationDTO = new OrganizationDTO(organization);
+			Map<String, String> response = GrafanaConnectorUtils.requestPOSTApi(url, organizationDTO, HttpMethod.POST);
+			GrafanaConnectorUtils.logInfo("Ending successfully the creation of new Organization in Grafana", log);
+			return CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 0, "Organization has been successfully created. " + response.get("message"));
+		} catch(Exception e) {
+			String error = CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 2, "Something went wrong during the Organization creation: " + e.getMessage());
+			GrafanaConnectorUtils.logError(error, log);
+			return error;
+		}
 	}
 
 	@Override
@@ -168,8 +151,25 @@ public class GrafanaConnector implements Component {
 	}
 
 	@Override
-	public String deleteTenant(String tenant, String organization) {
-		return CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 1, "Tenant provisioning not supported");
+	public String deleteTenant(String tenant, String organizationName) {
+		GrafanaConnectorUtils.logInfo("Starting to delete Organization in Grafana", log);
+		try {
+			String url 		= GrafanaConnectorUtils.getCrudOrganizationURL();
+			// get the proper organization id belonging to the provided organization name
+			String orgId 	= retrieveOrganizationId(organizationName); 
+			if(orgId != null) {
+				url += "/"+orgId;
+				Map<String, String> response = GrafanaConnectorUtils.requestDELETEApi(url);
+				GrafanaConnectorUtils.logInfo("Ending successfully the deletion of Organization name: " + organizationName + ", id: " + orgId + " in Grafana", log);
+				return CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 0, "Organization has been successfully deleted. " + response.get("message"));
+			} else {
+				return CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 2, "Not able to find the organization");
+			}
+		} catch (GrafanaException e) {
+			String error = CommonUtils.formatResult(GrafanaConnectorUtils.getComponentId(), 2, "Something went wrong during the Organization deletion process: " + e.getMessage());
+			GrafanaConnectorUtils.logInfo(error, log);
+			return error;
+		}
 	}
 	
 	/**
