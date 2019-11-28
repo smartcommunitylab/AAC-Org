@@ -12,4 +12,11 @@ public class ApimConstants {
 	public static final String INTERNAL_PUBLISHER = "Internal/publisher";
 	public static final String INTERNAL_SUBSCRIBER = "Internal/subscriber";
 	
+	private static final String[] SUBSCRIBER = {INTERNAL_SUBSCRIBER}; //,ROLE_IDENTITY};
+	
+	public static String[] subscriberRoles() {
+		return SUBSCRIBER;
+	}
+
+	
 }

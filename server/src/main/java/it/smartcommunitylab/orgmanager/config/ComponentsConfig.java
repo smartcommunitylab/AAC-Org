@@ -74,7 +74,7 @@ public class ComponentsConfig {
 			format = map.get(Constants.FIELD_FORMAT);
 			if (format == null || format.equals("")) // when missing, format is given a default value
 				map.put(Constants.FIELD_FORMAT, Constants.DEFAULT_FORMAT);
-			Class customClass;
+			Class<?> customClass;
 			try {
 				customClass = Class.forName(implementation);
 				Component component = (Component) customClass.newInstance(); // instantiates the component with a subclass

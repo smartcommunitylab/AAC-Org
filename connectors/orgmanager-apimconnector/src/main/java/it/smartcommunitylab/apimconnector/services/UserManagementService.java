@@ -1,21 +1,24 @@
 package it.smartcommunitylab.apimconnector.services;
 
-import it.smartcommunitylab.aac.wso2.WSO2Constans;
-import it.smartcommunitylab.aac.wso2.model.RoleModel;
-import it.smartcommunitylab.apim.user.stub.CustomUserStoreManagerServiceStub;
-import it.smartcommunitylab.apim.user.stub.CustomUserStoreManagerServiceUserStoreExceptionException;
-import it.smartcommunitylab.apimconnector.utils.Utils;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.List;
+
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
 import org.wso2.carbon.tenant.mgt.stub.beans.xsd.TenantInfoBean;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.mgt.common.xsd.ClaimValue;
 import org.wso2.carbon.utils.CarbonUtils;
+
+import it.smartcommunitylab.apim.user.stub.CustomUserStoreManagerServiceStub;
+import it.smartcommunitylab.apim.user.stub.CustomUserStoreManagerServiceUserStoreExceptionException;
+import it.smartcommunitylab.apimconnector.model.RoleModel;
+import it.smartcommunitylab.apimconnector.utils.ApimConstants;
+import it.smartcommunitylab.apimconnector.utils.Utils;
 
 public class UserManagementService {
 
@@ -115,7 +118,7 @@ public class UserManagementService {
 	 * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
 	 */
 	public void createSubscriber(String userName, String password, ClaimValue[] claims) throws AxisFault, RemoteException, CustomUserStoreManagerServiceUserStoreExceptionException {
-		getUMStub().addUser(userName, password, WSO2Constans.subscriberRoles(), claims, null, false, 3, "today.com");
+		getUMStub().addUser(userName, password, ApimConstants.subscriberRoles(), claims, null, false, 3, "today.com");
 	}	
 	
 	/**

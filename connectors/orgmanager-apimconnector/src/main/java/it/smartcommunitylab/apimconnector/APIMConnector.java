@@ -7,15 +7,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.axis2.AxisFault;
 import org.springframework.stereotype.Service;
-import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
 import org.wso2.carbon.tenant.mgt.stub.beans.xsd.TenantInfoBean;
 import org.wso2.carbon.user.mgt.common.xsd.ClaimValue;
 
-import it.smartcommunitylab.aac.wso2.model.RoleModel;
 import it.smartcommunitylab.apim.user.stub.CustomUserStoreManagerServiceUserStoreExceptionException;
+import it.smartcommunitylab.apimconnector.model.RoleModel;
 import it.smartcommunitylab.apimconnector.services.LoginAdminService;
 import it.smartcommunitylab.apimconnector.services.TenantManagementService;
 import it.smartcommunitylab.apimconnector.services.UserManagementService;

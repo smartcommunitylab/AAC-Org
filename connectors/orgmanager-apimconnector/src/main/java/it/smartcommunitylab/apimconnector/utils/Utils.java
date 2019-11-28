@@ -12,7 +12,7 @@ import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.http.ssl.TrustStrategy;
-import org.wso2.carbon.um.ws.api.stub.ClaimValue;
+import org.wso2.carbon.user.mgt.common.xsd.ClaimValue;
 
 public class Utils {
 
