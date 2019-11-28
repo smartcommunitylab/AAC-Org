@@ -42,106 +42,114 @@ import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 @Transactional
 public class RoleService {
 
-	private AACRoleService aacRoleService;
-	
-	@Autowired
-	private SecurityConfig securityConfig;
-	
-	/**
-	 * Initializes the service to obtain client tokens.
-	 */
-	@PostConstruct
-	private void init() {
-		// Generates the service to obtain the proper client tokens needed for certain calls to the identity provider's APIs
-		aacRoleService = securityConfig.getAACRoleService();
-	}
+    private AACRoleService aacRoleService;
 
-	/**
-	 * @param slug
-	 * @return
-	 */
-	public Set<User> getOrganizationOwners(String slug) {
-		Role owner = AACRoleDTO.orgOwner(slug);
-		try {
-			return aacRoleService.getSpaceUsers(owner.canonicalSpace(), owner.getRole(), 0, 1000, getToken());
-		} catch (SecurityException | AACException e) {
-			throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
-		}
-	}
-	
-	/**
-	 * @param slug
-	 * @return
-	 */
-	public Set<User> getOrganizationMembers(String slug) {
-		Role member = AACRoleDTO.orgMember(slug);
-		try {
-			return aacRoleService.getSpaceUsers(member.canonicalSpace(), null, 0, 1000, getToken());
-		} catch (SecurityException | AACException e) {
-			throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
-		}
-	}
+    @Autowired
+    private SecurityConfig securityConfig;
 
+    /**
+     * Initializes the service to obtain client tokens.
+     */
+    @PostConstruct
+    private void init() {
+        // Generates the service to obtain the proper client tokens needed for certain
+        // calls to the identity provider's APIs
+        aacRoleService = securityConfig.getAACRoleService();
+    }
 
-	/**
-	 * @param canonicalSpace
-	 * @return
-	 */
-	public Set<User> getRoleUsers(String canonicalSpace) {
-		try {
-			return aacRoleService.getSpaceUsers(canonicalSpace, null, 0, 1000, getToken());
-		} catch (SecurityException | AACException e) {
-			throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
-		}
-	}
+    /**
+     * @param slug
+     * @return
+     * @throws IdentityProviderAPIException
+     */
+    public Set<User> getOrganizationOwners(String slug) throws IdentityProviderAPIException {
+        Role owner = AACRoleDTO.orgOwner(slug);
+        try {
+            return aacRoleService.getSpaceUsers(owner.canonicalSpace(), owner.getRole(), 0, 1000, getToken());
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+        }
+    }
 
-	/**
-	 * @param rolesToAdd
-	 */
-	public void addRoles(Set<User> rolesToAdd) {
-		try {
-			for (User user : rolesToAdd) {
-				aacRoleService.addRoles(getToken(), user.getUserId(), user.getRoles().stream().map(r -> r.getAuthority()).collect(Collectors.toList()));
-			}
-		} catch (SecurityException | AACException e) {
-			throw new IdentityProviderAPIException("Unable to call identity provider's API to add roles to user.");
-		}
-	}
+    /**
+     * @param slug
+     * @return
+     * @throws IdentityProviderAPIException
+     */
+    public Set<User> getOrganizationMembers(String slug) throws IdentityProviderAPIException {
+        Role member = AACRoleDTO.orgMember(slug);
+        try {
+            return aacRoleService.getSpaceUsers(member.canonicalSpace(), null, 0, 1000, getToken());
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+        }
+    }
 
-	/**
-	 * @param rolesToRemove
-	 */
-	public void deleteRoles(Set<User> rolesToRemove) {
-		try {
-			for (User user : rolesToRemove) {
-				aacRoleService.deleteRoles(getToken(), user.getUserId(), user.getRoles().stream().map(r -> r.getAuthority()).collect(Collectors.toList()));
-			}
-		} catch (SecurityException | AACException e) {
-			throw new IdentityProviderAPIException("Unable to call identity provider's API to delete user roles.");
-		}
-	}
+    /**
+     * @param canonicalSpace
+     * @return
+     * @throws IdentityProviderAPIException
+     */
+    public Set<User> getRoleUsers(String canonicalSpace) throws IdentityProviderAPIException {
+        try {
+            return aacRoleService.getSpaceUsers(canonicalSpace, null, 0, 1000, getToken());
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+        }
+    }
 
-	/**
-	 * @param username
-	 */
-	public Set<Role> getRoles(User user) {
-		try {
-			Set<Role> roles = aacRoleService.getRolesByUserId(getToken(), user.getUserId());
-			return roles;
-		} catch (SecurityException | AACException e) {
-			throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve user roles.");
-		}
-	}
+    /**
+     * @param rolesToAdd
+     * @throws IdentityProviderAPIException
+     */
+    public void addRoles(Set<User> rolesToAdd) throws IdentityProviderAPIException {
+        try {
+            for (User user : rolesToAdd) {
+                aacRoleService.addRoles(getToken(), user.getUserId(),
+                        user.getRoles().stream().map(r -> r.getAuthority()).collect(Collectors.toList()));
+            }
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to add roles to user.");
+        }
+    }
 
+    /**
+     * @param rolesToRemove
+     * @throws IdentityProviderAPIException
+     */
+    public void deleteRoles(Set<User> rolesToRemove) throws IdentityProviderAPIException {
+        try {
+            for (User user : rolesToRemove) {
+                aacRoleService.deleteRoles(getToken(), user.getUserId(),
+                        user.getRoles().stream().map(r -> r.getAuthority()).collect(Collectors.toList()));
+            }
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to delete user roles.");
+        }
+    }
 
-	/**
-	 * Generates a client access token with the input scope.
-	 * 
-	 * @param scope - Scope the token needs to have
-	 * @return - Access token with the desired scope
-	 */
-	private String getToken() {
-		return securityConfig.getToken(Constants.SCOPE_MANAGE_ROLES);
-	}
-	
+    /**
+     * @param username
+     * @throws IdentityProviderAPIException
+     */
+    public Set<Role> getRoles(User user) throws IdentityProviderAPIException {
+        try {
+            Set<Role> roles = aacRoleService.getRolesByUserId(getToken(), user.getUserId());
+            return roles;
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve user roles.");
+        }
+    }
+
+    /**
+     * Generates a client access token with the input scope.
+     * 
+     * @param scope - Scope the token needs to have
+     * @return - Access token with the desired scope
+     * @throws IdentityProviderAPIException
+     */
+    private String getToken() throws IdentityProviderAPIException {
+        return securityConfig.getToken(Constants.SCOPE_MANAGE_ROLES);
+    }
+
 }

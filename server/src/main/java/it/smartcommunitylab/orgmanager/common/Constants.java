@@ -24,4 +24,7 @@ public class Constants {
 	public static final String FIELD_IMPLEMENTATION 			= "implementation";
 	public static final String FIELD_ROLES 						= "roles";
 	public static final String DEFAULT_FORMAT 					= "^[a-z0-9]+$";
+	public static final String SLUG_PATTERN                     = "^[a-z0-9_.\\-]*$";
+	public static final String NAME_PATTERN                     = "^[a-zA-Z0-9 _-]+$";
+
 }

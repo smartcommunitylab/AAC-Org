@@ -72,7 +72,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	}
 	
 	
-	public String getToken(String scope) {
+	public String getToken(String scope) throws IdentityProviderAPIException {
 		TokenData data = tokens.get(scope);
 		if (data == null || (data.getExpires_on() - 1000*60*60) > System.currentTimeMillis()) {
 			synchronized (tokens) {

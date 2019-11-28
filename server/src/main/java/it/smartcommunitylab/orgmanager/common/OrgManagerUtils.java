@@ -104,9 +104,10 @@ public class OrgManagerUtils {
 	 * Returns the ID used by the identity provider to identify the currently authenticated user.
 	 * 
 	 * @return - ID used by the identity provider to identify the currently authenticated user
+	 * @throws IdentityProviderAPIException 
 	 */
 	@SuppressWarnings("unchecked")
-	public String getAuthenticatedUserId() {
+	public String getAuthenticatedUserId() throws IdentityProviderAPIException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		// claims
 		if (!(auth instanceof OAuth2Authentication)) { // cannot find token value, needed to find the ID
@@ -136,8 +137,9 @@ public class OrgManagerUtils {
 	 * 
 	 * @param userName - User name to query the identity provider with
 	 * @return - Profile of the requested user
+	 * @throws IdentityProviderAPIException 
 	 */
-	public BasicProfile getIdpUserProfile(String userName) {
+	public BasicProfile getIdpUserProfile(String userName) throws IdentityProviderAPIException {
 		if (userName == null || userName.equals("")) // invalid request
 			return null;
 		try {
@@ -155,8 +157,9 @@ public class OrgManagerUtils {
 	 * 
 	 * @param userName - User name to query the identity provider with
 	 * @return - Profile of the requested user
+	 * @throws IdentityProviderAPIException 
 	 */
-	public BasicProfile getIdpUserProfileById(String userId) {
+	public BasicProfile getIdpUserProfileById(String userId) throws IdentityProviderAPIException {
 		if (userId == null || userId.equals("")) // invalid request
 			return null;
 		try {
