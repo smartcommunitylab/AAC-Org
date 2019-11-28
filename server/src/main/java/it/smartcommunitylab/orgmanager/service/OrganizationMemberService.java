@@ -181,6 +181,7 @@ public class OrganizationMemberService {
 		} else {
 			Role orgOwner = AACRoleDTO.orgOwner(organization.getSlug());
 			rolesToAdd.remove(orgOwner);
+			rolesToAdd.add(AACRoleDTO.orgMember(organization.getSlug()));
 			rolesToDel.add(orgOwner);
 		}
 

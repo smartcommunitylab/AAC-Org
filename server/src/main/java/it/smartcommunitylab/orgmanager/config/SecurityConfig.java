@@ -74,7 +74,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	
 	public String getToken(String scope) {
 		TokenData data = tokens.get(scope);
-		if (data == null || (data.getExpires_on() - 1000*60*60) < System.currentTimeMillis()) {
+		if (data == null || (data.getExpires_on() - 1000*60*60) > System.currentTimeMillis()) {
 			synchronized (tokens) {
 				if (!tokens.containsKey(scope))
 					try {
