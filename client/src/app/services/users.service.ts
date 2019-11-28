@@ -65,33 +65,15 @@ export class UsersService {
    * @param user
    * @param userType
    */
-  setUser(orgID: string, user: any, userType: string): any {
-    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, user);
-  }
-  /**
-   * update an user data
-   * @param username
-   * @param orgID
-   * @param userType
-   */
-  updateUser(orgID: string, userType: string, data: UsersProfile): any {
-    for (let i = 0; i < this.usersList.length; i++) {
-      if (this.usersList[i].username === data.username) {
-        return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}`, {
-          'username': data.username,
-          'owner': data.owner,
-          'roles': data.roles
-        });
-      }
-    }
+  updateUser(orgID: string, user: UsersProfile): any {
+    return this.http.post(`${ this.config.get('locUrl') }organizations/${orgID}/members`, user);
   }
   /**
    * Delete A User
    * @param orgID
    * @param userID
-   * @param userType like 'owners' or 'members'
    */
-  deleteUser(orgID: string, userID: string, userType: string): any {
-    return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}/${userType}/${userID}`);
+  deleteUser(orgID: string, userID: string): any {
+    return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}/members/${userID}`);
   }
 }

@@ -14,10 +14,12 @@ export class UserRights {
     admin: boolean;
     ownedOrganizations: number[];
 }
-export class ActivatedComponentsProfile {
-    componentId: string;
-    componentName: string;
-    tenants: string[];
+export class ActivatedComponentProfile {
+    constructor(
+    public componentId?: string,
+    public componentName?: string,
+    public tenants?: string[]) {}
+
 }
 export class ComponentsProfile {
     content: ContentCompo[];
@@ -59,7 +61,7 @@ export class ContentOrg {
     slug: string;
     description: string;
     contacts: ContactsOrg;
-    tag: string;
+    tag: string[];
     active: boolean;
 }
 export class ContactsOrg {

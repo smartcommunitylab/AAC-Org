@@ -231,7 +231,8 @@ public class ComponentService {
 	 */
 	private List<Tenant> validateConfiguration(Organization organization, List<ComponentConfigurationDTO> configurationDTOList) {
 		if (configurationDTOList == null || configurationDTOList.isEmpty())
-			throw new IllegalArgumentException("No configuration specified.");
+			return Collections.emptyList();
+//			throw new IllegalArgumentException("No configuration specified.");
 		List<Tenant> newTenants = new ArrayList<Tenant>();
 		for (ComponentConfigurationDTO conf : configurationDTOList) { // loop on the input configurations
 			if (conf == null || conf.getComponentId() == null)

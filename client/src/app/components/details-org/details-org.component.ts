@@ -4,12 +4,11 @@ import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {HttpErrorResponse} from '@angular/common/http';
 
-import {COMMA, ENTER} from '@angular/cdk/keycodes';
-// import {MatChipInputEvent} from '@angular/material';
 import {OrganizationService} from '../../services/organization.service';
 import {ComponentsService} from '../../services/components.service';
 import {UsersService} from '../../services/users.service';
-import { UserRights, UsersProfile, UsersRoles, ContentOrg, ComponentsProfile, ActivatedComponentsProfile } from '../../models/profile';
+import { UserRights, UsersProfile, UsersRoles, ContentOrg, ActivatedComponentProfile, ContactsOrg } from '../../models/profile';
+import { DialogService } from '../common/dialog.component';
 
 @Component({
   selector: 'app-details-org',
@@ -21,15 +20,14 @@ export class DetailsOrgComponent implements OnInit {
     private organizationService: OrganizationService,
     private usersService: UsersService,
     public dialog: MatDialog,
+    public dialogService: DialogService,
     private componentsService: ComponentsService,
     private route: ActivatedRoute
   ) {}
 
   userRights: UserRights;
   panelOpenState = false;
-  components: ComponentsProfile[];
-  activatedComponents: ActivatedComponentsProfile[];
-  mergeActivatedComponents: Array<ActivatedComponentsProfile>= [];
+  activatedComponents: ActivatedComponentProfile[];
   myOrg: ContentOrg;
   orgName= '';
   orgID: string = this.route.snapshot.paramMap.get('id');
@@ -43,11 +41,9 @@ export class DetailsOrgComponent implements OnInit {
   ngOnInit() {
     this.usersService.getUserRights().then(response => {
       this.userRights = response;
-      if (this.userRights.admin || this.userRights.ownedOrganizations.includes(parseInt(this.orgID))) {
+      if (this.userRights.admin || this.userRights.ownedOrganizations.includes(parseInt(this.orgID, 10))) {
         // get Activated Components in this organization
-        this.componentsService.getActivatedComponents(this.orgID).then(response_activedComponents => {
-          this.activatedComponents = response_activedComponents;
-        });
+        this.initComponents();
         // get all users in this organization
         this.usersService.getAllUsers(this.orgID).then(response_users => {
           response_users.forEach((ru) => {
@@ -68,184 +64,57 @@ export class DetailsOrgComponent implements OnInit {
 
     });
 
-
   }
 
+  private initComponents() {
+    this.componentsService.getActivatedComponents(this.orgID).then(response_activedComponents => {
+      response_activedComponents.sort((a, b) => a.componentId.localeCompare(b.componentId));
+      this.activatedComponents = response_activedComponents;
+    });
+  }
  /**
    * Manage components
    */
   openDialog4ManageComponent(): void {
-    this.componentsService.getComponents().then(response_components => {
-      this.components = response_components['content'];
-      this.mergeActivatedComponents = [];
-      for (let i = 0; i < this.components.length; i++) {
-        // var ten=this.activatedComponents.find(x=>x.componentId==this.components[i]["componentId"]).tenants;
-        if (this.activatedComponents.find(x => x.componentId === this.components[i]['componentId'])) {
-          this.mergeActivatedComponents.push({
-            'componentId': this.components[i]['componentId'],
-            'componentName': this.components[i]['name'],
-            'tenants': this.activatedComponents.find(x => x.componentId === this.components[i]['componentId']).tenants
-          });
-        }else {
-          this.mergeActivatedComponents.push({
-            'componentId': this.components[i]['componentId'],
-            'componentName': this.components[i]['name'],
-            'tenants': []
-          });
-        }
+    const dialogRef = this.dialog.open(ComponentDialogComponent, { width: '40%' });
+    dialogRef.componentInstance.activatedComponents = this.activatedComponents;
+    dialogRef.componentInstance.orgId = this.orgID;
 
+    dialogRef.afterClosed().subscribe(res => {
+      if (res) {
+        this.initComponents();
       }
-      this.componentsService.setMergeActivatedComponents(this.mergeActivatedComponents);
-      const dialogRef = this.dialog.open(DetailsOrganizationDialogComponent, {
-        width: '40%',
-        data: { name: '',
-        components: JSON.parse(JSON.stringify(this.componentsService.getMergeActivatedComponents())),
-        dialogStatus: 'TitleManageComponent' }
-      });
-
-      dialogRef.afterClosed().subscribe(result => {
-        // have to set data for save the component in the Org
-        if (result != null) {
-          this.componentsService.setComponents(this.orgID, result).subscribe(
-            res => {
-              setTimeout(() => {  this.ngOnInit(); }, 1000);
-            },
-            (err: HttpErrorResponse) => {
-              // open a error dialog with err.error
-              const dialogRefErr = this.dialog.open(DetailsOrganizationDialogComponent, {
-                width: '40%',
-                data: { error: err.error, dialogStatus: 'TitleErrorMessage' }
-              });
-              if (err.error instanceof Error) {
-                console.log('Client-side error occured.');
-              } else {
-                console.log('Server-side error occured.', err.error);
-              }
-            }
-          );
-
-        } else {
-          console.log('result', result);
-        }
-      });
     });
-
   }
 
   /**
    * Modify organization
    */
   openDialog4ModifyOrg(): void {
-    this.organizationService.setMyOrganization(this.myOrg);
-    const dialogRef = this.dialog.open(DetailsOrganizationDialogComponent, {
-      width: '40%',
-      data: {
-        name: this.myOrg['name'],
-        myOrg: JSON.parse(JSON.stringify(this.organizationService.getMyOrganization())),
-        dialogStatus: 'TitleModifyOrg'
+    const dialogRef = this.dialog.open(CreateOrganizationDialogComponent, { width: '40%' });
+    dialogRef.componentInstance.org = Object.assign(this.myOrg);
+    dialogRef.afterClosed().subscribe((res) => {
+      if (res) {
+        this.myOrg = res;
       }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      // update Organization info
-      if (result != null) {
-        this.organizationService.updateOrganization(this.orgID, result).subscribe(
-          res => {
-            setTimeout(() => { this.ngOnInit(); }, 1000); // Refreshes the data
-          },
-          (err: HttpErrorResponse) => {
-            // open a error dialog with err.error
-            const dialogRefErr = this.dialog.open(DetailsOrganizationDialogComponent, {
-              width: '40%',
-              data: { error: err.error, dialogStatus: 'TitleErrorMessage' }
-            });
-            if (err.error instanceof Error) {
-              console.log('Client-side error occured.');
-            } else {
-              console.log('Server-side error occured.');
-            }
-          }
-        );
-      }else {
-        console.log('no result', result);
-      }
-    });
-  }
-  /**
-   * Create Provider Config
-   */
-  openDialog4CreateProviderConfig(): void {
-    const dialogRef = this.dialog.open(DetailsOrganizationDialogComponent, {
-      width: '400px',
-      data: { name: '', dialogStatus: 'TitleCreateProviderConfig' }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed from openDialog4CreateProviderConfig()');
-    });
-  }
-  /**
-   * Modify Provider Config
-   */
-  openDialog4ModifyProviderConfig(): void {
-    const dialogRef = this.dialog.open(DetailsOrganizationDialogComponent, {
-      width: '350px',
-      data: { name: '', dialogStatus: 'TitleModifyProviderConfig' }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed from openDialog4ModifyProviderConfig()');
     });
   }
   /**
    * Add a user
    */
   openDialog4AddUser(): void {
-
-    const dialogRef = this.dialog.open(DetailsOrganizationDialogComponent, {
-      minWidth: '35%',
-      minHeight: '61%',
-      data: {
-        name: '',
-        components: this.activatedComponents,
-        newUserRoles: this.newUserRoles,
-        dialogStatus: 'TitleAddUser',
-        userRights: this.userRights
-      }
+    const dialogRef = this.dialog.open(UserDialogComponent, {
+        minWidth: '40%',
+        minHeight: '60%'
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        if (this.usersService.getUserData(result.username) != null) {
-          const addUserError = { error_description: 'User ' + result.username + ' already belongs to the organization.' };
-          const dialogRefErr = this.dialog.open(DetailsOrganizationDialogComponent, {
-            width: '30%',
-            data:  { error: addUserError, dialogStatus: 'TitleErrorMessage' }
-          });
-          return;
-        }
-
-        this.usersService.setUser(this.orgID, result, 'members').subscribe(
-          res => {
-            setTimeout(() => {  this.ngOnInit(); }, 1000); // Reloads the table
-          },
-          (err: HttpErrorResponse) => {
-            // open a error dialog with err.error
-            if (err.error) {
-              const dialogRefErr = this.dialog.open(DetailsOrganizationDialogComponent, {
-                width: '30%',
-                data: { error: err.error, dialogStatus: 'TitleErrorMessage' }
-              });
-            }
-            if (err.error instanceof Error) {
-              console.log('Client-side error occured.');
-            } else {
-              console.log('Server-side error occured.', err);
-            }
-          }
-        );
+    dialogRef.componentInstance.hasEdit = true;
+    dialogRef.componentInstance.user = new UsersProfile();
+    dialogRef.componentInstance.orgId = this.orgID;
+    dialogRef.afterClosed().subscribe((res) => {
+      if (res) {
+        this.usersList.push(res);
+        this.dataSourceUser = new MatTableDataSource(this.usersList);
       }
-      this.newUserRoles = [];
     });
   }
   /**
@@ -253,53 +122,17 @@ export class DetailsOrgComponent implements OnInit {
    * @param username
    */
   openDialog4ModifyUser(user): void {
-    const userData = user;
-    const roles = userData.roles.filter((r) => r.contextSpace.startsWith('components/')).map((r) => {
-      return {
-        component: r.contextSpace.substring(r.contextSpace.indexOf('/') + 1, r.contextSpace.lastIndexOf('/')),
-        tenant: r.contextSpace.substr(r.contextSpace.lastIndexOf('/') + 1),
-        role: r.role
-      };
-    });
-    roles.sort((a, b) => a.component !== b.component
-    ? a.component.localeCompare(b.component)
-    : a.tenant !== b.tenant
-      ? a.tenant.localeCompare(b.tenant)
-      : a.role.localeCompare(b.role));
-
-    const dialogRef = this.dialog.open(DetailsOrganizationDialogComponent, {
+    const dialogRef = this.dialog.open(UserDialogComponent, {
       minWidth: '40%',
-      data: {
-        name: user.username,
-        components: this.activatedComponents,
-        roles: roles,
-        userData: user,
-        dialogStatus: 'TitleModifyUser',
-        userRights: this.userRights
-      }
+      minHeight: '60%'
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result != null) {
-        this.usersService.updateUser(this.orgID, 'members', result).subscribe(
-          res => {
-            setTimeout(() => {  this.ngOnInit(); }, 1000); // Reloads the table
-          },
-          (err: HttpErrorResponse) => {
-            // open a error dialog with err.error
-            if (err.error) {
-              const dialogRefErr = this.dialog.open(DetailsOrganizationDialogComponent, {
-                width: '30%',
-                data: { error: err.error, dialogStatus: 'TitleErrorMessage' }
-              });
-            }
-            if (err.error instanceof Error) {
-              console.log('Client-side error occured.');
-            } else {
-              console.log('Server-side error occured.', err);
-            }
-          }
-        );
+    dialogRef.componentInstance.hasEdit = true;
+    dialogRef.componentInstance.user = user;
+    dialogRef.componentInstance.orgId = this.orgID;
+    dialogRef.afterClosed().subscribe((res) => {
+      if (res) {
+        this.usersList.splice(this.usersList.findIndex((u) => u.username === user.username), 1, res);
+        this.dataSourceUser = new MatTableDataSource(this.usersList);
       }
     });
   }
@@ -309,32 +142,18 @@ export class DetailsOrgComponent implements OnInit {
    * @param owner
    */
   openDialog4DeleteUser(userID: string): void {
-    this.userType = 'members';
-    const dialogRef = this.dialog.open(DetailsOrganizationDialogComponent, {
-      width: '350px',
-      data: { dialogStatus: 'TitleDeleteUser'  }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-
-      if (result) {
-        this.usersService.deleteUser(this.orgID, userID, this.userType).subscribe(
-          res => {
-            setTimeout(() => {  this.ngOnInit(); }, 1000); // Reloads the table
+    this.dialogService.confirm('Delete user',
+    'Are you sure you want to remove the user from organization?', 'YES', 'NO').subscribe((answer) => {
+      if (answer) {
+        this.usersService.deleteUser(this.orgID, userID).subscribe(
+          (res) => {
+            this.usersList.splice(this.usersList.findIndex((u) => u.id === userID), 1);
+            this.dataSourceUser = new MatTableDataSource(this.usersList);
           },
           (err: HttpErrorResponse) => {
             // open a error dialog with err.error
             if (err.error) {
-              const dialogRefErr = this.dialog.open(DetailsOrganizationDialogComponent, {
-                width: '30%',
-                data: { error: err.error, dialogStatus: 'TitleErrorMessage'  }
-              });
-            }
-
-            if (err.error instanceof Error) {
-              console.log('Client-side error occured.');
-            } else {
-              console.log('Server-side error occured.', err);
+              this.dialogService.alert('Data error', 'Error deleteing the user');
             }
           }
         );
@@ -347,8 +166,78 @@ export class DetailsOrgComponent implements OnInit {
    * @param username
    */
   openDialog4DetailsRole(user) {
-    const userData = user;
-    const roles = userData.roles.filter((r) => r.contextSpace.startsWith('components/')).map((r) => {
+    const dialogRef = this.dialog.open(UserDialogComponent, {
+      minWidth: '40%',
+      minHeight: '60%'
+    });
+    dialogRef.componentInstance.hasEdit = false;
+    dialogRef.componentInstance.user = user;
+    dialogRef.componentInstance.orgId = this.orgID;
+  }
+}
+
+/**
+ * User management dialog: view roles, creation, update
+ */
+@Component({
+  selector : 'app-user-dialog',
+  templateUrl : 'user-dialog.component.html',
+  styleUrls: ['./details-org.component.css']
+})
+export class UserDialogComponent implements OnInit {
+  orgId: string;
+  user: UsersProfile;
+  hasEdit = false;
+
+  isNew = false;
+
+  roles = [];
+  userRights: UserRights;
+
+  selectedTenant: string;
+  selectedComponentId: string;
+  selectedRole: string;
+  components: ActivatedComponentProfile[];
+  componentConf = {};
+  tenants: string[];
+  tenantRoles: string[];
+  formDoc: FormGroup;
+
+  constructor(
+    private componentsService: ComponentsService,
+    private usersService: UsersService,
+    public dialogRef: MatDialogRef<UserDialogComponent>,
+    public dialogService: DialogService,
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private _fb: FormBuilder
+  ) {
+  }
+
+  ngOnInit() {
+    this.componentsService.getActivatedComponents(this.orgId).then(response_activedComponents => {
+      this.components = response_activedComponents;
+      this.componentsService.getComponents().then((components) => {
+        components.content.forEach((cc) => this.componentConf[cc.componentId] = cc);
+      });
+    });
+    this.isNew = this.user === null || !this.user.username;
+    if (!this.isNew) {
+      this.user = Object.assign({}, this.user);
+      this.user.roles = this.user.roles.slice();
+      this.roles = this.computeRoles(this.user.roles);
+    }
+    this.usersService.getUserRights().then((response) => {
+      this.userRights = response;
+      this.formDoc = this._fb.group({
+        usernameControl: new FormControl({value: 'usernameControl', disabled: !this.isNew}, [Validators.required, Validators.email]),
+        ownerControl: new FormControl({value: 'ownerControl', disabled: !this.userRights || !this.userRights.admin})
+      });
+    });
+
+  }
+
+  private computeRoles(userRoles: UsersRoles[]): any[] {
+    const roles = userRoles.filter((r) => r.contextSpace.startsWith('components/')).map((r) => {
       return {
         component: r.contextSpace.substring(r.contextSpace.indexOf('/') + 1, r.contextSpace.lastIndexOf('/')),
         tenant: r.contextSpace.substr(r.contextSpace.lastIndexOf('/') + 1),
@@ -360,151 +249,214 @@ export class DetailsOrgComponent implements OnInit {
     : a.tenant !== b.tenant
       ? a.tenant.localeCompare(b.tenant)
       : a.role.localeCompare(b.role));
-    const dialogRef = this.dialog.open(DetailsOrganizationDialogComponent, {
-      minWidth: '35%',
-      // minHeight: '61%',
-      data: { username: user.username, userData: userData, roles, dialogStatus: 'TitleDetailsRole'  }
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      // console.log("openDialog4DetailsRole");
-    });
+      return roles;
   }
-}
 
+  componentSelected(selectedComponentId: string) {
+    const selectedComponent = this.components.find((c) => c.componentId === selectedComponentId);
+    this.tenants = selectedComponent.tenants;
+    this.tenantRoles = this.componentConf[selectedComponent.componentId].roles;
+  }
+
+  removeRole(userRole: any) {
+    const del =  new UsersRoles('components/' + userRole.component + '/' + userRole.tenant, userRole.role);
+    this.user.roles.splice(
+      this.user.roles.findIndex((r) => r.contextSpace === del.contextSpace && r.role === del.role), 1);
+    this.roles = this.computeRoles(this.user.roles);
+  }
+  addRole(component: string, tenant: string, role: string) {
+    const add =  new UsersRoles('components/' + component + '/' + tenant, role);
+    if (!this.user.roles) {
+      this.user.roles = [];
+    }
+    if (this.user.roles.findIndex((r) => r.contextSpace === add.contextSpace && r.role === add.role) >= 0) {
+      return;
+    }
+    this.user.roles.push(add);
+    this.roles = this.computeRoles(this.user.roles);
+    this.selectedRole = null;
+  }
+
+  ok() {
+    if (!this.hasEdit) {
+      this.dialogRef.close(this.user);
+    }
+    if (this.isNew && this.usersService.getUserData(this.user.username) != null) {
+      const addUserError = 'User ' + this.user.username + ' already belongs to the organization.' ;
+      this.dialogService.alert('User exists', addUserError);
+      return;
+    }
+
+    this.usersService.updateUser(this.orgId, this.user).subscribe((res) =>  this.dialogRef.close(res),
+      (err: HttpErrorResponse) => {
+        // open a error dialog with err.error
+        this.dialogService.alert('Data error', (err.error || {}).error_description || 'Server error');
+      }
+    );
+  }
+  cancel() {
+    this.dialogRef.close();
+  }
+
+}
 
 /**
  * Component for Dialog
  */
 @Component({
-  selector : 'details-org-dialog',
-  templateUrl : 'modifyDetails_Dialog.html',
-  styleUrls: ['./details-org.component.css']
+  selector: 'app-create-org-dialog',
+  templateUrl: 'create-org-dialog.html',
+  styleUrls: ['create-org-dialog.css']
 })
-export class DetailsOrganizationDialogComponent implements OnInit {
-  constructor(
-    private componentsService: ComponentsService,
-    private usersService: UsersService,
-    public dialogRef: MatDialogRef<DetailsOrganizationDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    private _fb: FormBuilder
-  ) {
-    this.selectedCat = 'Owner';
-    this.selectedComponentId = '';
-    this.selectedTenant = '';
-    this.selectedRole = '';
-    this.updateUserRole_status = false;
-  }
-
-  selectedCat: string;
-  tenantControl_status = false;
-  category: any = [ {'name': 'Owner', 'ID': 'C1', 'checked': true},
-              {'name': 'User', 'ID': 'C2', 'checked': false}];
-  userRoles: string[];
-  usernameControl = new FormControl('', [Validators.required]);
-  ownerControl = new FormControl('');
+export class CreateOrganizationDialogComponent implements OnInit {
+  checkedProvider = false;
   formDoc: FormGroup;
-  selectedComponentId: string;
-  selectedTenant: string;
-  selectedRole: string;
-  updateUserRole_status: boolean;
+
+  org: ContentOrg;
+
+  phoneNumbers: string[] = [];
+  tags: string[] = [];
+
+  constructor(
+    public dialogRef: MatDialogRef<CreateOrganizationDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any, private _fb: FormBuilder,
+    private organizationService: OrganizationService,
+    private dialogService: DialogService
+  ) { }
 
   ngOnInit() {
+    this.org = JSON.parse(JSON.stringify(this.org)); // deep copy
+    this.phoneNumbers = this.org && this.org.contacts && this.org.contacts.phone ? this.org.contacts.phone.slice() : [];
+    this.tags =  this.org && this.org.tag ? this.org.tag.slice() : [];
     this.formDoc = this._fb.group({
-      basicfile: []
+      orgNameControl        : new FormControl({value: 'orgNameControl', disabled: this.org !== null && !!this.org.id}, [Validators.required]),
+      ownerNameControl      : new FormControl('ownerNameControl', [Validators.required]),
+      ownerSurnameControl   : new FormControl('ownerSurnameControl', [Validators.required]),
+      ownerEmailControl     : new FormControl('ownerEmailControl', [Validators.required, Validators.email]),
+      orgDescriptionControl : new FormControl('orgDescriptionControl', [Validators.required]),
+      orgDomainControl      : new FormControl({value: 'orgDomainControl', disabled: this.org !== null && !!this.org.id}, [Validators.required]),
+      webAddressControl     : new FormControl('webAddressControl'),
+      logoControl           : new FormControl('logoControl'),
+      statusControl         : new FormControl({value: 'statusControl', disabled: this.org !== null && !!this.org.id})
     });
   }
-  onSubmit() {
-    console.log('SUBMITTED', this.formDoc);
+
+  getErrorMessage4orgName() {
+    return this.formDoc.controls.orgNameControl.hasError('required') ? 'You must enter the name of the organization.' :
+      '';
   }
-  trackByTenant(item, id) {
-    return item;
+  getErrorMessage4ownerName() {
+    return this.formDoc.controls.ownerNameControl.hasError('required') ? 'Enter the name of the owner.' :
+      '';
+  }
+  getErrorMessage4ownerSurname() {
+    return this.formDoc.controls.ownerNameControl.hasError('required') ? 'Enter the surame of the owner.' : '';
+  }
+  getErrorMessage4ownerEmail() {
+    return this.formDoc.controls.ownerEmailControl.hasError('required') ? 'You must enter the e-mail address of the owner.' :
+      this.formDoc.controls.ownerEmailControl.hasError('email') ? 'Not a valid e-mail address.' :
+        '';
+  }
+  getErrorMessage4orgDescription() {
+    return this.formDoc.controls.orgNameControl.hasError('required') ? 'You must provide a description for the organization.' :
+      '';
+  }
+  getErrorMessage4orgDomain() {
+    return this.formDoc.controls.orgNameControl.hasError('required') ? 'You must enter the domain of the organization.' :
+      '';
+  }
+  addPhoneNumber(num: string): void {
+    if (num && num.trim().length > 0 && !this.phoneNumbers.includes(num.trim())) {
+      this.phoneNumbers.push(num.trim());
+    }
+  }
+
+  removePhoneNumber(index: number): void {
+    this.phoneNumbers.splice(index, 1);
+  }
+
+  addTag(tag: string): void {
+    if (tag && tag.trim().length > 0 && !this.tags.includes(tag.trim())) {
+      this.tags.push(tag.trim());
+    }
+  }
+
+  removeTag(index: number): void {
+    this.tags.splice(index, 1);
   }
   onNoClick(): void {
     this.dialogRef.close();
   }
-  onKeyChange(): boolean {
-    return this.tenantControl_status = true;
-  }
-  addTenant(components: ActivatedComponentsProfile[], indexComponent: number): void {
-    this.componentsService.addTenant(components, indexComponent);
-  }
-  removeTenant(components: ActivatedComponentsProfile[], indexComponent: number, indexTenant: number): any {
-    this.tenantControl_status = true;
-    return this.componentsService.modifyComponent(components, indexComponent, indexTenant);
-  }
-  removeRole(user: UsersProfile, roleIndex: number) {
-    this.updateUserRole_status = true;
-    this.usersService.removeRole(user, roleIndex);
-  }
-  addRole(user: UsersProfile, selectedComponentId, selectedTenant, selectedRole) {
-    const contextSpace = 'components/' + selectedComponentId + '/' + selectedTenant;
-    this.usersService.setRole(user, contextSpace, selectedRole);
-    this.selectedComponentId = '';
-    this.selectedTenant = '';
-    this.selectedRole = '';
-    this.updateUserRole_status = true;
-  }
-  addRoleForNewUser(roles, selectedComponentId, selectedTenant, selectedRole) {
-    const contextSpace = 'components/' + selectedComponentId + '/' + selectedTenant;
-    roles.push(new UsersRoles(contextSpace, selectedRole));
-    this.selectedComponentId = '';
-    this.selectedTenant = '';
-    this.selectedRole = '';
-  }
-  removeRoleFromNewUser(roles, index) {
-    roles.splice(index, 1);
-  }
-  getErrorMessage4username() {
-    return this.usernameControl.hasError('required') ? 'You must enter the name of the user.' :
-        // this.dataset.hasError('email') ? 'Not a valid email' :
-            '';
-  }
-  getTenantsBySelectedComponent(selectedComponentID: string) {
-    this.componentsService.getTenantsBySelectedComponent(selectedComponentID).then(response => {
-      this.userRoles = response;
+  save() {
+    this.org.tag = this.tags;
+    if (!this.org.contacts) {
+      this.org.contacts = new ContactsOrg();
+    }
+    this.org.contacts.phone = this.phoneNumbers;
+    const action = this.org.id ? this.organizationService.updateOrganization(this.org.id.toString(), this.org) : this.organizationService.createOrganization(this.org);
+    action.then(org => this.dialogRef.close(org)).catch((err) => {
+      this.dialogService.alert('Data error', (err.error || {}).error_description || 'Server error');
     });
-  }
-
-  toggleOwner(owner: boolean): void {
-      this.data.userData.owner = (!owner);
-      this.updateUserRole_status = true;
-  }
-
-  addStringToArray(arr: string[], str: string): void {
-      if (str && str.trim().length > 0 && !arr.includes(str.trim())) {
-        arr.push(str.trim());
-        this.onKeyChange();
-      }
-  }
-  removeStringFromArray(arr: string[], index: number): void {
-      arr.splice(index, 1);
-      this.onKeyChange();
   }
 }
 
 @Component({
-  selector : 'app-user-dialog',
-  templateUrl : 'user-dialog.component.html',
-  styleUrls: ['./details-org.component.css']
+  selector: 'app-component-dialog',
+  templateUrl: 'component-dialog.html',
+  styleUrls: ['details-org.component.css']
 })
-export class UserDialogComponent implements OnInit {
-  hasEdit = false;
-  isNew = false;
+export class ComponentDialogComponent implements OnInit {
 
-  usernameControl = new FormControl('', [Validators.required]);
-  ownerControl = new FormControl('');
-  
+  orgId: string;
+  components: ActivatedComponentProfile[];
+  componentDefs = {};
+  activatedComponents: ActivatedComponentProfile[];
+  tenantControl_status = null;
+
   constructor(
+    public dialogRef: MatDialogRef<ComponentDialogComponent>,
     private componentsService: ComponentsService,
-    private usersService: UsersService,
-    public dialogRef: MatDialogRef<DetailsOrganizationDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    private _fb: FormBuilder
-  ) {
-  }
+    private dialogService: DialogService
+  ) { }
 
   ngOnInit() {
-    //
+    this.componentsService.getComponents().then(response_components => {
+      response_components.content.sort((a, b) => a.componentId.localeCompare(b.componentId));
+      this.components = [];
+      response_components.content.forEach(c => {
+        this.componentDefs[c.componentId] = c;
+        this.components.push(new ActivatedComponentProfile(c.componentId, c.name, []));
+      });
+      this.activatedComponents.forEach((ac) => {
+        const idx = this.components.findIndex(c => c.componentId === ac.componentId);
+        this.components[idx].tenants = ac.tenants.slice();
+      });
+    });
+
   }
 
+  trackByFn(index: any, item: any) {
+    return index;
+  }
+
+  addTenant(component: ActivatedComponentProfile) {
+    component.tenants.push('');
+  }
+  removeTenant(component: ActivatedComponentProfile, idx: number) {
+    component.tenants.splice(idx, 1);
+  }
+
+  onNoClick(): void {
+    this.dialogRef.close();
+  }
+
+  save() {
+    this.componentsService.updateComponents(this.orgId, this.components).then(res => {
+      this.dialogRef.close(res);
+    })
+    .catch(err => {
+      this.dialogService.alert('Data error', (err.error || {}).error_description || 'Server error');
+    });
+  }
 }
+

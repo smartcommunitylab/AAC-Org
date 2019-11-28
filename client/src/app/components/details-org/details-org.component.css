@@ -27,6 +27,9 @@ mat-grid-tile {
 .matGridList-figure > ::ng-deep figure {
     align-items: baseline;
 }
+.matGridList-figure > ::ng-deep figure > * {
+    flex: 1;
+}
 .matGridList-figure  ::ng-deep .item {
     padding: .5rem 1rem;
 }
@@ -54,6 +57,15 @@ i.center {
     padding: 0 1rem;   
 }
 
-tbody {
+tbody, thead {
     display: block;
+}
+.field-container {
+    display: flex;
+}
+.field-container > .mat-form-field {
+    flex: 1;
+}
+.field-container mat-error {
+    margin-bottom: .5rem;;
 }

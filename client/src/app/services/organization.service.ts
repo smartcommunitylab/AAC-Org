@@ -12,36 +12,30 @@ export class OrganizationService {
   /**
    * Get All Organizations
    */
-  getOrganizations(): Promise<OrganizationProfile[]> {
+  getOrganizations(): Promise<OrganizationProfile> {
     return this.http.get(`${ this.config.get('locUrl') }organizations/`)
-    .map(response => response as OrganizationProfile[])
+    .map(response => response as OrganizationProfile)
     .toPromise();
   }
 
   /**
-   * Set Organizations
-   * param: list of Organizations information
+   * Create organization
+   * param: Organization information
    */
-  setOrganization(data: ContentOrg): any {
-    return this.http.post(`${ this.config.get('locUrl') }organizations/`, data);
+  createOrganization(data: ContentOrg): Promise<ContentOrg> {
+    return this.http.post(`${ this.config.get('locUrl') }organizations/`, data)
+    .map((res) => (res as ContentOrg))
+    .toPromise();
   }
   /**
    * update modified Organization
    */
-  updateOrganization(orgID: string, data: ContentOrg): any {
-    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/info`, data);
+  updateOrganization(orgID: string, data: ContentOrg): Promise<ContentOrg> {
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/info`, data)
+    .map((res) => (res as ContentOrg))
+    .toPromise();
   }
-  getMyOrganization(): ContentOrg {
-    return this.myOrg;
-  }
-  setMyOrganization(dataMyOrg: ContentOrg): boolean {
-    if (dataMyOrg) {
-      this.myOrg = dataMyOrg;
-      return true;
-    }else {
-      return false;
-    }
-  }
+
   /**
    * Delete An Organization
    * @param orgID
@@ -55,23 +49,15 @@ export class OrganizationService {
    * @param orgID
    * @param body
    */
-  enableOrganization(orgID: number, body: any) {
-    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/enable`, body);
+  enableOrganization(orgID: number) {
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/enable`, {});
   }
   /**
    * Disable an Organization
    * @param orgID
    * @param body
    */
-  disableOrganization(orgID: number, body: any): any {
-    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/disable`, body);
+  disableOrganization(orgID: number): any {
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/disable`, {});
   }
-  /**
-   * Get Active Organizations
-   */
-  // getActiveOrganizations(): Promise<OrganizationProfile[]> {
-  //   this.getOrganizations().then(res=>{
-
-  //   })
-  // }
 }

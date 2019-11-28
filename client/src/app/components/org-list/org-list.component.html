@@ -1,9 +1,9 @@
 <div>
   <mat-toolbar>
     <!-- <span>{{ 'Sidenav.Datasets' | translate }}: {{domain}}</span> -->
-    <span>Active organizations</span>
+    <span>{{inactive ? 'Disabled' :'Active'}} organizations</span>
     <span class="fill-remaining-space"></span>
-    <button mat-raised-button color="primary" *ngIf="userRights && userRights.admin == true" (click)="openDialog4CreateOrg()">
+    <button mat-raised-button color="primary" *ngIf="userRights && userRights.admin == true && !inactive" (click)="createOrg()">
       <i class="material-icons">add_circle_outline</i>
       Create organization
     </button>
@@ -49,7 +49,9 @@
       <!-- <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell> -->
       <mat-cell *matCellDef="let element">
         <a routerLink="/detailsOrg/{{element.id}}"> <button mat-button color="primary">Details</button></a>
-        <button mat-button *ngIf="userRights && userRights.admin == true" (click)="openDialog4ChangeStatusOrg(element.id,element.name)" color="primary">Disable</button>
+        <button mat-button *ngIf="userRights && userRights.admin == true && !inactive" (click)="changeOrgStatus(element.id)" color="primary">Disable</button>
+        <button mat-button *ngIf="userRights && userRights.admin == true && inactive" (click)="changeOrgStatus(element.id)" color="primary">Enable</button>
+        <button mat-button *ngIf="userRights && userRights.admin == true && inactive" (click)="deleteOrg(element.id)" ><mat-icon matSuffix>delete</mat-icon></button>
       </mat-cell>
     </ng-container>
 

@@ -17,9 +17,10 @@ import {MatRadioModule} from '@angular/material/radio';
 import {  AuthGuard, AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HeaderComponent } from './components/header/header.component';
-import { ActiveOrgComponent, CreateOrganizationDialogComponent } from './components/active-org/active-org.component';
-import { InactivateOrgComponent, ModifyInactiveOrgDialogComponent } from './components/inactivate-org/inactivate-org.component';
-import { DetailsOrgComponent, DetailsOrganizationDialogComponent} from './components/details-org/details-org.component';
+import { DetailsOrgComponent,
+  UserDialogComponent,
+  CreateOrganizationDialogComponent,
+  ComponentDialogComponent} from './components/details-org/details-org.component';
 
 import { ConfigService } from './services/config.service';
 import { ComponentsService } from './services/components.service';
@@ -29,23 +30,28 @@ import { LoginService } from './services/auth/login.service';
 import { TokenInterceptor } from './services/auth/token.interceptor';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { DialogAlertComponent, DialogService, DialogConfirmComponent } from './components/common/dialog.component';
+import { OrgListComponent } from './components/org-list/org-list.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
     HeaderComponent,
-    ActiveOrgComponent,
-    InactivateOrgComponent,
+    OrgListComponent,
     CreateOrganizationDialogComponent,
-    ModifyInactiveOrgDialogComponent,
     DetailsOrgComponent,
-    DetailsOrganizationDialogComponent
+    UserDialogComponent,
+    DialogAlertComponent,
+    DialogConfirmComponent,
+    ComponentDialogComponent
   ],
   entryComponents: [
     CreateOrganizationDialogComponent,
-    ModifyInactiveOrgDialogComponent,
-    DetailsOrganizationDialogComponent,
+    UserDialogComponent,
+    DialogAlertComponent,
+    DialogConfirmComponent,
+    ComponentDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -85,7 +91,8 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
       provide: HTTP_INTERCEPTORS,
       useClass: TokenInterceptor,
       multi: true
-    }
+    },
+    DialogService
   ],
   bootstrap: [AppComponent]
 })

@@ -21,7 +21,7 @@
         <mat-grid-list cols="8" rowHeight="480px">
             <mat-grid-tile [colspan]=1 [rowspan]=1 class="matGridList-figure">
               <img width="100%" *ngIf="!myOrg.contacts.logo" src='https://img.icons8.com/metro/100/000000/organization.png' />
-              <img width="100%" *ngIf="myOrg.contacts.logo.indexOf('http://') == 0 || myOrg.contacts.logo.indexOf('https://') == 0" src='{{myOrg.contacts.logo}}' onError="this.src='https://img.icons8.com/metro/100/000000/organization.png'"/>
+              <img width="100%" *ngIf="myOrg.contacts.logo && (myOrg.contacts.logo.indexOf('http://') == 0 || myOrg.contacts.logo.indexOf('https://') == 0)" src='{{myOrg.contacts.logo}}' onError="this.src='https://img.icons8.com/metro/100/000000/organization.png'"/>
               <img width="100%" *ngIf="myOrg.contacts.logo && myOrg.contacts.logo.indexOf('http://') != 0 && myOrg.contacts.logo.indexOf('https://') != 0" src='http://{{myOrg.contacts.logo}}' onError="this.src='https://img.icons8.com/metro/100/000000/organization.png'"/>
 
             </mat-grid-tile>
@@ -63,10 +63,12 @@
 
             </mat-grid-tile>
             <mat-grid-tile [colspan]=2 [rowspan]=1 class="matGridList-figure">
+              <div>
               <button mat-raised-button color="primary" style="max-height:40px !important" *ngIf="userRights && (userRights.admin == true || userRights.ownedOrganizations.includes(myOrg.id))" (click)="openDialog4ModifyOrg()">
                 <mat-icon matSuffix>mode_edit</mat-icon>
                 Edit organization information
               </button>
+              </div>
             </mat-grid-tile>
         </mat-grid-list>
       </mat-card-content>
