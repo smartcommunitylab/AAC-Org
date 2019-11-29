@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
@@ -23,10 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.model.BasicProfile;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
+import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
 import it.smartcommunitylab.orgmanager.componentsmodel.Component;
@@ -56,6 +55,9 @@ public class OrganizationService {
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private ProfileService profileService;
 
     @Autowired
     private ComponentService componentService;
@@ -106,24 +108,16 @@ public class OrganizationService {
             String name, String slug, String description,
             String owner, Contacts contacts,
             String[] tags) throws SystemException, InvalidArgumentException {
+
+        // Checks if the user has the rights to perform this operation
+        if (!utils.userHasAdminRights()) {
+            throw new AccessDeniedException("Access is denied: user does not have administrator rights.");
+        }
+
+        logger.debug("create organization with name " + name + " owner " + owner);
+
         try {
-            // Checks if the user has the rights to perform this operation
-            if (!utils.userHasAdminRights()) {
-                throw new AccessDeniedException("Access is denied: user does not have administrator rights.");
-            }
-
-            logger.debug("create organization with name " + name + " owner " + owner);
             Organization organization = new Organization();
-
-            // normalizes the name
-            name = name.trim().replaceAll("\\s+", " ");
-            // checks if the name contains illegal characters
-            Pattern pattern = Pattern.compile(Constants.NAME_PATTERN);
-            if (!pattern.matcher(name).matches()) {
-                logger.error("invalid name " + name);
-                throw new InvalidArgumentException("Organization name " + name
-                        + " is not allowed, please use only alphanumeric characters, space ( ), dash (-) or underscore (_).");
-            }
 
             // While id is the key, the organization's name must also be unique, regardless
             // of case
@@ -134,20 +128,6 @@ public class OrganizationService {
             }
 
             organization.setName(name);
-
-            // checks that the slug is either null or valid
-            if (slug == null || slug.equals("")) {
-                // generated slug is normalized
-                slug = name.replaceAll(" ", "_").replaceAll("-", "_").toLowerCase();
-            }
-            // validate slug
-            pattern = Pattern.compile(Constants.SLUG_PATTERN);
-            if (!pattern.matcher(slug).matches()) {
-                logger.error("invalid slug " + slug);
-                throw new InvalidArgumentException(
-                        "The slug contains illegal characters (only lowercase alphanumeric characters and underscore are allowed): "
-                                + slug);
-            }
 
             // slug is unique
             if (organizationRepository.findBySlug(slug) != null) {
@@ -162,7 +142,7 @@ public class OrganizationService {
             organization.setDescription(description);
 
             // validate owner via idp
-            BasicProfile profile = utils.getIdpUserProfile(owner);
+            BasicProfile profile = profileService.getUserProfile(owner);
             if (profile == null) {
                 logger.error("owner " + owner + " does not exists");
                 throw new InvalidArgumentException(
@@ -223,6 +203,9 @@ public class OrganizationService {
         } catch (IdentityProviderAPIException e) {
             logger.error(e.getMessage());
             throw new SystemException(e.getMessage(), e);
+        } catch (NoSuchUserException e) {
+            throw new InvalidArgumentException(
+                    "The owner does not exists: " + owner);
         }
     }
 

@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,7 @@ import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 @Service
 @Transactional
 public class RoleService {
+    private final static Logger logger = LoggerFactory.getLogger(RoleService.class);
 
     private AACRoleService aacRoleService;
 
@@ -65,6 +68,7 @@ public class RoleService {
     public Set<User> getOrganizationOwners(String slug) throws IdentityProviderAPIException {
         Role owner = AACRoleDTO.orgOwner(slug);
         try {
+            logger.debug("get organization owners for slug " + slug);
             return aacRoleService.getSpaceUsers(owner.canonicalSpace(), owner.getRole(), 0, 1000, getToken());
         } catch (SecurityException | AACException e) {
             throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
@@ -79,6 +83,7 @@ public class RoleService {
     public Set<User> getOrganizationMembers(String slug) throws IdentityProviderAPIException {
         Role member = AACRoleDTO.orgMember(slug);
         try {
+            logger.debug("get organization members for slug " + slug);
             return aacRoleService.getSpaceUsers(member.canonicalSpace(), null, 0, 1000, getToken());
         } catch (SecurityException | AACException e) {
             throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
@@ -92,6 +97,7 @@ public class RoleService {
      */
     public Set<User> getRoleUsers(String canonicalSpace) throws IdentityProviderAPIException {
         try {
+            logger.debug("get role users for space " + canonicalSpace);
             return aacRoleService.getSpaceUsers(canonicalSpace, null, 0, 1000, getToken());
         } catch (SecurityException | AACException e) {
             throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
@@ -134,6 +140,7 @@ public class RoleService {
      */
     public Set<Role> getRoles(User user) throws IdentityProviderAPIException {
         try {
+            logger.debug("get roles for  user " + user.getUserId());
             Set<Role> roles = aacRoleService.getRolesByUserId(getToken(), user.getUserId());
             return roles;
         } catch (SecurityException | AACException e) {
