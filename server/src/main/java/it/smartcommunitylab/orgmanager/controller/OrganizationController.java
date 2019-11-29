@@ -28,9 +28,6 @@ public class OrganizationController {
     @Autowired
     private OrganizationService organizationService;
 
-    @Autowired
-    private OrgManagerUtils utils;
-
     @GetMapping("/api/organizations")
     public Page<OrganizationDTO> listOrganizations(String name, Pageable pageable) {
         return organizationService.listOrganizations(name, pageable);
@@ -50,7 +47,7 @@ public class OrganizationController {
         // validate
         if (owner.isEmpty()) {
             // set current user as owner
-            owner = utils.getAuthenticatedUserName();
+            owner = OrgManagerUtils.getAuthenticatedUserName();
         }
         // normalizes the name
         name = name.trim().replaceAll("\\s+", " ");

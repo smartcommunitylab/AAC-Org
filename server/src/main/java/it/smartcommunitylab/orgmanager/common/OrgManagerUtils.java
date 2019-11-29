@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -13,15 +12,11 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 import it.smartcommunitylab.orgmanager.dto.UserRightsDTO;
 
 @Service
 public class OrgManagerUtils {
-
-    @Autowired
-    private SecurityConfig securityConfig;
 
     /**
      * Returns true if the authenticated user has administrator rights. Only
@@ -32,8 +27,9 @@ public class OrgManagerUtils {
      * @return - true if the authenticated user has administrator rights, false
      *         otherwise
      */
-    public boolean userHasAdminRights() { // user has admin rights if they are admin or have the organization management
-                                          // scope
+    public static boolean userHasAdminRights() {
+        // user has admin rights if they are admin or have the organization
+        // management scope
         return (userHasOrganizationMgmtScope() || userIsAdmin());
     }
 
@@ -43,7 +39,7 @@ public class OrgManagerUtils {
      * 
      * @return - True if the authenticated user is admin, false otherwise
      */
-    private boolean userIsAdmin() {
+    private static boolean userIsAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String orgManager = new AACRoleDTO(null, Constants.ROOT_ORGANIZATIONS, Constants.ROLE_PROVIDER).getAuthority();
         return authentication.getAuthorities().stream().anyMatch(ga -> orgManager.equals(ga.getAuthority()));
@@ -56,15 +52,16 @@ public class OrgManagerUtils {
      * @return - true if the authenticated user has the organization management
      *         scope, false otherwise
      */
-    private boolean userHasOrganizationMgmtScope() {
+    private static boolean userHasOrganizationMgmtScope() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof OAuth2Authentication) {
             OAuth2Request request = ((OAuth2Authentication) authentication).getOAuth2Request();
             if (request != null) {
                 Set<String> scopeSet = request.getScope();
-                if (scopeSet != null) { // searches for the scope
+                if (scopeSet != null) {
+                    // searches for the scope
                     return scopeSet.stream()
-                            .anyMatch(s -> s.equalsIgnoreCase(securityConfig.getOrganizationManagementScope()));
+                            .anyMatch(s -> s.equalsIgnoreCase(Constants.SCOPE_ORG_MANAGEMENT));
                 }
             }
         }
@@ -78,7 +75,7 @@ public class OrgManagerUtils {
      *                     user
      * @return - true if the authenticated user is owner, false otherwise
      */
-    public boolean userIsOwner(String organization) {
+    public static boolean userIsOwner(String organization) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String orgOwner = AACRoleDTO.orgOwner(organization).getAuthority();
         return authentication.getAuthorities().stream().anyMatch(ga -> orgOwner.equals(ga.getAuthority()));
@@ -91,7 +88,7 @@ public class OrgManagerUtils {
      *                     user
      * @return
      */
-    public boolean userIsMember(String organization) {
+    public static boolean userIsMember(String organization) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Role orgMember = AACRoleDTO.orgMember(organization);
         return authentication.getAuthorities().stream()
@@ -104,7 +101,7 @@ public class OrgManagerUtils {
      * 
      * @return - Object that contains the authenticated user's rights
      */
-    public UserRightsDTO getUserRights() {
+    public static UserRightsDTO getUserRights() {
         return new UserRightsDTO(getAuthenticatedUserName(),
                 userHasAdminRights(),
                 findOwnedOrganizations());
@@ -119,7 +116,7 @@ public class OrgManagerUtils {
      * @throws IdentityProviderAPIException
      */
     @SuppressWarnings("unchecked")
-    public String getAuthenticatedUserId() throws IdentityProviderAPIException {
+    public static String getAuthenticatedUserId() throws IdentityProviderAPIException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         // claims
         if (!(auth instanceof OAuth2Authentication)) { // cannot find token value, needed to find the ID
@@ -142,7 +139,7 @@ public class OrgManagerUtils {
      * @return - User name used by the identity provider to identify the currently
      *         authenticated user
      */
-    public String getAuthenticatedUserName() {
+    public static String getAuthenticatedUserName() {
         Authentication obj = SecurityContextHolder.getContext().getAuthentication(); // retrieves token
         return obj.getPrincipal().toString();
     }
@@ -161,7 +158,7 @@ public class OrgManagerUtils {
     /**
      * @return
      */
-    public Collection<String> findOwnedOrganizations() {
+    public static Collection<String> findOwnedOrganizations() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication.getAuthorities().stream()
                 .map(ga -> AACRoleDTO.parse(ga.getAuthority()))

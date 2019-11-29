@@ -53,9 +53,6 @@ public class OrganizationMemberService {
     private TenantRepository tenantRepository;
 
     @Autowired
-    private OrgManagerUtils utils;
-
-    @Autowired
     private ComponentsModel componentsModel;
 
     @Autowired
@@ -86,7 +83,7 @@ public class OrganizationMemberService {
         try {
             // find the organization
             Organization organization = organizationRepository.findById(organizationId).orElse(null);
-            if (!utils.userHasAdminRights() && !utils.userIsOwner(organization.getSlug())) {
+            if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
                 throw new AccessDeniedException(
                         "Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
             }
@@ -155,7 +152,7 @@ public class OrganizationMemberService {
         }
 
         // Checks if the user has permission to perform this action
-        if (!utils.userHasAdminRights() && !utils.userIsOwner(organization.getSlug())) {
+        if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
             throw new AccessDeniedException(
                     "Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
         }
@@ -333,7 +330,7 @@ public class OrganizationMemberService {
             throw new NoSuchOrganizationException();
         }
         // Checks if the user has permission to perform this action
-        if (!utils.userHasAdminRights() && !utils.userIsOwner(organization.getSlug())) {
+        if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
             throw new AccessDeniedException(
                     "Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
         }
@@ -343,8 +340,8 @@ public class OrganizationMemberService {
         try {
             // ID used by the identity provider for the
             // authenticated user
-            String authenticatedId = utils.getAuthenticatedUserId();
-            if (!utils.userHasAdminRights() && memberId.equals(authenticatedId)) {
+            String authenticatedId = OrgManagerUtils.getAuthenticatedUserId();
+            if (!OrgManagerUtils.userHasAdminRights() && memberId.equals(authenticatedId)) {
                 // non-admin are inside the organization so we can not remove them
                 throw new InvalidArgumentException("You cannot remove yourself from the organization.");
             }

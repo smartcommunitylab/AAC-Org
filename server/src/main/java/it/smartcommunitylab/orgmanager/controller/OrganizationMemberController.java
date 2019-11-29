@@ -1,6 +1,7 @@
 package it.smartcommunitylab.orgmanager.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +18,7 @@ import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
 import it.smartcommunitylab.orgmanager.dto.OrganizationMemberDTO;
+import it.smartcommunitylab.orgmanager.dto.RoleDTO;
 import it.smartcommunitylab.orgmanager.service.OrganizationMemberService;
 
 @RestController
@@ -25,26 +27,28 @@ public class OrganizationMemberController {
     @Autowired
     private OrganizationMemberService organizationMemberService;
 
-    @Autowired
-    private OrgManagerUtils utils;
-
     @GetMapping("/api/organizations/{id}/members")
-    public List<OrganizationMemberDTO> getUsers(@PathVariable long id, String username) {
+    public List<OrganizationMemberDTO> getUsers(@PathVariable long id, String username) throws SystemException {
         return organizationMemberService.getUsers(id, username);
     }
 
     @GetMapping("/api/auths")
     public UserRightsDTO getUserRights() {
-        return organizationMemberService.getUserRights();
+        return OrgManagerUtils.getUserRights();
     }
 
     @PostMapping("/api/organizations/{id}/members")
-    public OrganizationMemberDTO handleUserRoles(@PathVariable long id, @RequestBody OrganizationMemberDTO memberDTO) {
-        return organizationMemberService.handleUserRoles(id, memberDTO);
+    public OrganizationMemberDTO handleUserRoles(@PathVariable long id, @RequestBody OrganizationMemberDTO memberDTO)
+            throws SystemException, NoSuchOrganizationException, InvalidArgumentException, NoSuchUserException {
+        // extract
+        String userName = memberDTO.getUsername();
+        Set<RoleDTO> roles = memberDTO.getRoles();
+        return organizationMemberService.handleUserRoles(id, userName, roles);
     }
 
     @DeleteMapping("api/organizations/{organizationId}/members/{memberId}")
-    public void removeUserRoles(@PathVariable long organizationId, @PathVariable String memberId) throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException {
+    public void removeUserRoles(@PathVariable long organizationId, @PathVariable String memberId)
+            throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException {
         organizationMemberService.removeUser(organizationId, memberId);
     }
 }

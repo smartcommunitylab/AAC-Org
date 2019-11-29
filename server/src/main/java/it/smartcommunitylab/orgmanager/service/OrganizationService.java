@@ -48,9 +48,6 @@ public class OrganizationService {
     private OrganizationRepository organizationRepository;
 
     @Autowired
-    private OrgManagerUtils utils;
-
-    @Autowired
     private ComponentsModel componentsModel;
 
     @Autowired
@@ -85,7 +82,7 @@ public class OrganizationService {
         // users with admin rights can see all organizations
         // users without admin rights can only see organizations they are part of
         List<OrganizationDTO> organizationsListDTO = organizations.stream()
-                .filter(o -> (utils.userHasAdminRights() || utils.userIsMember(o.getSlug())))
+                .filter(o -> (OrgManagerUtils.userHasAdminRights() || OrgManagerUtils.userIsMember(o.getSlug())))
                 .map(o -> OrganizationDTO.from(o))
                 .collect(Collectors.toList());
 
@@ -110,7 +107,7 @@ public class OrganizationService {
             String[] tags) throws SystemException, InvalidArgumentException {
 
         // Checks if the user has the rights to perform this operation
-        if (!utils.userHasAdminRights()) {
+        if (!OrgManagerUtils.userHasAdminRights()) {
             throw new AccessDeniedException("Access is denied: user does not have administrator rights.");
         }
 
@@ -228,7 +225,7 @@ public class OrganizationService {
         }
 
         // Checks if the user has permission to perform this action
-        if (!utils.userHasAdminRights() && !utils.userIsOwner(organization.getSlug())) {
+        if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
             throw new AccessDeniedException(
                     "Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
         }
@@ -269,7 +266,7 @@ public class OrganizationService {
      * @throws NoSuchOrganizationException
      */
     public OrganizationDTO enableOrganization(long id) throws NoSuchOrganizationException {
-        if (!utils.userHasAdminRights()) {
+        if (!OrgManagerUtils.userHasAdminRights()) {
             throw new AccessDeniedException("Access is denied: user does not have administrator rights.");
         }
 
@@ -297,7 +294,7 @@ public class OrganizationService {
      * @throws NoSuchOrganizationException
      */
     public OrganizationDTO disableOrganization(long id) throws NoSuchOrganizationException {
-        if (!utils.userHasAdminRights()) {
+        if (!OrgManagerUtils.userHasAdminRights()) {
             throw new AccessDeniedException("Access is denied: user does not have administrator rights.");
         }
 
@@ -325,7 +322,7 @@ public class OrganizationService {
      */
     public void deleteOrganization(long id)
             throws NoSuchOrganizationException, InvalidArgumentException, SystemException {
-        if (!utils.userHasAdminRights()) {
+        if (!OrgManagerUtils.userHasAdminRights()) {
             throw new AccessDeniedException("Access is denied: user does not have administrator rights.");
         }
 
