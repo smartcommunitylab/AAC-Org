@@ -15,7 +15,8 @@ public class Constants {
 	public static final String PATH_COMPONENTS_CONFIG 			= "/config/components.yml";
 	public static final String SCOPE_USER_PROFILES 				= "profile.basicprofile.all,profile.accountprofile.all";
 	public static final String SCOPE_MANAGE_ROLES	 			= "user.roles.write,user.roles.read,user.roles.read.all,client.roles.read.all,user.roles.manage.all";
-
+	public static final String SCOPE_ORG_MANAGEMENT             = "orgmanagement";
+	
 	//ComponentConfig
 	public static final String FIELD_NAME 						= "name";
 	public static final String FIELD_COMPONENT_ID 				= "componentId";
@@ -24,4 +25,7 @@ public class Constants {
 	public static final String FIELD_IMPLEMENTATION 			= "implementation";
 	public static final String FIELD_ROLES 						= "roles";
 	public static final String DEFAULT_FORMAT 					= "^[a-z0-9]+$";
+	public static final String SLUG_PATTERN                     = "^[a-z0-9_.\\-]*$";
+	public static final String NAME_PATTERN                     = "^[a-zA-Z0-9 _-]+$";
+
 }

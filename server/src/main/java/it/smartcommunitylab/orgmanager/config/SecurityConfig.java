@@ -24,17 +24,12 @@ import it.smartcommunitylab.aac.AACProfileService;
 import it.smartcommunitylab.aac.AACRoleService;
 import it.smartcommunitylab.aac.AACService;
 import it.smartcommunitylab.aac.model.TokenData;
-import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 
 @Configuration
 @EnableResourceServer
 public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
-	
-	@Value("${security.oauth2.client.organizationManagementScope}")
-	private String orgMgmtScope;
-	
 	@Value("${security.oauth2.client.clientId}")
 	private String clientId;
 	
@@ -59,11 +54,6 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		aacService = new AACService(aacUri, clientId, clientSecret);
 	}
 
-	
-	public String getOrganizationManagementScope() {
-		return orgMgmtScope; // scope that denotes certain privileges in creating, updating, configuring and deleting organizations
-	}
-	
 	public AACRoleService getAACRoleService() {
 		return new AACRoleService(aacUri); // service for various operations on AAC roles
 	}
@@ -72,7 +62,7 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	}
 	
 	
-	public String getToken(String scope) {
+	public String getToken(String scope) throws IdentityProviderAPIException {
 		TokenData data = tokens.get(scope);
 		if (data == null || (data.getExpires_on() - 1000*60*60) > System.currentTimeMillis()) {
 			synchronized (tokens) {
