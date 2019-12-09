@@ -40,7 +40,7 @@ export class OrganizationService {
    * Delete An Organization
    * @param orgID
    */
-  deleteOrganization(orgID: number): any {
+  deleteOrganization(orgID: string): any {
     return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}`);
   }
 
@@ -49,7 +49,7 @@ export class OrganizationService {
    * @param orgID
    * @param body
    */
-  enableOrganization(orgID: number) {
+  enableOrganization(orgID: string) {
     return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/enable`, {});
   }
   /**
@@ -57,7 +57,23 @@ export class OrganizationService {
    * @param orgID
    * @param body
    */
-  disableOrganization(orgID: number): any {
+  disableOrganization(orgID: string): any {
     return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/disable`, {});
+  }
+
+  getOrgSpaces(orgID: string): Promise<string[]>  {
+    return this.http.get(`${ this.config.get('locUrl') }organizations/${orgID}/spaces`)
+    .map((res) => (res as string[]))
+    .toPromise();
+  }
+  addOrgSpace(orgID: string, space: string): Promise<string[]>  {
+    return this.http.put(`${ this.config.get('locUrl') }organizations/${orgID}/spaces`, {}, {params: {space}})
+    .map((res) => (res as string[]))
+    .toPromise();
+  }
+  deleteOrgSpace(orgID: string, space: string): Promise<string[]>  {
+    return this.http.delete(`${ this.config.get('locUrl') }organizations/${orgID}/spaces`, {params: {space}})
+    .map((res) => (res as string[]))
+    .toPromise();
   }
 }

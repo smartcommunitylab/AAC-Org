@@ -1,14 +1,10 @@
 package it.smartcommunitylab.orgmanager.service;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.persistence.EntityNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,18 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.model.BasicProfile;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
-import it.smartcommunitylab.orgmanager.componentsmodel.Component;
-import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
-import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonUtils;
+import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
 import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
-import it.smartcommunitylab.orgmanager.dto.ComponentConfigurationDTO;
-import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO.Contacts;
 import it.smartcommunitylab.orgmanager.model.Organization;
@@ -48,16 +41,13 @@ public class OrganizationService {
     private OrganizationRepository organizationRepository;
 
     @Autowired
-    private ComponentsModel componentsModel;
-
-    @Autowired
     private RoleService roleService;
 
     @Autowired
     private ProfileService profileService;
 
     @Autowired
-    private ComponentService componentService;
+    private ComponentsConfiguration componentsConfiguration;
 
     /**
      * Lists the organizations in pages. The organizations may be filtered by name
@@ -145,10 +135,6 @@ public class OrganizationService {
                 throw new InvalidArgumentException(
                         "The owner does not exists: " + owner);
             }
-
-            // do NOT validate match between contact and owner
-            // they can be disjoint by design
-
             // contacts
             if (contacts != null) {
                 organization.setContactsEmail(contacts.getEmail());
@@ -178,22 +164,6 @@ public class OrganizationService {
             toAdd.setRoles(Collections.singleton(AACRoleDTO.orgOwner(organization.getSlug())));
             // save role in idp
             roleService.addRoles(Collections.singleton(toAdd));
-
-            UserInfo ownerUser = new UserInfo(owner, profile.getName(), profile.getSurname());
-
-            // Performs the operation in the components
-            Map<String, Component> componentMap = componentsModel.getListComponents();
-            String resultMessage;
-            for (String s : componentMap.keySet()) {
-                resultMessage = componentMap.get(s).createUser(ownerUser);
-                if (CommonUtils.isErroneousResult(resultMessage)) {
-                    throw new EntityNotFoundException(resultMessage);
-                }
-                resultMessage = componentMap.get(s).createOrganization(name, ownerUser);
-                if (CommonUtils.isErroneousResult(resultMessage)) {
-                    throw new EntityNotFoundException(resultMessage);
-                }
-            }
 
             // convert into view format
             return OrganizationDTO.from(organization);
@@ -341,15 +311,45 @@ public class OrganizationService {
                     "Unable to delete organization with ID " + id + ": the organization must first be disabled.");
         }
 
-        // update configuration in components
-        List<ComponentConfigurationDTO> componentConfigs = componentService.getConfigurations(id);
-        final Map<String, List<String>> tenantsToDelete = new HashMap<>();
-        componentConfigs.forEach(c -> {
-            tenantsToDelete.put(c.getComponentId(), new LinkedList<String>(c.getTenants()));
-            c.setTenants(Collections.<String>emptySet());
-        });
-        componentService.updateConfigurations(id, componentConfigs);
+        // delete spaces
+        try {
+			Set<String> spaces = getOrgSpaces(id);
+			for (String space: spaces) {
+				deleteOrgSpace(id, space);
+			}
+		} catch (IdentityProviderAPIException e) {
+            throw new SystemException(e.getMessage(), e);
+		}
+        
+        
+        try {
+			// delete all roles within resources or components
+			Set<String> prefixes = new HashSet<>();
+			prefixes.add(Constants.ROOT_RESOURCES);
+			componentsConfiguration.getComponents().forEach(conf -> {
+				prefixes.add(Constants.ROOT_COMPONENTS + "/" + conf.get(Constants.FIELD_COMPONENT_ID));
+			});
+			Set<User> rolesToRemove = new HashSet<>();
+			for (String pre: prefixes) {
+				String context = pre + "/" + organization.getSlug();
+				String fullContext = context + "/";
+				Set<User> componentUsers = roleService.getRoleUsers(context, null, true);
+				componentUsers.forEach(c -> {
+					User toRemove = new User();
+					toRemove.setUserId(c.getUserId());
+					toRemove.setRoles(c.getRoles().stream().filter(r -> {
+						String canonical = r.canonicalSpace();
+						return canonical.equals(context) || canonical.startsWith(fullContext);
+					}).collect(Collectors.toSet()));
+				});
 
+				roleService.deleteRoles(rolesToRemove);
+			}
+		} catch (IdentityProviderAPIException e) {
+            throw new SystemException(e.getMessage(), e);
+		}
+
+        
         // delete roles
         try {
             Set<User> organizationMembers = roleService.getOrganizationMembers(organization.getSlug());
@@ -357,14 +357,55 @@ public class OrganizationService {
         } catch (IdentityProviderAPIException e) {
             throw new SystemException(e.getMessage(), e);
         }
-        // Deletes the organization in the components
-        Map<String, Component> componentMap = componentsModel.getListComponents();
-        for (String s : componentMap.keySet()) {
-            componentMap.get(s).deleteOrganization(organization.getName(), tenantsToDelete.get(s));
-        }
 
         // deletes the organization from db
         organizationRepository.delete(organization);
         logger.debug("successfully deleted organization " + organization.toString());
+    }
+
+    public Set<String> getOrgSpaces(long id) throws NoSuchOrganizationException, IdentityProviderAPIException {
+        // finds the organization
+        Organization organization = organizationRepository.findById(id).orElse(null);
+        if (organization == null) {
+            throw new NoSuchOrganizationException();
+        }
+        
+    	// Admin or org owner can manage org spaces
+        if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+        
+        return roleService.getOrgSpaces(organization.getSlug());
+    }
+    
+    public Set<String> addOrgSpace(long id, String space) throws NoSuchOrganizationException, IdentityProviderAPIException {
+        // finds the organization
+        Organization organization = organizationRepository.findById(id).orElse(null);
+        if (organization == null) {
+            throw new NoSuchOrganizationException();
+        }
+    	// Admin or org owner can manage org spaces
+        if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+        return roleService.addOrgSpace(organization.getSlug(), space);
+    }
+    
+    public Set<String> deleteOrgSpace(long id, String space) throws NoSuchOrganizationException, IdentityProviderAPIException {
+        // finds the organization
+        Organization organization = organizationRepository.findById(id).orElse(null);
+        if (organization == null) {
+            throw new NoSuchOrganizationException();
+        }
+    	// Admin or org owner can manage org spaces
+        if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+        Set<String> prefixes = new HashSet<>();
+        prefixes.add(Constants.ROOT_RESOURCES);
+        componentsConfiguration.getComponents().forEach(conf -> {
+        	prefixes.add(Constants.ROOT_COMPONENTS + "/" + conf.get(Constants.FIELD_COMPONENT_ID));
+        });
+        return roleService.removeOrgSpace(organization.getSlug(), space, prefixes);
     }
 }

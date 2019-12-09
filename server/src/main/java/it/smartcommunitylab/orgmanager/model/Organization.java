@@ -22,17 +22,6 @@ public class Organization implements Serializable {
 
     @NotNull
     private String name;
-//	
-//	@NotNull
-//	@Column(unique=true)
-//	private String nameNormalized; // contains the name trimmed and in lower case
-//	
-//	/**
-//	 * Makes the name unique regardless of case and leading/trailing spaces
-//	 */
-//	@PrePersist @PreUpdate private void normalize() {
-//		nameNormalized = name.toLowerCase().trim();
-//	}
 
     @NotNull
     @Column(unique = true)
@@ -40,9 +29,6 @@ public class Organization implements Serializable {
 
     @Lob
     private String description;
-
-    @NotNull
-    private String owner;
 
     private String contactsEmail;
 
@@ -93,14 +79,6 @@ public class Organization implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
     }
 
     public String getContactsEmail() {
@@ -167,32 +145,6 @@ public class Organization implements Serializable {
         this.active = active;
     }
 
-//    /**
-//     * Copies an array into a new array without any of the original's null elements
-//     * or empty strings.
-//     * 
-//     * @param strings - Array of strings that may contain null elements or empty
-//     *                strings
-//     * @return - Array copy without any null elements or empty strings
-//     */
-//    private String[] copyValidStrings(String[] strings) {
-//        String[] validStrings = null;
-//        if (strings != null) { // elements have been specified
-//            int i = 0;
-//            for (String s : strings) {
-//                if (s != null && !s.trim().equals("")) {
-//                    if (validStrings == null)
-//                        validStrings = new String[strings.length];
-//                    validStrings[i] = s.trim();
-//                    i++;
-//                }
-//            }
-//            if (validStrings != null)
-//                validStrings = Arrays.copyOfRange(validStrings, 0, i);
-//        }
-//        return validStrings;
-//    }
-
     @Override
     public String toString() {
         String enabled = active ? "enabled" : "disabled";
@@ -205,7 +157,6 @@ public class Organization implements Serializable {
         org.name = dto.getName();
         org.slug = dto.getSlug();
         org.description = dto.getDescription();
-        org.owner = dto.getOwner();
 
         // Copies contents of the Contacts object
         Contacts contacts = dto.getContacts(); // in the view version, contacts info is an object, rather

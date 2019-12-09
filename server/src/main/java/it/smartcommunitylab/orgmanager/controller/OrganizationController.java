@@ -1,5 +1,6 @@
 package it.smartcommunitylab.orgmanager.controller;
 
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.smartcommunitylab.orgmanager.common.Constants;
+import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
@@ -110,4 +113,17 @@ public class OrganizationController {
         organizationService.deleteOrganization(id);
     }
 
+    @GetMapping("api/organizations/{id}/spaces")
+    public Set<String> getSpaces(@PathVariable long id) throws NoSuchOrganizationException, IdentityProviderAPIException {
+    	return organizationService.getOrgSpaces(id);
+    }
+    @PutMapping("api/organizations/{id}/spaces")
+    public Set<String> addSpace(@PathVariable long id, @RequestParam String space) throws NoSuchOrganizationException, IdentityProviderAPIException {
+    	return organizationService.addOrgSpace(id, space);
+    }
+    @DeleteMapping("api/organizations/{id}/spaces")
+    public Set<String> deleteSpace(@PathVariable long id, @RequestParam String space) throws NoSuchOrganizationException, IdentityProviderAPIException {
+    	return organizationService.deleteOrgSpace(id, space);
+    }
+    
 }

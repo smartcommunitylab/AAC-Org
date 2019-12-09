@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>Add a space</h2>
+<mat-dialog-content>
+    <form [formGroup]="formDoc"  #spaceForm="ngForm" novalidate>
+        <mat-form-field class="dialog-container-form-field" >
+            <input matInput  placeholder="Space" [(ngModel)]="space" formControlName="spaceControl" >
+            <mat-icon matSuffix>mode_edit</mat-icon>
+            <mat-error *ngIf="formDoc.controls.spaceControl.invalid">Invalid space: should contain letters, digits, '/', '.', and '_'</mat-error>
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+    <button mat-button tabindex="1" (click)="save()" [disabled]="!spaceForm.form.valid">OK</button>
+    <span class="fill-remaining-space"></span>
+    <button mat-button (click)="onNoClick()" tabindex="-1">Cancel</button>
+</mat-dialog-actions>

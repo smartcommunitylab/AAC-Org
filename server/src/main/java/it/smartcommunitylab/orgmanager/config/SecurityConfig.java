@@ -1,5 +1,6 @@
 package it.smartcommunitylab.orgmanager.config;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -118,7 +119,10 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
     	 
         @Override
         public OAuth2Authentication extractAuthentication(Map<String, ?> claims) {
-            OAuth2Authentication authentication = super.extractAuthentication(claims);
+        	HashMap<String, Object> copy = new HashMap<>(claims);
+        	if (!claims.containsKey(AUTHORITIES)) copy.put(AUTHORITIES, claims.get("roles"));
+        	
+            OAuth2Authentication authentication = super.extractAuthentication(copy);
             ((UsernamePasswordAuthenticationToken)authentication.getUserAuthentication()).setDetails(claims);
             return authentication;
         }

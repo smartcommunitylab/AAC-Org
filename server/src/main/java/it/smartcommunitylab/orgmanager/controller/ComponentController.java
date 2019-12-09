@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
 import it.smartcommunitylab.orgmanager.common.SystemException;
@@ -35,7 +36,7 @@ public class ComponentController {
 
     @GetMapping("/api/organizations/{id}/configuration")
     public List<ComponentConfigurationDTO> showConfigurations(@PathVariable long id)
-            throws NoSuchOrganizationException {
+            throws NoSuchOrganizationException, IdentityProviderAPIException {
         return componentService.getConfigurations(id);
     }
 

@@ -18,7 +18,8 @@ export class ActivatedComponentProfile {
     constructor(
     public componentId?: string,
     public componentName?: string,
-    public tenants?: string[]) {}
+    public active?: boolean
+    ) {}
 
 }
 export class ComponentsProfile {

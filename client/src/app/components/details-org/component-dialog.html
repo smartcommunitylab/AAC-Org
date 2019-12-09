@@ -1,23 +1,17 @@
 <h2 mat-dialog-title>List of components</h2>
 <mat-dialog-content>
         <form #componentForm="ngForm" novalidate>
-        <mat-expansion-panel *ngFor="let component of components; let indexComponent = index;">
-            <mat-expansion-panel-header>
-                <mat-panel-title>
-                    {{component.componentName}} ({{component.tenants.length}})
-                </mat-panel-title>
-                <mat-panel-description>
-                </mat-panel-description>
-            </mat-expansion-panel-header>
-            <div *ngFor="let tenant of component.tenants; let indexTenant = index;  trackBy: trackByFn" class="field-container">
-                <mat-form-field>
-                    <input type="text" required #tenantIn="ngModel" [pattern]="componentDefs[component.componentId].format" matInput [(ngModel)]="component.tenants[indexTenant]" name="tenant_{{component.componentId}}_{{indexTenant}}" placeholder="Tenant id">
-                    <mat-error *ngIf="!tenantIn.valid">Tenant should match the following regex {{componentDefs[component.componentId].format}}</mat-error>
-                </mat-form-field>
-                <button mat-button color="warn" (click)="removeTenant(component, indexTenant)"><mat-icon matSuffix>delete</mat-icon></button>
-            </div>
-            <button mat-raised-button (click)="addTenant(component)">Add tenant</button>
-        </mat-expansion-panel>
+            <table class="mat-table">
+                <tbody>
+                    <tr class="mat-row" *ngFor="let component of components; let indexComponent = index;">
+                        <td class="mat-cell">{{component.componentId}}</td>
+                        <td>
+                            <mat-slide-toggle color="primary" [name]="component.componentId + '-active'" [(ngModel)]="component.active"></mat-slide-toggle>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
         </form>
 </mat-dialog-content>
 

@@ -14,39 +14,43 @@
                     <input matInput  placeholder="Domain" [(ngModel)]="org.slug" formControlName="orgDomainControl" >
                     <mat-icon matSuffix>mode_edit</mat-icon>
                 </mat-form-field> 
+                <!-- Owner Email Address -->
+                <mat-form-field class="dialog-container-form-field" *ngIf="!org.id">
+                    <input matInput type="email" placeholder="Owner's username / email" [(ngModel)]="org.owner" formControlName="ownerEmailControl" >
+                    <mat-icon matSuffix>email</mat-icon>
+                    <mat-error *ngIf="formDoc.controls.ownerEmailControl.invalid">{{getErrorMessage4ownerEmail()}}</mat-error>
+                </mat-form-field>
+
                 <!-- Description of the Organization -->
                 <mat-form-field class="dialog-container-form-field"  >
                     <textarea matInput  placeholder="Description" [(ngModel)]="org.description" formControlName="orgDescriptionControl"  ></textarea>
                     <mat-error *ngIf="formDoc.controls.orgDescriptionControl.invalid">{{getErrorMessage4orgDescription()}}</mat-error>
                 </mat-form-field>
-                <!-- Owner Email Address -->
-                <mat-form-field class="dialog-container-form-field" >
-                    <input matInput type="email" placeholder="Owner's e-mail address" [(ngModel)]="org.contacts.email" formControlName="ownerEmailControl" >
-                    <mat-icon matSuffix>email</mat-icon>
-                    <mat-error *ngIf="formDoc.controls.ownerEmailControl.invalid">{{getErrorMessage4ownerEmail()}}</mat-error>
-                </mat-form-field>
-
                 <!-- Name and Surname input field -->
                 <table class="nameInput-full-width" cellspacing="0">
                     <tr>
                         <td>
                             <mat-form-field class="nameInput-full-width">
-                                <input matInput placeholder="Owner's name" [(ngModel)]="org.contacts.name" formControlName="ownerNameControl" >
+                                <input matInput placeholder="Contact name" [(ngModel)]="org.contacts.name" formControlName="contactNameControl" >
                                 <mat-icon matSuffix>mode_edit</mat-icon>
-                                <mat-error *ngIf="formDoc.controls.ownerNameControl.invalid">{{getErrorMessage4ownerName()}}</mat-error>
                             </mat-form-field>
                         </td>
                         <td>
                             <mat-form-field class="nameInput-full-width">
-                                <input matInput placeholder="Owner's surname" [(ngModel)]="org.contacts.surname" formControlName="ownerSurnameControl" >
+                                <input matInput placeholder="Contact surname" [(ngModel)]="org.contacts.surname" formControlName="contactSurnameControl" >
                                 <mat-icon matSuffix>mode_edit</mat-icon>
-                                <mat-error *ngIf="formDoc.controls.ownerSurnameControl.invalid">{{getErrorMessage4ownerSurname()}}</mat-error>
                             </mat-form-field>
                         </td>
                     </tr>
                 </table>
             
-                <!-- Organization Web Address -->
+                <mat-form-field class="dialog-container-form-field" >
+                    <input matInput type="email" placeholder="Contact email" [(ngModel)]="org.contacts.email" formControlName="contactEmailControl" >
+                    <mat-icon matSuffix>email</mat-icon>
+                    <mat-error *ngIf="formDoc.controls.contactEmailControl.invalid">{{getErrorMessage4contactEmail()}}</mat-error>
+                </mat-form-field>
+
+                <!-- Organization Web Address -->   
                 <mat-form-field class="dialog-container-form-field" >
                     <input matInput  placeholder="Web address" [(ngModel)]="org.contacts.web" formControlName="webAddressControl">
                     <mat-icon matSuffix>mode_edit</mat-icon>

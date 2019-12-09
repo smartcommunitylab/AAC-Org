@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
@@ -31,21 +31,17 @@ import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
-import it.smartcommunitylab.orgmanager.componentsmodel.Component;
-import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
-import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonUtils;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
 import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 import it.smartcommunitylab.orgmanager.dto.ComponentConfigurationDTO;
 import it.smartcommunitylab.orgmanager.dto.ComponentDTO;
-import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
 import it.smartcommunitylab.orgmanager.model.Organization;
-import it.smartcommunitylab.orgmanager.model.Tenant;
 import it.smartcommunitylab.orgmanager.repository.OrganizationRepository;
-import it.smartcommunitylab.orgmanager.repository.TenantRepository;
 
+// TODO - org components may be multiple - for different subspaces
+// TODO - update operation should take this into account updating everything at once
 @Service
-@Transactional(rollbackFor = Exception.class)
+@Transactional(readOnly = true)
 public class ComponentService {
 
     private final static Logger logger = LoggerFactory.getLogger(ComponentService.class);
@@ -54,13 +50,7 @@ public class ComponentService {
     private OrganizationRepository organizationRepository;
 
     @Autowired
-    private TenantRepository tenantRepository;
-
-    @Autowired
     private ComponentsConfiguration componentsConfiguration;
-
-    @Autowired
-    private ComponentsModel componentsModel;
 
     @Autowired
     private RoleService roleService;
@@ -71,7 +61,6 @@ public class ComponentService {
      * @param pageable - Page number, size, etc.
      * @return - A page of components
      */
-    @Transactional(readOnly = true)
     public Page<ComponentDTO> listComponents(Pageable pageable) {
         logger.debug("list components");
         List<ComponentDTO> componentListDTO = new ArrayList<ComponentDTO>();
@@ -125,8 +114,9 @@ public class ComponentService {
      * @param organizationId - ID of the organization
      * @return - The configuration of the organization
      * @throws NoSuchOrganizationException
+     * @throws IdentityProviderAPIException 
      */
-    public List<ComponentConfigurationDTO> getConfigurations(long organizationId) throws NoSuchOrganizationException {
+    public List<ComponentConfigurationDTO> getConfigurations(long organizationId) throws NoSuchOrganizationException, IdentityProviderAPIException {
 
         // find the organization
         Organization organization = organizationRepository.findById(organizationId).orElse(null);
@@ -144,25 +134,15 @@ public class ComponentService {
 
         // Prepares the configuration, to show it as response. It will be a list with an
         // element for each component.
-        List<ComponentConfigurationDTO> config = new ArrayList<ComponentConfigurationDTO>();
-        Map<String, ComponentConfigurationDTO> configMap = new HashMap<String, ComponentConfigurationDTO>();
-        // fetch the organization's tenants
-        List<Tenant> tenants = tenantRepository.findByOrganization(organization);
+        List<ComponentConfigurationDTO> config = new LinkedList<ComponentConfigurationDTO>();
 
-        for (Tenant t : tenants) {
-            String componentId = t.getTenantId().getComponentId();
-            ComponentConfigurationDTO conf = configMap.get(componentId);
-            if (conf == null) {
-                conf = new ComponentConfigurationDTO(componentId, null);
-                configMap.put(componentId, conf);
-            }
-            conf.addTenant(t.getTenantId().getName());
+        for (Map<String, String> conf: componentsConfiguration.getComponents()) {
+        	String componentId = conf.get(Constants.FIELD_COMPONENT_ID);
+        	Set<User> componentOwners = roleService.getRoleUsers(AACRoleDTO.componentOrgOwner(componentId, organization.getSlug()).canonicalSpace(), Constants.ROLE_PROVIDER, false);
+        	if (!componentOwners.isEmpty()) {
+        		config.add(new ComponentConfigurationDTO(componentId));
+        	}
         }
-
-        for (String s : configMap.keySet()) {
-            config.add(configMap.get(s));
-        }
-
         return config;
     }
 
@@ -206,88 +186,68 @@ public class ComponentService {
                 throw new EntityNotFoundException("No owner of organization " + organization.getSlug()
                         + " could be found, unable to update configuration.");
             }
-
-            // previous configuration
-            List<Tenant> previousTenants = tenantRepository.findByOrganization(organization);
-            // new configuration
-            List<Tenant> newTenants = validateConfiguration(organization, configurationDTOList);
-
-            // new roles that will need to be added
-            Set<User> rolesToAdd = new HashSet<>();
-            // roles to be removed, due to an old tenant not present in the
-            // new configuration
-            Set<User> rolesToRemove = new HashSet<>();
-
-            // loops on all tenants listed in the new configuration
-            for (Tenant t : newTenants) {
-                // tenant is still in use
-                previousTenants.remove(t);
-                for (User owner : owners) {
-                    owner.getRoles()
-                            .add(AACRoleDTO.tenantOwner(t.getTenantId().getComponentId(), t.getTenantId().getName()));
-                    owner.getRoles()
-                            .add(AACRoleDTO.orgMember(organization.getSlug()));
-                    rolesToAdd.add(owner);
-                }
+            
+            Set<String> old = new HashSet<>();
+            
+            
+            for (Map<String, String> conf: componentsConfiguration.getComponents()) {
+            	String componentId = conf.get(Constants.FIELD_COMPONENT_ID);
+            	Set<User> componentOwners = roleService.getRoleUsers(AACRoleDTO.componentOrgOwner(componentId, organization.getSlug()).canonicalSpace(), Constants.ROLE_PROVIDER, true);
+            	if (!componentOwners.isEmpty()) {
+            		old.add(componentId);
+            	}
             }
 
-            Set<String> componentIds = configurationDTOList.stream()
-                    .map(ComponentConfigurationDTO::getComponentId)
-                    .collect(Collectors.toSet());
-
-            // tenants no longer in use, to be removed
-            List<Tenant> tenantsToRemove = new ArrayList<Tenant>();
-            for (Tenant t : previousTenants) {
-                // Loops on tenants not present in the new configuration. If a tenant does not
-                // appear
-                // because its component ID is not specified, however, it is interpreted as
-                // "leave this component's configuration as it is".
-                if (componentIds.contains(t.getTenantId().getComponentId())) {
-                    // component ID was specified, but the
-                    // tenant is missing
-                    Role role = AACRoleDTO.tenantUser(t.getTenantId().getComponentId(), t.getTenantId().getName());
-                    Set<User> toRemove = roleService.getRoleUsers(role.canonicalSpace());
-                    rolesToRemove.addAll(toRemove);
-                    tenantsToRemove.add(t);
-                }
+			// new roles that will need to be added
+			Set<User> rolesToAdd = new HashSet<>();
+			// roles to be removed, due to an old tenant not present in the
+			// new configuration
+			Set<User> rolesToRemove = new HashSet<>();
+            
+            for (ComponentConfigurationDTO conf: configurationDTOList) {
+            	String componentId = conf.getComponentId();
+            	// completely new, add it for the owners
+            	if (!old.contains(componentId)) {
+            		for (User owner: owners) {
+            			User toAdd = new User();
+            			toAdd.setUserId(owner.getUserId());
+            			toAdd.setUsername(owner.getUsername());
+            			if (toAdd.getRoles() == null) toAdd.setRoles(new HashSet<>());
+            			toAdd.getRoles().add(AACRoleDTO.componentOrgOwner(componentId, organization.getSlug()));
+            			rolesToAdd.add(toAdd);
+            		}
+            	}
+            	old.remove(componentId);
             }
-
-            // update in db
-            tenantRepository.saveAll(newTenants); // saves new tenants
-            tenantRepository.deleteAll(tenantsToRemove); // deletes unused tenants
+            
+            if (!old.isEmpty()) {
+            	Map<String, Set<Role>> removeMap = new HashMap<>();
+            	for (String cId: old) {
+            		String space = AACRoleDTO.componentOrgOwner(cId, organization.getSlug()).canonicalSpace();
+            		String prefix = space + "/";
+                	Set<User> componentUsers = roleService.getRoleUsers(space, null, true);
+                	componentUsers.forEach(c -> {
+                		if (!removeMap.containsKey(c.getUserId())) removeMap.put(c.getUserId(), new HashSet<>());
+                		removeMap.get(c.getUserId()).addAll(
+                				// all roles that are within component/org 
+                				c.getRoles().stream().filter(r -> {
+                					String canonical = r.canonicalSpace();
+                					return canonical.equals(space) || canonical.startsWith(prefix);
+                					
+                				}).collect(Collectors.toSet()));
+                	});
+            	}
+            	removeMap.entrySet().forEach(e -> {
+        			User toDel = new User();
+        			toDel.setUserId(e.getKey());
+        			toDel.setRoles(e.getValue());
+            		rolesToRemove.add(toDel);
+            	});
+            }
 
             // update in AAC
             roleService.addRoles(rolesToAdd);
             roleService.deleteRoles(rolesToRemove);
-
-            // update in components
-            Map<String, Component> componentMap = componentsModel.getListComponents();
-            for (Tenant t : newTenants) {
-                // Creates new tenants
-                Component component = componentMap.get(t.getTenantId().getComponentId());
-                if (component != null) {
-                    Organization org = t.getOrganization();
-                    UserInfo userInfo = new UserInfo(
-                            org.getContactsEmail(),
-                            org.getContactsName(),
-                            org.getContactsSurname());
-
-                    String resultMessage = component.createTenant(t.getTenantId().getName(),
-                            t.getOrganization().getName(),
-                            userInfo);
-                    if (CommonUtils.isErroneousResult(resultMessage)) {
-                        throw new EntityNotFoundException(resultMessage);
-                    }
-                }
-            }
-            for (Tenant t : tenantsToRemove) {
-                // Deletes tenants no longer in use
-                Component component = componentMap.get(t.getTenantId().getComponentId());
-                String resultMessage = component.deleteTenant(t.getTenantId().getName(), t.getOrganization().getName());
-                if (CommonUtils.isErroneousResult(resultMessage)) {
-                    throw new EntityNotFoundException(resultMessage);
-                }
-            }
 
             return getConfigurations(organizationId);
         } catch (IdentityProviderAPIException e) {
@@ -305,87 +265,5 @@ public class ComponentService {
                 .map(r -> r.trim())
                 .filter(r -> !"".equals(r))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Validates the input configuration. Also returns the full list of tenants that
-     * appear in this new configuration.
-     * 
-     * @param organization         - Organization to configure
-     * @param configurationDTOList - Components whose tenants are to be validated
-     * @return - Full list of all tenants appearing in the new configuration
-     * @throws InvalidArgumentException
-     */
-    private List<Tenant> validateConfiguration(
-            Organization organization,
-            List<ComponentConfigurationDTO> configurationDTOList) throws InvalidArgumentException {
-
-        if (configurationDTOList == null || configurationDTOList.isEmpty()) {
-            throw new InvalidArgumentException("No configuration specified.");
-        }
-
-        List<Tenant> newTenants = new ArrayList<Tenant>();
-
-        // loop on the input configurations
-        for (ComponentConfigurationDTO conf : configurationDTOList) {
-            if (conf == null || conf.getComponentId() == null) {
-                throw new InvalidArgumentException("The componentId field was not specified.");
-            }
-
-            String componentId = conf.getComponentId();
-            boolean componentIdFound = false;
-            String componentIdProperty;
-            String componentTenantPattern = "";
-            for (Map<String, String> map : componentsConfiguration.getComponents()) {
-                // checks that the component ID
-                // belongs to an actual component
-                componentIdProperty = map.get(Constants.FIELD_COMPONENT_ID);
-                if (componentIdProperty != null && componentIdProperty.equals(componentId)) {
-                    // component ID is valid
-                    componentIdFound = true;
-                    componentTenantPattern = map.get(Constants.FIELD_FORMAT);
-                    break;
-                }
-            }
-            if (!componentIdFound) {
-                // no component with the given ID could be found
-                throw new InvalidArgumentException("Component " + componentId + " could not be found.");
-            }
-
-            // tenants need to have a certain format
-            Pattern pattern = Pattern.compile(componentTenantPattern);
-            if (conf.getTenants() != null) {
-                for (String t : conf.getTenants()) {
-                    if (!pattern.matcher(t).matches()) {
-                        // tenant does not match the format
-                        throw new InvalidArgumentException("The following tenant contains illegal characters: " + t
-                                + ", please match this regex: " + componentTenantPattern);
-                    }
-
-                    // check if tenant already exists
-                    Tenant storedTenant = tenantRepository.findByComponentIdAndName(componentId, t);
-                    if (storedTenant == null) {
-                        // tenant needs to be created
-                        storedTenant = new Tenant(componentId, t, organization);
-                    } else if (!storedTenant.getOrganization().getId().equals(organization.getId())) {
-                        // cannot add this tenant
-                        throw new InvalidArgumentException(
-                                "Tenant " + storedTenant + " is already in use by a different organization.");
-                    }
-
-                    // adds the tenant to the list of tenants of the new configuration
-                    newTenants.add(storedTenant);
-                }
-            } else {
-                // component ID was specified, but the tenant field is missing
-                throw new InvalidArgumentException("Component " + conf.getComponentId()
-                        + " was found, but the tenants field was"
-                        + " absent or incomplete. If you meant to delete all tenants for this component, please specify the tenant"
-                        + " field as an empty array. If you don't want to change the configuration of this component, remove its"
-                        + " configuration entirely.");
-            }
-        }
-
-        return newTenants;
     }
 }

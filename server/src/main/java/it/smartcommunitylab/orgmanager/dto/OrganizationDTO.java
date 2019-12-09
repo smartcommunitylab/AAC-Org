@@ -130,7 +130,6 @@ public class OrganizationDTO {
         dto.name = org.getName();
         dto.slug = org.getSlug();
         dto.description = org.getDescription();
-        dto.owner = org.getOwner();
 
         // contacts obj from properties
         Contacts contacts = new Contacts(

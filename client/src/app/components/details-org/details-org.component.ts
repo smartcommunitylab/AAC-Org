@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, Input } from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatTableDataSource } from '@angular/material';
-import {FormControl, Validators, FormBuilder, FormGroup} from '@angular/forms';
+import {FormControl, Validators, FormBuilder, FormGroup, ValidatorFn, AbstractControl} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {HttpErrorResponse} from '@angular/common/http';
 
@@ -10,6 +10,12 @@ import {UsersService} from '../../services/users.service';
 import { UserRights, UsersProfile, UsersRoles, ContentOrg, ActivatedComponentProfile, ContactsOrg } from '../../models/profile';
 import { DialogService } from '../common/dialog.component';
 
+export function optionalValidator(validators?: (ValidatorFn | null | undefined)[]): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } => {
+
+      return control.value ? Validators.compose(validators)(control) : null;
+  };
+}
 @Component({
   selector: 'app-details-org',
   templateUrl: './details-org.component.html',
@@ -28,6 +34,7 @@ export class DetailsOrgComponent implements OnInit {
   userRights: UserRights;
   panelOpenState = false;
   activatedComponents: ActivatedComponentProfile[];
+  spaces: string[];
   myOrg: ContentOrg;
   orgName= '';
   orgID: string = this.route.snapshot.paramMap.get('id');
@@ -52,6 +59,11 @@ export class DetailsOrgComponent implements OnInit {
           this.usersList = response_users;
           this.displayedUsersColumns = ['username', 'roles', 'owner', 'action'];
           this.dataSourceUser = new MatTableDataSource<UsersProfile>(this.usersList);
+        });
+
+        this.organizationService.getOrgSpaces(this.orgID).then(spaces => {
+          spaces.sort((a, b) => a.localeCompare(b));
+          this.spaces = spaces;
         });
       }
     });
@@ -83,6 +95,21 @@ export class DetailsOrgComponent implements OnInit {
     dialogRef.afterClosed().subscribe(res => {
       if (res) {
         this.initComponents();
+      }
+    });
+  }
+
+   /**
+   * Manage spaces
+   */
+  openDialog4ManageSpaces(): void {
+    const dialogRef = this.dialog.open(SpaceDialogComponent, { width: '40%' });
+    dialogRef.componentInstance.orgId = this.orgID;
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res) {
+        res.sort((a, b) => a.localeCompare(b));
+        this.spaces = res;
       }
     });
   }
@@ -174,6 +201,17 @@ export class DetailsOrgComponent implements OnInit {
     dialogRef.componentInstance.user = user;
     dialogRef.componentInstance.orgId = this.orgID;
   }
+
+  removeSpace(s) {
+    this.dialogService.confirm('Remove space', 'Are you sure you want to remove this space?', 'Remove').subscribe(res => {
+      if (res) {
+        this.organizationService.deleteOrgSpace(this.orgID, s).then(list => {
+          list.sort((a, b) => a.localeCompare(b));
+          this.spaces = list;
+        });
+      }
+    });
+  }
 }
 
 /**
@@ -254,7 +292,6 @@ export class UserDialogComponent implements OnInit {
 
   componentSelected(selectedComponentId: string) {
     const selectedComponent = this.components.find((c) => c.componentId === selectedComponentId);
-    this.tenants = selectedComponent.tenants;
     this.tenantRoles = this.componentConf[selectedComponent.componentId].roles;
   }
 
@@ -330,11 +367,12 @@ export class CreateOrganizationDialogComponent implements OnInit {
     this.tags =  this.org && this.org.tag ? this.org.tag.slice() : [];
     this.formDoc = this._fb.group({
       orgNameControl        : new FormControl({value: 'orgNameControl', disabled: this.org !== null && !!this.org.id}, [Validators.required]),
-      ownerNameControl      : new FormControl('ownerNameControl', [Validators.required]),
-      ownerSurnameControl   : new FormControl('ownerSurnameControl', [Validators.required]),
-      ownerEmailControl     : new FormControl('ownerEmailControl', [Validators.required, Validators.email]),
+      ownerEmailControl     : new FormControl({value: 'ownerEmailControl', disabled: this.org !== null && !!this.org.id}, [Validators.required, Validators.email]),
       orgDescriptionControl : new FormControl('orgDescriptionControl', [Validators.required]),
       orgDomainControl      : new FormControl({value: 'orgDomainControl', disabled: this.org !== null && !!this.org.id}, [Validators.required]),
+      contactEmailControl     : new FormControl({value: 'contactEmailControl'}, optionalValidator([Validators.email])),
+      contactNameControl      : new FormControl('contactNameControl'),
+      contactSurnameControl   : new FormControl('contactSurnameControl'),
       webAddressControl     : new FormControl('webAddressControl'),
       logoControl           : new FormControl('logoControl'),
       statusControl         : new FormControl({value: 'statusControl', disabled: this.org !== null && !!this.org.id})
@@ -345,17 +383,13 @@ export class CreateOrganizationDialogComponent implements OnInit {
     return this.formDoc.controls.orgNameControl.hasError('required') ? 'You must enter the name of the organization.' :
       '';
   }
-  getErrorMessage4ownerName() {
-    return this.formDoc.controls.ownerNameControl.hasError('required') ? 'Enter the name of the owner.' :
-      '';
-  }
-  getErrorMessage4ownerSurname() {
-    return this.formDoc.controls.ownerNameControl.hasError('required') ? 'Enter the surame of the owner.' : '';
-  }
   getErrorMessage4ownerEmail() {
     return this.formDoc.controls.ownerEmailControl.hasError('required') ? 'You must enter the e-mail address of the owner.' :
       this.formDoc.controls.ownerEmailControl.hasError('email') ? 'Not a valid e-mail address.' :
         '';
+  }
+  getErrorMessage4contactEmail() {
+    return this.formDoc.controls.contactEmailControl.hasError('email') ? 'Not a valid e-mail address.' : '';
   }
   getErrorMessage4orgDescription() {
     return this.formDoc.controls.orgNameControl.hasError('required') ? 'You must provide a description for the organization.' :
@@ -425,11 +459,11 @@ export class ComponentDialogComponent implements OnInit {
       this.components = [];
       response_components.content.forEach(c => {
         this.componentDefs[c.componentId] = c;
-        this.components.push(new ActivatedComponentProfile(c.componentId, c.name, []));
+        this.components.push(new ActivatedComponentProfile(c.componentId, c.name, false));
       });
       this.activatedComponents.forEach((ac) => {
         const idx = this.components.findIndex(c => c.componentId === ac.componentId);
-        this.components[idx].tenants = ac.tenants.slice();
+        this.components[idx].active = true;
       });
     });
 
@@ -439,11 +473,52 @@ export class ComponentDialogComponent implements OnInit {
     return index;
   }
 
-  addTenant(component: ActivatedComponentProfile) {
-    component.tenants.push('');
+  onNoClick(): void {
+    this.dialogRef.close();
   }
-  removeTenant(component: ActivatedComponentProfile, idx: number) {
-    component.tenants.splice(idx, 1);
+
+  save() {
+    this.componentsService.updateComponents(this.orgId, this.components.filter(c => c.active)).then(res => {
+      this.dialogRef.close(res);
+    })
+    .catch(err => {
+      this.dialogService.alert('Data error', (err.error || {}).error_description || 'Server error');
+    });
+  }
+}
+
+
+@Component({
+  selector: 'app-space-dialog',
+  templateUrl: 'space-dialog.html',
+  styleUrls: ['details-org.component.css']
+})
+export class SpaceDialogComponent implements OnInit {
+
+  orgId: string;
+  spaces: string[];
+  space: null;
+  formDoc: FormGroup;
+
+  constructor(
+    public dialogRef: MatDialogRef<ComponentDialogComponent>,
+    private organizationService: OrganizationService,
+    @Inject(MAT_DIALOG_DATA) public data: any, private _fb: FormBuilder,
+    private dialogService: DialogService
+  ) { }
+
+  ngOnInit() {
+    this.organizationService.getOrgSpaces(this.orgId).then(spaces => {
+      this.spaces = spaces;
+    });
+    this.formDoc = this._fb.group({
+      spaceControl : new FormControl('spaceControl', [Validators.required, Validators.pattern(/^\w+(\.\w{2,})*(\/\w+(\.\w{2,})*)*$/)])
+    });
+
+  }
+
+  trackByFn(index: any, item: any) {
+    return index;
   }
 
   onNoClick(): void {
@@ -451,7 +526,7 @@ export class ComponentDialogComponent implements OnInit {
   }
 
   save() {
-    this.componentsService.updateComponents(this.orgId, this.components).then(res => {
+    this.organizationService.addOrgSpace(this.orgId, this.space).then(res => {
       this.dialogRef.close(res);
     })
     .catch(err => {

@@ -45,7 +45,7 @@
                   <a href="{{(myOrg.contacts.web.startsWith('http') ? myOrg.contacts.web : ('http://'+myOrg.contacts.web))}}" target="_blank">{{myOrg.contacts.web}}</a>
                 </div>
 
-                <div class="item">
+                <div class="item" *ngIf="myOrg.contacts.email">
                   <i class="material-icons center">mail</i> 
                   {{myOrg.contacts.name}} {{myOrg.contacts.surname}} (<a href="{{'mailto:'+myOrg.contacts.email}}" target="_blank">{{myOrg.contacts.email}}</a>)
                 </div>
@@ -74,6 +74,30 @@
       </mat-card-content>
     </mat-card>
   </mat-tab>
+  <mat-tab label="Spaces" *ngIf="userRights && (userRights.admin == true || userRights.ownedOrganizations.includes(myOrg.id))">
+    <mat-card class="example-card">
+      <mat-card-header>
+        <mat-card-title>{{orgName}}</mat-card-title>
+        <mat-card-subtitle>List of spaces in the organization</mat-card-subtitle>
+        <span class="fill-remaining-space"></span>
+        <button mat-raised-button color="primary" style="max-height:40px !important" *ngIf="userRights" (click)="openDialog4ManageSpaces()">
+          <mat-icon matSuffix>mode_edit</mat-icon>
+          Add space
+        </button> 
+      </mat-card-header>
+      <mat-card-content>
+        <table class="mat-table" *ngIf="spaces && spaces.length > 0">
+            <tbody>
+                <tr class="mat-row" *ngFor="let s of spaces">
+                  <td class="mat-cell">{{s}}</td>
+                  <td> <button mat-button tabindex="-1" (click)="removeSpace(s)"><mat-icon matSuffix>delete</mat-icon></button></td>
+                </tr>
+            </tbody>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  </mat-tab>
+
   <mat-tab label="Configuration" *ngIf="userRights && (userRights.admin == true || userRights.ownedOrganizations.includes(myOrg.id))">
     <mat-card class="example-card">
       <mat-card-header>
@@ -81,26 +105,18 @@
         <mat-card-subtitle>List of components in the organization</mat-card-subtitle>
         <span class="fill-remaining-space"></span>
         <button mat-raised-button color="primary" style="max-height:40px !important" *ngIf="userRights && userRights.admin == true" (click)="openDialog4ManageComponent()">
-          <mat-icon matSuffix>mode_edit</mat-icon>
+          <mat-icon matSuffix>add_circle_outline</mat-icon>
           Manage components
         </button> 
       </mat-card-header>
       <mat-card-content>
-        <mat-accordion multi="true" displayMode="flat" class="component-accordion">
-          <mat-expansion-panel *ngFor="let component of activatedComponents" [expanded]="true">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <b>{{component.componentId}}</b>
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            <mat-list  class="tenantlist">
-              <div *ngFor="let tenant of component.tenants; let la=last">
-                {{tenant}}
-                <mat-divider *ngIf="!la"></mat-divider>
-              </div>
-            </mat-list>
-          </mat-expansion-panel>
-        </mat-accordion>
+          <table class="mat-table" *ngIf="activatedComponents && activatedComponents.length > 0">
+              <tbody>
+                  <tr class="mat-row" *ngFor="let component of activatedComponents">
+                    <td class="mat-cell">{{component.componentId}}</td>
+                  </tr>
+              </tbody>
+          </table>  
       </mat-card-content>
     </mat-card>
   </mat-tab>

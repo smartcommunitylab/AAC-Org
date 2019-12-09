@@ -20,7 +20,8 @@ import { HeaderComponent } from './components/header/header.component';
 import { DetailsOrgComponent,
   UserDialogComponent,
   CreateOrganizationDialogComponent,
-  ComponentDialogComponent} from './components/details-org/details-org.component';
+  ComponentDialogComponent,
+  SpaceDialogComponent} from './components/details-org/details-org.component';
 
 import { ConfigService } from './services/config.service';
 import { ComponentsService } from './services/components.service';
@@ -41,6 +42,7 @@ import { OrgListComponent } from './components/org-list/org-list.component';
     OrgListComponent,
     CreateOrganizationDialogComponent,
     DetailsOrgComponent,
+    SpaceDialogComponent,
     UserDialogComponent,
     DialogAlertComponent,
     DialogConfirmComponent,
@@ -51,7 +53,8 @@ import { OrgListComponent } from './components/org-list/org-list.component';
     UserDialogComponent,
     DialogAlertComponent,
     DialogConfirmComponent,
-    ComponentDialogComponent
+    ComponentDialogComponent,
+    SpaceDialogComponent
   ],
   imports: [
     BrowserModule,

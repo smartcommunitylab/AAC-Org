@@ -16,14 +16,13 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import it.smartcommunitylab.orgmanager.common.AmbiguousIdentifierException;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.InvalidConfigurationException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.SystemException;
-import it.smartcommunitylab.orgmanager.componentsmodel.ComponentException;
-import it.smartcommunitylab.orgmanager.common.AmbiguousIdentifierException;
 
 /**
  * Handler class for various exceptions
@@ -234,23 +233,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         JSONObject error = new JSONObject();
         try {
             error.put("error", "invalid_configuration");
-            error.put("error_description", e.getMessage());
-        } catch (JSONException je) {
-        }
-        return buildResponseEntity(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    /**
-     * Generic exception to use when a component fails.
-     * 
-     * @param e - Exception
-     * @return - Response with error and proper status code
-     */
-    @ExceptionHandler(ComponentException.class)
-    protected ResponseEntity<String> handleComponent(ComponentException e) {
-        JSONObject error = new JSONObject();
-        try {
-            error.put("error", "component_failed");
             error.put("error_description", e.getMessage());
         } catch (JSONException je) {
         }

@@ -37,9 +37,4 @@ export class ComponentsService {
     .toPromise();
   }
 
-
-  addTenant(components: ActivatedComponentProfile[], indexComponent: number) {
-    components[indexComponent].tenants.push('');
-  }
-
 }

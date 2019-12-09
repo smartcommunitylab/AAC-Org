@@ -109,11 +109,38 @@ public class AACRoleDTO extends Role {
 	}
 
 	/**
+	 * @param componentId
+	 * @param slug
+	 * @return
+	 */
+	public static Role componentOrgOwner(String componentId, String slug) {
+		return concatRole(Constants.ROLE_PROVIDER, Constants.ROOT_COMPONENTS, componentId, slug);
+	}
+
+	/**
+	 * @param organizationManagementContext
+	 * @param slug
+	 * @return
+	 */
+	public static Role resourceOwner(String name) {
+		return new AACRoleDTO(Constants.ROOT_RESOURCES, name, Constants.ROLE_PROVIDER);
+	}
+	/**
 	 * @param r
 	 * @return
 	 */
 	public static String componentName(Role r) {
 		return r.getContext().substring(r.getContext().lastIndexOf('/')+1);
+	}
+	/**
+	 * @param root
+	 * @param context
+	 * @param space
+	 * @param role
+	 * @return
+	 */
+	public static Role concatRole(String role, String ... parts) {
+		return Role.parse(StringUtils.arrayToDelimitedString(parts, "/") + ":"+ role);
 	}
 	
 }
