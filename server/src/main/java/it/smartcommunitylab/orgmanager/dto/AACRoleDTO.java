@@ -29,6 +29,7 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 public class AACRoleDTO extends Role {
 
 	private static final String COMPONENTS_PREFIX = Constants.ROOT_COMPONENTS + "/";
+	private static final String ORGANIZATION_PREFIX = Constants.ROOT_ORGANIZATIONS + "/";
 	
 	public AACRoleDTO() {
 		super();
@@ -62,14 +63,6 @@ public class AACRoleDTO extends Role {
 		if (authority.indexOf(':') < 0) return role.getContext() == null && role.getSpace() == null;
 		return role.canonicalSpace().equals(authority.substring(0, authority.indexOf(':')));
 	}
-	/**
-	 * @param r
-	 * @return
-	 */
-	public static Role from(RoleDTO r) {
-		return new AACRoleDTO(r.getContextSpace().substring(0, r.getContextSpace().lastIndexOf('/')), r.getContextSpace().substring(r.getContextSpace().lastIndexOf('/')+1), r.getRole());
-	}
-
 
 	/**
 	 * @param componentId
@@ -98,6 +91,15 @@ public class AACRoleDTO extends Role {
 	public static boolean isComponentRole(Role role) {
 		return role.getContext() != null && role.getContext().startsWith(COMPONENTS_PREFIX);
 	}
+	
+	/**
+	 * @param r
+	 * @return
+	 */
+	public static boolean isOrgRole(Role role) {
+		return role.getContext() != null && (role.getContext().equals(Constants.ROOT_ORGANIZATIONS) || role.getContext().startsWith(ORGANIZATION_PREFIX));
+	}
+
 	
 	/**
 	 * @param organizationManagementContext

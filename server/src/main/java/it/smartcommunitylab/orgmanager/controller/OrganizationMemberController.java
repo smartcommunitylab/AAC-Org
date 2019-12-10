@@ -43,7 +43,7 @@ public class OrganizationMemberController {
         // extract
         String userName = memberDTO.getUsername();
         Set<RoleDTO> roles = memberDTO.getRoles();
-        return organizationMemberService.handleUserRoles(id, userName, roles);
+        return organizationMemberService.handleUserRoles(id, userName, roles, memberDTO.getOwner());
     }
 
     @DeleteMapping("api/organizations/{organizationId}/members/{memberId}")

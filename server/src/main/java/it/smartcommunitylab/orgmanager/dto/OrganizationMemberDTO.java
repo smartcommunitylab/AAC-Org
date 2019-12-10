@@ -73,12 +73,14 @@ public class OrganizationMemberDTO {
         OrganizationMemberDTO dto = new OrganizationMemberDTO();
         dto.id = user.getUserId();
         dto.username = user.getUsername();
-        dto.roles = user.getRoles().stream()
-                .map(r -> new RoleDTO(r.canonicalSpace(), r.getRole()))
-                .collect(Collectors.toSet());
-        dto.owner = user.getRoles().stream()
-                .anyMatch(r -> r.getRole().equals(Constants.ROLE_PROVIDER));
-
+        if (user.getRoles() != null) {
+	        dto.roles = user.getRoles().stream()
+	                .map(r -> new RoleDTO(r.canonicalSpace(), r.getRole()))
+	                .collect(Collectors.toSet());
+	
+	        dto.owner = dto.roles.stream().anyMatch(r -> r.getType().equals(Constants.ROOT_ORGANIZATIONS) && r.getSpace() == null);
+        }
+        
         return dto;
     };
 }

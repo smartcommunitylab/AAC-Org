@@ -16,14 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 import it.smartcommunitylab.aac.model.BasicProfile;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
-import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
+import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 import it.smartcommunitylab.orgmanager.dto.OrganizationMemberDTO;
 import it.smartcommunitylab.orgmanager.dto.RoleDTO;
 import it.smartcommunitylab.orgmanager.model.Organization;
@@ -42,8 +41,9 @@ public class OrganizationMemberService {
 
     @Autowired
     private ProfileService profileService;
+
     @Autowired
-    private ComponentsConfiguration componentsConfiguration;
+    private ComponentService componentService;
 
     /**
      * Lists users within an organization.
@@ -75,13 +75,6 @@ public class OrganizationMemberService {
             // get members from role service
             Set<User> users = roleService.getOrganizationMembers(organization.getSlug());
 
-            // which purpose?
-            // TODO remove
-            String lcname = username.toLowerCase();
-            users = users.stream()
-                    .filter(u -> u.getFullname().toLowerCase().contains(lcname))
-                    .collect(Collectors.toSet());
-
             filterRoles(users, organization);
             return users.stream().map(u -> OrganizationMemberDTO.from(u)).collect(Collectors.toList());
         } catch (IdentityProviderAPIException e) {
@@ -91,26 +84,9 @@ public class OrganizationMemberService {
     }
 
     private void filterRoles(Set<User> users, Organization organization) throws IdentityProviderAPIException {
-//        List<Tenant> tenants = tenantRepository.findByOrganization(organization);
-//        Set<String> orgTenantSpaces = tenants.stream()
-//                .map(t -> AACRoleDTO.tenantUser(t.getTenantId().getComponentId(), t.getTenantId().getName())
-//                        .canonicalSpace())
-//                .collect(Collectors.toSet());
-//
-//        Set<String> orgSpaces = new HashSet<>(orgTenantSpaces);
-//        orgSpaces.add(AACRoleDTO.orgMember(organization.getSlug()).canonicalSpace());
-//
-//        // TODO rework
-//        users.forEach(m -> {
-//            Set<Role> roles;
-//            try {
-//                roles = roleService.getRoles(m).stream().filter(r -> orgSpaces.contains(r.canonicalSpace()))
-//                        .collect(Collectors.toSet());
-//                m.setRoles(roles);
-//
-//            } catch (IdentityProviderAPIException e) {
-//            }
-//        });
+		for (User m : users) {
+			m.setRoles(roleService.getRoles(m, organization.getSlug()));
+		}
     }
 
     /**
@@ -118,6 +94,7 @@ public class OrganizationMemberService {
      * roles not present in this new configuration will be revoked.
      * 
      * @param organizationId - ID of the organization to add the member to
+     * @param owner 
      * @param memberDTO      - Request body, contains the member to add and their
      *                       roles
      * @return - The updated member
@@ -126,7 +103,7 @@ public class OrganizationMemberService {
      * @throws InvalidArgumentException
      * @throws NoSuchUserException
      */
-    public OrganizationMemberDTO handleUserRoles(Long organizationId, String userName, Set<RoleDTO> roles)
+    public OrganizationMemberDTO handleUserRoles(Long organizationId, String userName, Set<RoleDTO> roles, boolean owner)
             throws SystemException, NoSuchOrganizationException, InvalidArgumentException, NoSuchUserException {
 
         // finds the organization
@@ -156,23 +133,47 @@ public class OrganizationMemberService {
             }
 
             String userId = profile.getUserId();
-
-//            List<Tenant> tenants = tenantRepository.findByOrganization(organization);
-//            // Builds a collection of all of the organization's tenants
-//            Set<String> orgTenants = new HashSet<String>();
-//            List<String> tenantNames = new ArrayList<String>();
-//            // List of just the names of the organization's tenants,
-//            // used for some connectors
-//            for (Tenant t : tenants) {
-//                orgTenants.add(Constants.ROOT_COMPONENTS + "/" + t.toString());
-//                tenantNames.add(t.getTenantId().getName());
-//            }
-//
-//            // TODO rework logic and validate
+            
             User user = new User();
             user.setUserId(userId);
             user.setUsername(userName);
+            
+            Set<Role> allRoles = roleService.getRoles(user, organization.getSlug());
+            
+            Set<Role> oldRoles = allRoles.stream().filter(r -> !AACRoleDTO.isOrgRole(r)).collect(Collectors.toSet());
+	        Set<Role> rolesToAdd = new HashSet<>(); // roles to grant
+	        Set<Role> rolesToDel = new HashSet<>(oldRoles); // roles to delete
+            
+	        Set<String> spaces = roleService.getOrgSpaces(organization.getSlug());
+	        Set<String> components = componentService.getConfigurations(organization.getId()).stream().map(c -> c.getComponentId()).collect(Collectors.toSet());
+	        
+	        for (RoleDTO dto: roles) {
+	        	if (!spaces.contains(dto.getSpace())) {
+	        		throw new SecurityException("Unknown space: " + dto.getSpace());
+	        	}
+	        	if (!components.contains(dto.getComponent())) {
+	        		throw new SecurityException("Unknown component: " + dto.getComponent());
+	        	}
+	        	Role role = AACRoleDTO.concatRole(dto.getRole(), dto.getType(), organization.getSlug(), dto.getSpace());
+	        	if (AACRoleDTO.isOrgRole(role)) continue;
+	        	
+	        	
+	        	if (oldRoles.contains(role)) {
+	        		oldRoles.remove(role);
+	        	} else {
+	        		rolesToAdd.add(role);
+	        	}
+	        }
+	        
+	        for (Role role : oldRoles) {
+	        	rolesToDel.add(role);
+	        }
 
+	        // TODO compare owner before and after:
+	        // - if added, add to org and spaces
+	        // - if removed, remove from org and spaces
+	        // TODO if has any role, add membership role
+	        
 //            Set<Role> oldRoles = roleService.getRoles(user);
 //            Set<Role> rolesToAdd = new HashSet<>(); // roles to grant
 //            Set<Role> rolesToDel = new HashSet<>(oldRoles); // roles to delete
@@ -300,19 +301,7 @@ public class OrganizationMemberService {
                 throw new InvalidArgumentException("The user does not exists: " + memberId);
             }
 
-            Set<Role> roles = roleService.getRoles(user);
-            Set<String> prefixes = new HashSet<>();
-            prefixes.add(Constants.ROOT_ORGANIZATIONS + "/" + organization.getSlug());
-            prefixes.add(Constants.ROOT_RESOURCES + "/" + organization.getSlug());
-            componentsConfiguration.getComponents().forEach(c -> {
-            	String cId = c.get(Constants.FIELD_COMPONENT_ID);
-            	prefixes.add(Constants.ROOT_COMPONENTS + "/" + cId + "/" + organization.getSlug());
-            });
-            roles = roles.stream().filter(r -> {
-            	String canonical = r.canonicalSpace();
-            	return prefixes.stream().anyMatch(p -> p.equals(canonical) || canonical.startsWith(p +"/"));
-            }).collect(Collectors.toSet());
-            
+            Set<Role> roles = roleService.getRoles(user, organization.getSlug());
             // update roles
             user.setRoles(roles);
             roleService.deleteRoles(Collections.singleton(user));

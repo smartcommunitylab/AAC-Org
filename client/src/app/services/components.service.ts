@@ -18,6 +18,13 @@ export class ComponentsService {
     .toPromise();
   }
 
+/**
+   * Get Resource Roles
+   */
+  getResourceRoles(): Promise<string[]> {
+    return Promise.resolve(['ROLE_ADMIN', 'ROLE_USER', 'ROLE_RESOURCE_ADMIN', 'ROLE_CONSUMER_ADMIN']);
+  }
+
   /**
    * Get Activated Component List
    */

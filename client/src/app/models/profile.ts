@@ -3,11 +3,11 @@ import { Injectable } from '@angular/core';
 export class UsersProfile {
     id: string;
     username: string;
-    roles: UsersRoles[];
+    roles: UserRole[];
     owner: boolean;
 }
-export class UsersRoles {
-    constructor (public contextSpace: string, public role: string) {}
+export class UserRole {
+    constructor (public type: string, public space: string, public role: string, public component?: string) {}
 }
 export class UserRights {
     userName: string;
@@ -17,7 +17,7 @@ export class UserRights {
 export class ActivatedComponentProfile {
     constructor(
     public componentId?: string,
-    public componentName?: string,
+    public name?: string,
     public active?: boolean
     ) {}
 
@@ -38,9 +38,6 @@ export class ComponentsProfile {
 export class ContentCompo {
     name: string;
     componentId: string;
-    scope: string;
-    format: string;
-    implementation: string;
     roles: string[];
 }
 export class OrganizationProfile {

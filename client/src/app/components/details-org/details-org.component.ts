@@ -7,7 +7,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {OrganizationService} from '../../services/organization.service';
 import {ComponentsService} from '../../services/components.service';
 import {UsersService} from '../../services/users.service';
-import { UserRights, UsersProfile, UsersRoles, ContentOrg, ActivatedComponentProfile, ContactsOrg } from '../../models/profile';
+import { UserRights, UsersProfile, UserRole, ContentOrg, ActivatedComponentProfile, ContactsOrg } from '../../models/profile';
 import { DialogService } from '../common/dialog.component';
 
 export function optionalValidator(validators?: (ValidatorFn | null | undefined)[]): ValidatorFn {
@@ -39,7 +39,7 @@ export class DetailsOrgComponent implements OnInit {
   orgName= '';
   orgID: string = this.route.snapshot.paramMap.get('id');
   usersList: UsersProfile[];
-  newUserRoles: UsersRoles[] = [];
+  newUserRoles: UserRole[] = [];
   dataSourceUser: any;
   displayedUsersColumns: any;
   userType: string;
@@ -53,9 +53,6 @@ export class DetailsOrgComponent implements OnInit {
         this.initComponents();
         // get all users in this organization
         this.usersService.getAllUsers(this.orgID).then(response_users => {
-          response_users.forEach((ru) => {
-            ru.roles = ru.roles.filter(r => !r.contextSpace.startsWith('organizations/'));
-          });
           this.usersList = response_users;
           this.displayedUsersColumns = ['username', 'roles', 'owner', 'action'];
           this.dataSourceUser = new MatTableDataSource<UsersProfile>(this.usersList);
@@ -80,7 +77,7 @@ export class DetailsOrgComponent implements OnInit {
 
   private initComponents() {
     this.componentsService.getActivatedComponents(this.orgID).then(response_activedComponents => {
-      response_activedComponents.sort((a, b) => a.componentId.localeCompare(b.componentId));
+      response_activedComponents.sort((a, b) => a.name.localeCompare(b.name));
       this.activatedComponents = response_activedComponents;
     });
   }
@@ -137,6 +134,7 @@ export class DetailsOrgComponent implements OnInit {
     dialogRef.componentInstance.hasEdit = true;
     dialogRef.componentInstance.user = new UsersProfile();
     dialogRef.componentInstance.orgId = this.orgID;
+    dialogRef.componentInstance.spaces = this.spaces;
     dialogRef.afterClosed().subscribe((res) => {
       if (res) {
         this.usersList.push(res);
@@ -156,6 +154,7 @@ export class DetailsOrgComponent implements OnInit {
     dialogRef.componentInstance.hasEdit = true;
     dialogRef.componentInstance.user = user;
     dialogRef.componentInstance.orgId = this.orgID;
+    dialogRef.componentInstance.spaces = this.spaces;
     dialogRef.afterClosed().subscribe((res) => {
       if (res) {
         this.usersList.splice(this.usersList.findIndex((u) => u.username === user.username), 1, res);
@@ -229,16 +228,23 @@ export class UserDialogComponent implements OnInit {
 
   isNew = false;
 
-  roles = [];
+  componentRoles = [];
+  resourceRoles = [];
   userRights: UserRights;
+  spaces: string[];
 
-  selectedTenant: string;
+  selectedSpace: string;
   selectedComponentId: string;
   selectedRole: string;
+
+  selectedResourceRole: string;
+  selectedResourceSpace: string;
+
   components: ActivatedComponentProfile[];
   componentConf = {};
-  tenants: string[];
-  tenantRoles: string[];
+
+  componentRoleNames: string[];
+  resourceRoleNames: string[];
   formDoc: FormGroup;
 
   constructor(
@@ -262,7 +268,7 @@ export class UserDialogComponent implements OnInit {
     if (!this.isNew) {
       this.user = Object.assign({}, this.user);
       this.user.roles = this.user.roles.slice();
-      this.roles = this.computeRoles(this.user.roles);
+      this.computeRoles(this.user.roles);
     }
     this.usersService.getUserRights().then((response) => {
       this.userRights = response;
@@ -271,52 +277,61 @@ export class UserDialogComponent implements OnInit {
         ownerControl: new FormControl({value: 'ownerControl', disabled: !this.userRights || !this.userRights.admin})
       });
     });
+    this.componentsService.getResourceRoles().then((names) => this.resourceRoleNames = names);
 
   }
 
-  private computeRoles(userRoles: UsersRoles[]): any[] {
-    const roles = userRoles.filter((r) => r.contextSpace.startsWith('components/')).map((r) => {
-      return {
-        component: r.contextSpace.substring(r.contextSpace.indexOf('/') + 1, r.contextSpace.lastIndexOf('/')),
-        tenant: r.contextSpace.substr(r.contextSpace.lastIndexOf('/') + 1),
-        role: r.role
-      };
+  private computeRoles(userRoles: UserRole[]) {
+    const roles = userRoles.filter((r) => r.type !== 'organizations');
+    roles.forEach(r => {
+      if (r.type.startsWith('components')) {
+        r.component = r.type.substring(r.type.indexOf('/') + 1);
+      }
     });
-    roles.sort((a, b) => a.component !== b.component
-    ? a.component.localeCompare(b.component)
-    : a.tenant !== b.tenant
-      ? a.tenant.localeCompare(b.tenant)
-      : a.role.localeCompare(b.role));
-      return roles;
+    roles.sort((a, b) => a.type === b.type ? a.space.localeCompare(b.space) : a.type.localeCompare(b.type));
+    this.resourceRoles = roles.filter(r => r.type === 'resources');
+    this.componentRoles = roles.filter(r => !!r.component);
   }
 
   componentSelected(selectedComponentId: string) {
     const selectedComponent = this.components.find((c) => c.componentId === selectedComponentId);
-    this.tenantRoles = this.componentConf[selectedComponent.componentId].roles;
+    this.componentRoleNames = this.componentConf[selectedComponent.componentId].roles;
   }
 
-  removeRole(userRole: any) {
-    const del =  new UsersRoles('components/' + userRole.component + '/' + userRole.tenant, userRole.role);
-    this.user.roles.splice(
-      this.user.roles.findIndex((r) => r.contextSpace === del.contextSpace && r.role === del.role), 1);
-    this.roles = this.computeRoles(this.user.roles);
+  removeRole(role: UserRole, arr: UserRole[]) {
+    arr.splice(arr.findIndex((r) => r.type === role.type && r.role === role.role && r.space === role.space), 1);
   }
-  addRole(component: string, tenant: string, role: string) {
-    const add =  new UsersRoles('components/' + component + '/' + tenant, role);
-    if (!this.user.roles) {
-      this.user.roles = [];
+
+  addComponentRole(component: string, space: string, role: string) {
+    const add = new UserRole('components/' + component, space, role);
+    if (!this.componentRoles) {
+      this.componentRoles = [];
     }
-    if (this.user.roles.findIndex((r) => r.contextSpace === add.contextSpace && r.role === add.role) >= 0) {
+    if (this.user.roles.findIndex((r) => r.type === add.type && r.role === add.role && r.space === add.space) >= 0) {
       return;
     }
     this.user.roles.push(add);
-    this.roles = this.computeRoles(this.user.roles);
+    this.computeRoles(this.user.roles);
     this.selectedRole = null;
+  }
+
+  addResourceRole(space: string, role: string) {
+    const add = new UserRole('resources', space, role);
+    if (!this.resourceRoles) {
+      this.resourceRoles = [];
+    }
+    if (this.user.roles.findIndex((r) => r.type === add.type && r.role === add.role && r.space === add.space) >= 0) {
+      return;
+    }
+    this.user.roles.push(add);
+    this.computeRoles(this.user.roles);
+    this.selectedResourceRole = null;
   }
 
   ok() {
     if (!this.hasEdit) {
       this.dialogRef.close(this.user);
+      return;
     }
     if (this.isNew && this.usersService.getUserData(this.user.username) != null) {
       const addUserError = 'User ' + this.user.username + ' already belongs to the organization.' ;
@@ -455,7 +470,7 @@ export class ComponentDialogComponent implements OnInit {
 
   ngOnInit() {
     this.componentsService.getComponents().then(response_components => {
-      response_components.content.sort((a, b) => a.componentId.localeCompare(b.componentId));
+      response_components.content.sort((a, b) => a.name.localeCompare(b.name));
       this.components = [];
       response_components.content.forEach(c => {
         this.componentDefs[c.componentId] = c;

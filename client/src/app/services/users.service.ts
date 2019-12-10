@@ -44,13 +44,6 @@ export class UsersService {
     return this.http.get(`${ this.config.get('locUrl') }auths`)
     .map(response => response as UserRights).toPromise();
   }
-
-  setRole(user: UsersProfile, contextSpace: string, role: string): any {
-    user.roles.push({
-          'contextSpace': contextSpace,
-          'role': role
-    });
-  }
   /**
    * remove one role of a perticular user
    * @param user

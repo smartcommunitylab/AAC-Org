@@ -8,20 +8,55 @@
                 <mat-icon matSuffix>mode_edit</mat-icon>
                 <mat-error *ngIf="formDoc.controls.usernameControl.invalid">You must enter the name of the user.</mat-error>
             </mat-form-field>
-            <mat-slide-toggle *ngIf="hasEdit" color="primary" [(ngModel)]="user.owner" formControlName="ownerControl">Owner</mat-slide-toggle>
+            <mat-slide-toggle *ngIf="hasEdit" color="primary" [(ngModel)]="user.owner" formControlName="ownerControl">Organization Owner</mat-slide-toggle>
         </form>
         <br/>
         <div class="userRoles">
-            <table class="mat-table" *ngIf="roles && roles.length > 0">
+            <h4  class="mat-h4">Resource roles</h4>
+            <table class="mat-table" *ngIf="resourceRoles && resourceRoles.length > 0">
                 <tbody>
-                    <tr class="mat-header-row"><td class="mat-header-cell">Component</td><td class="mat-header-cell">Tenant</td><td class="mat-header-cell">Role</td><td class="mat-header-cell" *ngIf="hasEdit"></td></tr>
-                    <tr class="mat-row" *ngFor="let e of roles"><td class="mat-cell">{{e.component}}</td><td class="mat-cell">{{e.tenant}}</td><td class="mat-cell">{{e.role}}</td><td  *ngIf="hasEdit"> <button mat-button tabindex="-1" (click)="removeRole(e)"><mat-icon matSuffix>delete</mat-icon></button></td></tr>
+                    <tr class="mat-header-row"><td class="mat-header-cell">Space</td><td class="mat-header-cell">Role</td><td class="mat-header-cell" *ngIf="hasEdit"></td></tr>
+                    <tr class="mat-row" *ngFor="let e of resourceRoles"><td class="mat-cell">{{e.space}}</td><td class="mat-cell">{{e.role}}</td><td  *ngIf="hasEdit"> <button mat-button tabindex="-1" (click)="removeRole(e, resourceRoles)"><mat-icon matSuffix>delete</mat-icon></button></td></tr>
                 </tbody>
             </table>
-            </div>
+        </div>
+        <br>
+        <mat-card  *ngIf="hasEdit">
+            <mat-card-header class="mat-h4">Add resource roles</mat-card-header>
+            <mat-card-content>
+                <!-- Select space  -->
+                <mat-form-field >
+                    <div>
+                        <mat-select  placeholder="Space" [(value)]="selectedResourceSpace">
+                                <mat-option value="">-</mat-option>
+                                <mat-option value="{{space}}" *ngFor="let space of spaces">{{space}}</mat-option>
+                        </mat-select>
+                    </div>
+                </mat-form-field>
+                <!-- Select Role  -->
+                <mat-form-field>
+                    <mat-select [disabled]="selectedResourceSpace === null" placeholder="Role" [(value)]="selectedResourceRole">
+                        <mat-option value="{{role}}" *ngFor="let role of resourceRoleNames">{{role}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <!-- add role -->
+                <button mat-mini-fab *ngIf="selectedResourceRole" color="primary" (click)="addResourceRole(selectedResourceSpace, selectedResourceRole)"><mat-icon>add_circle_outline</mat-icon></button>
+                <button mat-mini-fab *ngIf="!selectedResourceRole" color="primary" disabled><mat-icon>add_circle_outline</mat-icon></button>
+            </mat-card-content>
+        </mat-card>
+
+        <div class="userRoles">
+            <h4 class="mat-h4">Component roles</h4>
+            <table class="mat-table" *ngIf="componentRoles && componentRoles.length > 0">
+                <tbody>
+                    <tr class="mat-header-row"><td class="mat-header-cell">Component</td><td class="mat-header-cell">Space</td><td class="mat-header-cell">Role</td><td class="mat-header-cell" *ngIf="hasEdit"></td></tr>
+                    <tr class="mat-row" *ngFor="let e of componentRoles"><td class="mat-cell">{{e.component}}</td><td class="mat-cell">{{(e.space ? e.space : ' - ')}}</td><td class="mat-cell">{{e.role}}</td><td  *ngIf="hasEdit"> <button mat-button tabindex="-1" (click)="removeRole(e, componentRoles)"><mat-icon matSuffix>delete</mat-icon></button></td></tr>
+                </tbody>
+            </table>
+        </div>
         <br/>
         <mat-card  *ngIf="hasEdit">
-            <mat-card-header class="mat-h4">Add roles</mat-card-header>
+            <mat-card-header class="mat-h4">Add component roles</mat-card-header>
             <mat-card-content>
                 <!-- Select Component  -->
                 <mat-form-field >
@@ -32,19 +67,20 @@
                 <!-- Select Tenant  -->
                 <mat-form-field >
                     <div>
-                        <mat-select [disabled]="!selectedComponentId" placeholder="Tenant" [(value)]="selectedTenant">
-                            <mat-option value="{{tenant}}" *ngFor="let tenant of tenants">{{tenant}}</mat-option>
+                        <mat-select [disabled]="!selectedComponentId" placeholder="Space" [(value)]="selectedSpace">
+                                <mat-option value="">-</mat-option>
+                                <mat-option value="{{space}}" *ngFor="let space of spaces">{{space}}</mat-option>
                         </mat-select>
                     </div>
                 </mat-form-field>
                 <!-- Select Role  -->
                 <mat-form-field>
-                    <mat-select [disabled]="!selectedTenant" placeholder="Role" [(value)]="selectedRole">
-                        <mat-option value="{{role}}" *ngFor="let role of tenantRoles">{{role}}</mat-option>
+                    <mat-select [disabled]="selectedSpace === null" placeholder="Role" [(value)]="selectedRole">
+                        <mat-option value="{{role}}" *ngFor="let role of componentRolesNames">{{role}}</mat-option>
                     </mat-select>
                 </mat-form-field>
                 <!-- add role -->
-                <button mat-mini-fab *ngIf="selectedRole" color="primary" (click)="addRole(selectedComponentId, selectedTenant, selectedRole)"><mat-icon>add_circle_outline</mat-icon></button>
+                <button mat-mini-fab *ngIf="selectedRole" color="primary" (click)="addComponentRole(selectedComponentId, selectedSpace, selectedRole)"><mat-icon>add_circle_outline</mat-icon></button>
                 <button mat-mini-fab *ngIf="!selectedRole" color="primary" disabled><mat-icon>add_circle_outline</mat-icon></button>
             </mat-card-content>
         </mat-card>

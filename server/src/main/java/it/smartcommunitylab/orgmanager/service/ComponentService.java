@@ -38,8 +38,6 @@ import it.smartcommunitylab.orgmanager.dto.ComponentDTO;
 import it.smartcommunitylab.orgmanager.model.Organization;
 import it.smartcommunitylab.orgmanager.repository.OrganizationRepository;
 
-// TODO - org components may be multiple - for different subspaces
-// TODO - update operation should take this into account updating everything at once
 @Service
 @Transactional(readOnly = true)
 public class ComponentService {
@@ -72,13 +70,10 @@ public class ComponentService {
         for (Map<String, String> map : componentProperties) {
             String name = map.get(Constants.FIELD_NAME);
             String componentId = map.get(Constants.FIELD_COMPONENT_ID);
-            String scope = map.get(Constants.FIELD_SCOPE);
-            String format = map.get(Constants.FIELD_FORMAT);
-            String implementation = map.get(Constants.FIELD_IMPLEMENTATION);
             String rolesString = map.get(Constants.FIELD_ROLES);
             List<String> roles = parseRoles(rolesString);
             // adds the component to the output list
-            componentListDTO.add(new ComponentDTO(name, componentId, scope, format, implementation, roles));
+            componentListDTO.add(new ComponentDTO(name, componentId, roles));
         }
 
         // returns as a page
@@ -138,9 +133,10 @@ public class ComponentService {
 
         for (Map<String, String> conf: componentsConfiguration.getComponents()) {
         	String componentId = conf.get(Constants.FIELD_COMPONENT_ID);
+        	String componentName = conf.get(Constants.FIELD_NAME);
         	Set<User> componentOwners = roleService.getRoleUsers(AACRoleDTO.componentOrgOwner(componentId, organization.getSlug()).canonicalSpace(), Constants.ROLE_PROVIDER, false);
         	if (!componentOwners.isEmpty()) {
-        		config.add(new ComponentConfigurationDTO(componentId));
+        		config.add(new ComponentConfigurationDTO(componentId, componentName));
         	}
         }
         return config;
@@ -177,8 +173,6 @@ public class ComponentService {
 
         logger.debug("update configuration for organization " + String.valueOf(organizationId));
 
-        // TODO rework logic
-        // use only AAC? why keep local if info is fetched from AAC
         try {
             Set<User> owners = roleService.getOrganizationOwners(organization.getSlug());
 
@@ -224,18 +218,11 @@ public class ComponentService {
             	Map<String, Set<Role>> removeMap = new HashMap<>();
             	for (String cId: old) {
             		String space = AACRoleDTO.componentOrgOwner(cId, organization.getSlug()).canonicalSpace();
-            		String prefix = space + "/";
                 	Set<User> componentUsers = roleService.getRoleUsers(space, null, true);
                 	componentUsers.forEach(c -> {
                 		if (!removeMap.containsKey(c.getUserId())) removeMap.put(c.getUserId(), new HashSet<>());
-                		removeMap.get(c.getUserId()).addAll(
-                				// all roles that are within component/org 
-                				c.getRoles().stream().filter(r -> {
-                					String canonical = r.canonicalSpace();
-                					return canonical.equals(space) || canonical.startsWith(prefix);
-                					
-                				}).collect(Collectors.toSet()));
-                	});
+                		removeMap.get(c.getUserId()).addAll(c.getRoles());
+    				});
             	}
             	removeMap.entrySet().forEach(e -> {
         			User toDel = new User();

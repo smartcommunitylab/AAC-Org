@@ -18,14 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.model.BasicProfile;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
-import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
 import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO.Contacts;
@@ -45,9 +43,6 @@ public class OrganizationService {
 
     @Autowired
     private ProfileService profileService;
-
-    @Autowired
-    private ComponentsConfiguration componentsConfiguration;
 
     /**
      * Lists the organizations in pages. The organizations may be filtered by name
@@ -311,46 +306,26 @@ public class OrganizationService {
                     "Unable to delete organization with ID " + id + ": the organization must first be disabled.");
         }
 
-        // delete spaces
         try {
-			Set<String> spaces = getOrgSpaces(id);
-			for (String space: spaces) {
-				deleteOrgSpace(id, space);
-			}
-		} catch (IdentityProviderAPIException e) {
-            throw new SystemException(e.getMessage(), e);
-		}
-        
-        
-        try {
-			// delete all roles within resources or components
-			Set<String> prefixes = new HashSet<>();
-			prefixes.add(Constants.ROOT_RESOURCES);
-			componentsConfiguration.getComponents().forEach(conf -> {
-				prefixes.add(Constants.ROOT_COMPONENTS + "/" + conf.get(Constants.FIELD_COMPONENT_ID));
-			});
+			// delete all roles within org spaces, resources, and components
+			Set<String> prefixes = roleService.getOrgPrefixes(organization.getSlug());
 			Set<User> rolesToRemove = new HashSet<>();
 			for (String pre: prefixes) {
-				String context = pre + "/" + organization.getSlug();
-				String fullContext = context + "/";
-				Set<User> componentUsers = roleService.getRoleUsers(context, null, true);
+				Set<User> componentUsers = roleService.getRoleUsers(pre, null, true);
 				componentUsers.forEach(c -> {
 					User toRemove = new User();
 					toRemove.setUserId(c.getUserId());
-					toRemove.setRoles(c.getRoles().stream().filter(r -> {
-						String canonical = r.canonicalSpace();
-						return canonical.equals(context) || canonical.startsWith(fullContext);
-					}).collect(Collectors.toSet()));
+					toRemove.setRoles(c.getRoles());
+					rolesToRemove.add(toRemove);
 				});
-
-				roleService.deleteRoles(rolesToRemove);
 			}
+			roleService.deleteRoles(rolesToRemove);
 		} catch (IdentityProviderAPIException e) {
             throw new SystemException(e.getMessage(), e);
 		}
 
         
-        // delete roles
+        // delete org roles
         try {
             Set<User> organizationMembers = roleService.getOrganizationMembers(organization.getSlug());
             roleService.deleteRoles(organizationMembers);
@@ -401,11 +376,6 @@ public class OrganizationService {
         if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
             throw new AccessDeniedException("Access is denied: insufficient rights.");
         }
-        Set<String> prefixes = new HashSet<>();
-        prefixes.add(Constants.ROOT_RESOURCES);
-        componentsConfiguration.getComponents().forEach(conf -> {
-        	prefixes.add(Constants.ROOT_COMPONENTS + "/" + conf.get(Constants.FIELD_COMPONENT_ID));
-        });
-        return roleService.removeOrgSpace(organization.getSlug(), space, prefixes);
+        return roleService.removeOrgSpace(organization.getSlug(), space);
     }
 }
