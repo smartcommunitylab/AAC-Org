@@ -78,7 +78,7 @@ public class OrganizationMemberDTO {
 	                .map(r -> new RoleDTO(r.canonicalSpace(), r.getRole()))
 	                .collect(Collectors.toSet());
 	
-	        dto.owner = dto.roles.stream().anyMatch(r -> r.getType().equals(Constants.ROOT_ORGANIZATIONS) && r.getSpace() == null);
+	        dto.owner = dto.roles.stream().anyMatch(r -> r.getType().equals(Constants.ROOT_ORGANIZATIONS) && r.getSpace() == null && r.getRole().equals(Constants.ROLE_PROVIDER));
         }
         
         return dto;

@@ -51,13 +51,7 @@ export class DetailsOrgComponent implements OnInit {
       if (this.userRights.admin || this.userRights.ownedOrganizations.includes(parseInt(this.orgID, 10))) {
         // get Activated Components in this organization
         this.initComponents();
-        // get all users in this organization
-        this.usersService.getAllUsers(this.orgID).then(response_users => {
-          this.usersList = response_users;
-          this.displayedUsersColumns = ['username', 'roles', 'owner', 'action'];
-          this.dataSourceUser = new MatTableDataSource<UsersProfile>(this.usersList);
-        });
-
+        this.initUsers();
         this.organizationService.getOrgSpaces(this.orgID).then(spaces => {
           spaces.sort((a, b) => a.localeCompare(b));
           this.spaces = spaces;
@@ -73,6 +67,15 @@ export class DetailsOrgComponent implements OnInit {
 
     });
 
+  }
+
+  private initUsers() {
+        // get all users in this organization
+        this.usersService.getAllUsers(this.orgID).then(response_users => {
+          this.usersList = response_users;
+          this.displayedUsersColumns = ['username', 'roles', 'owner', 'action'];
+          this.dataSourceUser = new MatTableDataSource<UsersProfile>(this.usersList);
+        });
   }
 
   private initComponents() {
@@ -92,6 +95,7 @@ export class DetailsOrgComponent implements OnInit {
     dialogRef.afterClosed().subscribe(res => {
       if (res) {
         this.initComponents();
+        this.initUsers();
       }
     });
   }
@@ -284,6 +288,7 @@ export class UserDialogComponent implements OnInit {
   private computeRoles(userRoles: UserRole[]) {
     const roles = userRoles.filter((r) => r.type !== 'organizations');
     roles.forEach(r => {
+      if (!r.space) { r.space = ''; }
       if (r.type.startsWith('components')) {
         r.component = r.type.substring(r.type.indexOf('/') + 1);
       }
@@ -303,15 +308,14 @@ export class UserDialogComponent implements OnInit {
   }
 
   addComponentRole(component: string, space: string, role: string) {
-    const add = new UserRole('components/' + component, space, role);
+    const add = new UserRole('components/' + component, space, role, component);
     if (!this.componentRoles) {
       this.componentRoles = [];
     }
-    if (this.user.roles.findIndex((r) => r.type === add.type && r.role === add.role && r.space === add.space) >= 0) {
+    if (this.componentRoles.findIndex((r) => r.type === add.type && r.role === add.role && r.space === add.space) >= 0) {
       return;
     }
-    this.user.roles.push(add);
-    this.computeRoles(this.user.roles);
+    this.componentRoles.push(add);
     this.selectedRole = null;
   }
 
@@ -320,11 +324,10 @@ export class UserDialogComponent implements OnInit {
     if (!this.resourceRoles) {
       this.resourceRoles = [];
     }
-    if (this.user.roles.findIndex((r) => r.type === add.type && r.role === add.role && r.space === add.space) >= 0) {
+    if (this.resourceRoles.findIndex((r) => r.type === add.type && r.role === add.role && r.space === add.space) >= 0) {
       return;
     }
-    this.user.roles.push(add);
-    this.computeRoles(this.user.roles);
+    this.resourceRoles.push(add);
     this.selectedResourceRole = null;
   }
 
@@ -338,6 +341,8 @@ export class UserDialogComponent implements OnInit {
       this.dialogService.alert('User exists', addUserError);
       return;
     }
+
+    this.user.roles = this.componentRoles.concat(this.resourceRoles);
 
     this.usersService.updateUser(this.orgId, this.user).subscribe((res) =>  this.dialogRef.close(res),
       (err: HttpErrorResponse) => {

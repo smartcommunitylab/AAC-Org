@@ -33,7 +33,7 @@ public class RoleDTO {
 			String sub = context.substring(idx + 1);
 			idx = sub.indexOf('/');
 			this.component = this.type.substring(this.type.indexOf('/')  +1);
-			this.space = idx > 0 ? context.substring(idx + 1) : null;
+			this.space = idx > 0 ? sub.substring(idx + 1) : null;
 		}
 	}
 

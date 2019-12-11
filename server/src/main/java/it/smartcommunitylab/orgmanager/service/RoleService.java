@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.orgmanager.service;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.AACException;
 import it.smartcommunitylab.aac.AACRoleService;
@@ -44,7 +43,6 @@ import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
  *
  */
 @Service
-@Transactional
 public class RoleService {
     private final static Logger logger = LoggerFactory.getLogger(RoleService.class);
 
@@ -180,14 +178,15 @@ public class RoleService {
     public Set<String> addOrgSpace(String slug, String space) throws IdentityProviderAPIException {
     	String orgSpace = AACRoleDTO.orgOwner(slug).canonicalSpace();
     	String spaceRole = AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, orgSpace, space).getAuthority();
-    	String resourceRole = AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, Constants.ROOT_RESOURCES, slug, space).getAuthority();
+//    	String resourceRole = AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, Constants.ROOT_RESOURCES, slug, space).getAuthority();
     	
     	String token = getToken();
     	
     	Set<String> userIds = getOrganizationOwners(slug).stream().map(User::getUserId).collect(Collectors.toSet());
     	try {
 			for (String userId: userIds) {
-				aacRoleService.addRoles(token, userId, Arrays.asList(new String[] {spaceRole, resourceRole}));
+//				aacRoleService.addRoles(token, userId, Arrays.asList(new String[] {spaceRole, resourceRole}));
+				aacRoleService.addRoles(token, userId, Collections.singletonList(spaceRole));
 			}
 		} catch (SecurityException | AACException e) {
     		throw new IdentityProviderAPIException("Failed to associate org space to users");

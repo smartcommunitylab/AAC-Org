@@ -12,10 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.model.BasicProfile;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
@@ -29,7 +31,7 @@ import it.smartcommunitylab.orgmanager.model.Organization;
 import it.smartcommunitylab.orgmanager.repository.OrganizationRepository;
 
 @Service
-@Transactional(rollbackFor = Exception.class)
+@Transactional(readOnly = true)
 public class OrganizationMemberService {
     private final static Logger logger = LoggerFactory.getLogger(OrganizationMemberService.class);
 
@@ -49,20 +51,13 @@ public class OrganizationMemberService {
      * Lists users within an organization.
      * 
      * @param organizationId - ID of the organization
-     * @param username       - If specified, only users whose name contains this
-     *                       string will be returned
      * @return - Users in the organization
      * @throws IdentityProviderAPIException
      */
-    public List<OrganizationMemberDTO> getUsers(long organizationId, String username)
+    public List<OrganizationMemberDTO> getUsers(long organizationId)
             throws SystemException {
-        if (username == null) {
-            // null is not accepted, but an empty string works just fine when a filter on
-            // the name is not desired
-            username = "";
-        }
 
-        logger.debug("list users for organization " + String.valueOf(organizationId) + " matching name: " + username);
+        logger.debug("list users for organization " + String.valueOf(organizationId) );
 
         try {
             // find the organization
@@ -142,20 +137,23 @@ public class OrganizationMemberService {
             
             Set<Role> oldRoles = allRoles.stream().filter(r -> !AACRoleDTO.isOrgRole(r)).collect(Collectors.toSet());
 	        Set<Role> rolesToAdd = new HashSet<>(); // roles to grant
-	        Set<Role> rolesToDel = new HashSet<>(oldRoles); // roles to delete
+	        Set<Role> rolesToDel = new HashSet<>(); // roles to delete
             
 	        Set<String> spaces = roleService.getOrgSpaces(organization.getSlug());
 	        Set<String> components = componentService.getConfigurations(organization.getId()).stream().map(c -> c.getComponentId()).collect(Collectors.toSet());
 	        
 	        for (RoleDTO dto: roles) {
-	        	if (!spaces.contains(dto.getSpace())) {
+	        	Role role = !StringUtils.isEmpty(dto.getSpace())
+	        			? AACRoleDTO.concatRole(dto.getRole(), dto.getType(), organization.getSlug(), dto.getSpace())
+	        			: AACRoleDTO.concatRole(dto.getRole(), dto.getType(), organization.getSlug());
+	        	if (AACRoleDTO.isOrgRole(role)) continue;
+
+	        	if (!StringUtils.isEmpty(dto.getSpace()) && !spaces.contains(dto.getSpace())) {
 	        		throw new SecurityException("Unknown space: " + dto.getSpace());
 	        	}
-	        	if (!components.contains(dto.getComponent())) {
+	        	if (AACRoleDTO.isComponentRole(role) && !components.contains(dto.getComponent())) {
 	        		throw new SecurityException("Unknown component: " + dto.getComponent());
 	        	}
-	        	Role role = AACRoleDTO.concatRole(dto.getRole(), dto.getType(), organization.getSlug(), dto.getSpace());
-	        	if (AACRoleDTO.isOrgRole(role)) continue;
 	        	
 	        	
 	        	if (oldRoles.contains(role)) {
@@ -165,91 +163,45 @@ public class OrganizationMemberService {
 	        	}
 	        }
 	        
+	        // removed roles
 	        for (Role role : oldRoles) {
 	        	rolesToDel.add(role);
 	        }
 
-	        // TODO compare owner before and after:
-	        // - if added, add to org and spaces
-	        // - if removed, remove from org and spaces
-	        // TODO if has any role, add membership role
+	        // membership role is added for non-owners
+	        if (!owner) rolesToAdd.add(AACRoleDTO.orgMember(organization.getSlug()));
 	        
-//            Set<Role> oldRoles = roleService.getRoles(user);
-//            Set<Role> rolesToAdd = new HashSet<>(); // roles to grant
-//            Set<Role> rolesToDel = new HashSet<>(oldRoles); // roles to delete
-//            Map<String, Set<Role>> componentRolesToAdd = new HashMap<>();
-//            Map<String, Set<Role>> componentRolesToRemove = new HashMap<>();
-//            Map<String, Set<Role>> componentRolesToKeep = new HashMap<>();
-//            oldRoles.forEach(r -> {
-//                if (AACRoleDTO.isComponentRole(r) && orgTenants.contains(r.canonicalSpace())) {
-//                    String component = AACRoleDTO.componentName(r);
-//                    Set<Role> set = componentRolesToRemove.getOrDefault(component, new HashSet<>());
-//                    set.add(r);
-//                    componentRolesToRemove.put(component, set);
-//                } else {
-//                    rolesToDel.remove(r);
-//                }
-//            });
-//
-//            for (RoleDTO r : roles) {
-//                Role aacRole = AACRoleDTO.from(r);
-//                // cannot add roles for tenants non belonging to the organization
-//                if (AACRoleDTO.isComponentRole(aacRole) && !orgTenants.contains(aacRole.canonicalSpace())) {
-//                    throw new InvalidArgumentException(
-//                            "The following role is not within the organization's tenants: " + r);
-//                }
-//                if (AACRoleDTO.isComponentRole(aacRole)) {
-//                    String component = AACRoleDTO.componentName(aacRole);
-//                    // not changed, keep role in component
-//                    if (componentRolesToRemove.containsKey(component)
-//                            && componentRolesToRemove.get(component).contains(aacRole)) {
-//                        componentRolesToRemove.get(component).remove(aacRole);
-//                        Set<Role> set = componentRolesToKeep.getOrDefault(component, new HashSet<>());
-//                        set.add(aacRole);
-//                        componentRolesToKeep.put(component, set);
-//                    } else {
-//                        Set<Role> set = componentRolesToAdd.getOrDefault(component, new HashSet<>());
-//                        set.add(aacRole);
-//                        componentRolesToAdd.put(component, set);
-//                    }
-//                    rolesToDel.remove(aacRole);
-//                    rolesToAdd.add(aacRole);
-//                }
-//            }
-//            ;
-//
-//            // check if owner of the organization
-//            if (organization.getOwner().equals(userName)) {
-//                rolesToAdd.add(AACRoleDTO.orgOwner(organization.getSlug()));
-//            } else {
-//                // set as member
-//                Role orgOwner = AACRoleDTO.orgOwner(organization.getSlug());
-//                rolesToAdd.remove(orgOwner);
-//                rolesToAdd.add(AACRoleDTO.orgMember(organization.getSlug()));
-//                rolesToDel.add(orgOwner);
-//            }
-//
-//            // if any role is assigned, keep the org membership
-//            if (rolesToAdd.size() > 0) {
-//                rolesToDel.remove(AACRoleDTO.orgMember(organization.getSlug()));
-//            }
-//
-//            User toUpdate = new User();
-//            toUpdate.setUserId(userId);
-//            toUpdate.setUsername(userName);
-//            toUpdate.setRoles(rolesToDel);
-//            if (rolesToDel.size() > 0) {
-//                roleService.deleteRoles(Collections.singleton(toUpdate));
-//            }
-//            toUpdate.setRoles(rolesToAdd);
-//            if (rolesToAdd.size() > 0) {
-//                roleService.addRoles(Collections.singleton(toUpdate));
-//            }
-//
-//            // TODO check
-//            user.setRoles(roleService.getRoles(user));
-//            filterRoles(Collections.singleton(user), organization);
-
+	        
+	        Role ownerRole = AACRoleDTO.orgOwner(organization.getSlug());
+	        boolean ownerBefore = allRoles.contains(ownerRole);
+	        // removed from owners: remove from org and spaces
+	        if (ownerBefore && !owner) {
+	        	rolesToDel.add(ownerRole);
+	        	for (String space: spaces) {
+	        		rolesToDel.add(AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, Constants.ROOT_ORGANIZATIONS, organization.getSlug(), space));
+	        	}
+	        }
+	        // Added to owners: add to org and spaces, and space resources
+	        if (!ownerBefore && owner) {
+	        	rolesToAdd.add(ownerRole);
+	        	for (String space: spaces) {
+	        		rolesToAdd.add(AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, Constants.ROOT_ORGANIZATIONS, organization.getSlug(), space));
+	        	}
+	        }
+	        
+            User toUpdate = new User();
+            toUpdate.setUserId(userId);
+            toUpdate.setUsername(userName);
+            toUpdate.setRoles(rolesToDel);
+            if (rolesToDel.size() > 0) {
+                roleService.deleteRoles(Collections.singleton(toUpdate));
+            }
+            toUpdate.setRoles(rolesToAdd);
+            if (rolesToAdd.size() > 0) {
+                roleService.addRoles(Collections.singleton(toUpdate));
+            }
+            
+            user.setRoles(roleService.getRoles(user, organization.getSlug()));
             return OrganizationMemberDTO.from(user);
         } catch (IdentityProviderAPIException e) {
             logger.error(e.getMessage());
@@ -271,7 +223,7 @@ public class OrganizationMemberService {
     public void removeUser(long organizationId, String memberId)
             throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException {
 
-        // finds the organization
+    	// finds the organization
         Organization organization = organizationRepository.findById(organizationId).orElse(null);
         if (organization == null) {
             throw new NoSuchOrganizationException();

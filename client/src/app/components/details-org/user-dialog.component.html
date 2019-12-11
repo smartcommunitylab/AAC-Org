@@ -16,13 +16,13 @@
             <table class="mat-table" *ngIf="resourceRoles && resourceRoles.length > 0">
                 <tbody>
                     <tr class="mat-header-row"><td class="mat-header-cell">Space</td><td class="mat-header-cell">Role</td><td class="mat-header-cell" *ngIf="hasEdit"></td></tr>
-                    <tr class="mat-row" *ngFor="let e of resourceRoles"><td class="mat-cell">{{e.space}}</td><td class="mat-cell">{{e.role}}</td><td  *ngIf="hasEdit"> <button mat-button tabindex="-1" (click)="removeRole(e, resourceRoles)"><mat-icon matSuffix>delete</mat-icon></button></td></tr>
+                    <tr class="mat-row" *ngFor="let e of resourceRoles"><td class="mat-cell">{{(e.space ? e.space : '-')}}</td><td class="mat-cell">{{e.role}}</td><td  *ngIf="hasEdit"> <button mat-button tabindex="-1" (click)="removeRole(e, resourceRoles)"><mat-icon matSuffix>delete</mat-icon></button></td></tr>
                 </tbody>
             </table>
         </div>
         <br>
         <mat-card  *ngIf="hasEdit">
-            <mat-card-header class="mat-h4">Add resource roles</mat-card-header>
+            <mat-card-header class="mat-h4">Add resource role:</mat-card-header>
             <mat-card-content>
                 <!-- Select space  -->
                 <mat-form-field >
@@ -56,7 +56,7 @@
         </div>
         <br/>
         <mat-card  *ngIf="hasEdit">
-            <mat-card-header class="mat-h4">Add component roles</mat-card-header>
+            <mat-card-header class="mat-h4">Add component role:</mat-card-header>
             <mat-card-content>
                 <!-- Select Component  -->
                 <mat-form-field >
@@ -76,7 +76,7 @@
                 <!-- Select Role  -->
                 <mat-form-field>
                     <mat-select [disabled]="selectedSpace === null" placeholder="Role" [(value)]="selectedRole">
-                        <mat-option value="{{role}}" *ngFor="let role of componentRolesNames">{{role}}</mat-option>
+                        <mat-option value="{{role}}" *ngFor="let role of componentRoleNames">{{role}}</mat-option>
                     </mat-select>
                 </mat-form-field>
                 <!-- add role -->

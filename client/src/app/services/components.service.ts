@@ -22,7 +22,7 @@ export class ComponentsService {
    * Get Resource Roles
    */
   getResourceRoles(): Promise<string[]> {
-    return Promise.resolve(['ROLE_ADMIN', 'ROLE_USER', 'ROLE_RESOURCE_ADMIN', 'ROLE_CONSUMER_ADMIN']);
+    return Promise.resolve(['ROLE_PROVIDER', 'ROLE_ADMIN', 'ROLE_USER', 'ROLE_RESOURCE_ADMIN', 'ROLE_CONSUMER_ADMIN']);
   }
 
   /**

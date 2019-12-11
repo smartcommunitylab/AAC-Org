@@ -1,138 +1,100 @@
-# Server
 
-This document explains how to set up the server side of Org-Manager and how to use its APIs.
 
-## Configuring the AAC identity provider
+# Organization Manager
 
-Org-Manager requires the [AAC](https://github.com/smartcommunitylab/AAC) identity provider to work. The repository explains how to install and configure it.
+Organization Manager complements AAC with the functionality of managing multiple organizations that operate the 
+associated platform components and resources. Org Manager distinguishes three type of assets
 
-Once AAC is running, create a new app for Org-Manager by accessing the **Client Apps** menu and clicking on **NEW APP**.
+* Organization **spaces**, which define various subsets of data and functionality managed by the organization (e.g., different applications and the associated resources).
+* Organization **components**, which correspond to some platform-level instruments that are made available to the organization within the platform. The organization members may operate components (optionally, in relation to spaces) with different roles specific to the components.
+* Organization **resources**, that represent the managed assets (e.g., DBs, Data Lake storages) grouped by spaces. 
 
-In the **Settings** tab, under **redirect Web server URLs**, add the redirect URLs for server and client. If you’re running them on _localhost_, for example, add both of the following (assuming the ports are _7979_ and _4200_):\
-`http://localhost:7979/login`\
-`http://localhost:4200/login`
+For this model Org Manager relies on the AAC role model, and allows for associating users to component or resource roles. 
 
-To run the server within a Docker container, you need to add a third URL with the port (for example _7878_) Docker will expose the service through:\
-`http://localhost:7878/login`
+## Data Model
+
+Each organization is uniquely identified by a domain name and isd associated with 
+
+- a set of spaces
+- a set of enabled platform components and tools
+- a set of users that operate on behalf of organizations.
+
+Each user may have different roles with respect to resource spaces and with respect to components. E.g., a user may have a 
+management role for a space 'space1' and be able to use a 'DSS' tool in that space. If mulit-tenancy is supported by the tool, the component will have a dedicated tenant corresponding to the space.
+
+## Set up
+
+### Configuring AAC
+
+Org-Manager requires the [AAC](https://github.com/smartcommunitylab/AAC) identity provider to work. It is also necessary that
+AAC works in JWT token mode. A dedicated client app  should be created for the Org Manager with
+- redirect URL matching the Org Manager endpoint, e.g., `http://localhost:7979/orgmanager`;
+- Grant Types that include `Implicit` and `Client credentials`; 
+- scopes enabled for role and profile management (see permissions under `Basic profile service` and `Role Management Services`): `profile.basicprofile.all, user.roles.write, user.roles.read, user.roles.read.all, client.roles.read.all, user.roles.manage.all`.
 
 For more information on running the server inside a Docker container, see the [Running with Docker](#running-with-docker) section.
 
-For **Grant types**, check `Implicit` and `Client credentials`. For **Enabled identity providers**, check `internal`.
+The organization creation and the component assignment may be performed only by the user with `organizations:ROLE_PROVIDER` role
+or the API token should be associated with the `orgmanagement` scope. 
 
-In the **API Access** tab, grant all permissions under `Basic profile service` and under `Role Management Service` and save the app.
+### Setting up the server
 
-Finally, all users that will be administrators of Org-Manager, as well as all organization owners, need the following role:\
-`apimanager/carbon.super:profilemanager`.\
-Additionally, administrators will need this one too:\
-`organizations:ROLE_PROVIDER`.
+The `application.yml` file contains various properties used by the server. The following is a brief explanation of the main properties and what values should be given to them. 
 
-To create the `apimanager/carbon.super` space, access the **Space Owners** menu, choose `apimanager` as **Parent Space** and click on **NEW USER**. Insert the **Username**, insert `carbon.super` under **New spaces** and click **ADD**. Click **UPDATE** to create this space.
-
-Now that the space has been created, all users who will be administrators of Org-Manager, or owners of an organization, need the `profilemanager` role within this space.
-
-Access the **User Roles** menu, pick `apimanager/carbon.super` as **Role Context**, and then, for each user, click **NEW USER**, insert the **Username**, insert `profilemanager` as **New role**, click **ADD** and then **UPDATE**.
-
-Assign the `organizations:ROLE_PROVIDER` role to other administrator users in the same way as you did with the `apimanager/carbon.super:profilemanager` role.
-
-## Setting up the server
-
-The `application.yml` file contains various properties used by the server. The following is a brief explanation of the main properties and what values should be given to them. While properties in YAML are defined by indentation, this document will translate that indentation with a dot-separated notation, to keep the explanation shorter.
-
-Properties appear with the following format:\
-`<property_name>: ${<environment_variable_name>:<default_value>}`
-
-When the server is run, the value for the property is taken from the indicated environment variable (set by Docker), but, if the environment variable cannot be found (for example when not running with Docker), it uses the default value instead.
-
-For example, the property for the port of the service appears as follows:
-
-	server:
-	  port: ${OMC_SERVER_PORT:7979}
-
-If you are not running the server inside a Docker container, and want to use a different port, just change the `7979` part. For more information on running the server inside a Docker container, see the [Running with Docker](#running-with-docker) section.
-
-`server.port` – The port the server is running at. Sample value: `7979`
-
-`server.servlet.session.cookie.name` – Name of the session cookie, used to avoid conflicts with other applications that use the name _JSESSIONID_ and may be running on the same host. Sample value: `ORGMANAGERSESSIONID`
-
-`spring.datasource.url` – Database server for the Org-Manager server. The format may vary depending on the database type. A typical format can look like this: `jdbc:<database type>://<host>:<port>/<database name>`\
+* `server.port` – The port the server is running at. Default value: `7979`
+* `server.servlet.session.cookie.name` – Name of the session cookie, used to avoid conflicts with other applications that use the name _JSESSIONID_ and may be running on the same host. Default value: `ORGMANAGERSESSIONID`
+* `spring.datasource.url` – Database server for the Org-Manager server. The format may vary depending on the database type. A typical format can look like this: `jdbc:<database type>://<host>:<port>/<database name>`\
 Sample value: `jdbc:postgresql://localhost:5432/orgmanager`
+* `spring.datasource.username` – Name of the user in the database
+* `spring.datasource.password` – Password of the user in the database
+* `spring.datasource.driver-class-name`: Driver for the database. Sample value: `org.postgresql.Driver`. PostgreSQL, MySQL, and H2 are supported out of the box.
+* `spring.jpa.database-platform` – Dialect for the database. Sample value: `org.hibernate.dialect.PostgreSQLDialect`. There may be more properties under `spring` related to setting up the database.
+* `security.oauth2.client.clientId` – Client ID for Org-Manager in AAC.
+* `security.oauth2.client.clientSecret` – Client secret for Org-Manager in AAC.
+* `security.oauth2.resource.id` – Resource ID of the org management. Should match the client ID above.
+* `security.oauth2.resource.jwk.keySetUri` – URL of the key set for JWT token validation.
+* `aac.uri`: AAC host
 
-`spring.datasource.username` – Name of the user in the database
+It is possible to configure some additonal properties, such as logging level or Swagger metadata.
 
-`spring.datasource.password` – Password of the user in the database
+## Org Manager APIs
 
-`spring.datasource.driver-class-name`: Driver for the database. Sample value: `org.postgresql.Driver`
-
-`spring.jpa.database-platform` – Dialect for the database. Sample value: `org.hibernate.dialect.PostgreSQLDialect`
-
-There may be more properties under `spring` related to setting up the database.
-
-\
-`security.oauth2.client.clientId` – Client ID for Org-Manager in the identity provider.
-
-`security.oauth2.client.clientSecret` – Client secret for Org-Manager in the identity provider.
-
-`security.oauth2.client.accessTokenUri` – URI for obtaining the access token
-
-`security.oauth2.client.userAuthorizationUri` – URI to obtain authorization by the identity provider
-
-`security.oauth2.client.tokenInfoUri` – URI to inspect the contents of the token
-
-`security.oauth2.client.tokenName` – Name used by the identity provider to identify the access token
-
-`security.oauth2.client.userIdField` – Name used by the identity provider for the field of the token that contains the ID of the user
-
-`security.oauth2.client.organizationManagementScope` – Identifier for the organization management scope, which grants administrator privileges
-
-`security.oauth2.client.organizationManagementContext` – The AAC context within which component contexts are nested. Having the `ROLE_PROVIDER` role within this context also grants administrator privileges.
-
-`security.oauth2.resource.userInfoUri` - scope for basic profile information
-
-`aac.uri`: AAC host
-
-`aac.apis.manageRolesUri` - AAC API end-point for managing user roles
-
-`aac.apis.userProfilesUri` - AAC API end-point for retrieving profile information, used to associate user name with ID
-
-`aac.apis.currentUserRolesApi` - AAC API end-point for retrieving the authenticated user’s roles
-
-`aac.apis.currentUserProfileApi` - AAC API end-point for retrieving the authenticated user’s profile
-
-
-## Calling APIs
-
-This section describes the available APIs. Make sure to include the **Authorization** header containing `Bearer <token value>` in every request. In case an error occurs, each API will return a response with an appropriate status code, usually with some details in the response body.
+This section describes the available APIs. Make sure to include the **Authorization** header containing `Bearer <token value>` in every request. In case an error occurs, each API will return a response with an appropriate status code,  with some extra details in the response body.
 
 Assuming the server is being hosted on _localhost_ at port _7979_, the **Swagger UI** for the Org-Manager APIs is available at **http://localhost:7979/swagger-ui.html**.
 
 Most APIs have security restrictions that require the user to be owner of the organization they are attempting to alter, or to have administrator privileges.
 The owner of a specific organization is defined as a user with the following role in AAC: `organizations/<organization_slug>:ROLE_PROVIDER`\
-A user has administrator privileges when the access token they are using is a client token with the `organization.mgmt` scope, or when they have the following role in AAC:
+A user has administrator privileges when the access token they are using is a client token with the `orgmanagement` scope, or when they have the following role in AAC:
 `organizations:ROLE_PROVIDER`
 
-Also keep in mind that, for some of these APIs to work correctly, the access token used must have the following scopes: `profile`, `email`, `user.roles.me`, `profile.basicprofile.me`, `profile.accountprofile.me`.
+Also, for these APIs to work correctly, the access token used must have the following scopes: `profile.basicprofile.me`, `user.roles.me`.
 
 ### Create organization
-This API is used to create an organization. Its response contains a JSON object that represents the newly created organization. This response will contain an additional field, `id`, necessary to recognize the organization and useful when calling other APIs.\
-Note that, since the `email` field will be interpreted as the starting owner of the organization, a user with its value as name will be created on the server side. This means that AAC must have a user with this username, otherwise an error will occur.\
-The `name` and `surname` fields inside the `contacts` object also must match the corresponding fields in AAC.
+This API is used to create an organization. Its response contains a JSON object that represents the newly created organization. This response will contain an additional field, `id`, necessary to recognize the organization and useful when calling other APIs.
 
-**Requirements**: must have administrator privileges\
-**End-point**: /api/organizations\
-**Method**: POST\
+Note that, since the `owner` field will be interpreted as the starting owner of the organization. This means that AAC must have a user with this username, otherwise an error will occur.
+
+**Requirements**: must have administrator privileges
+
+**End-point**: /api/organizations
+
+**Method**: POST
+
 **Body**: JSON object describing the organization. The following fields can be defined:
 1. `name` – Name of the organization. Required. May contain alphanumeric characters, space, dash (-) or underscore (_). Cannot have the same name as an already existing organization, even if case is different. Any leading or trailing spaces will be ignored, and multiple consecutive spaces will be replaced with a single space.
 2. `slug` – Defines the domain of the organization. Optional: if specified, it can only contain alphanumeric lower case characters and underscores. If left out, it will be generated from the name, converting it to lower case and replacing dashes and spaces with underscores.
-3. `description` – Description of the organization. Required.
-4. `contacts` – Inner JSON object describing the contacts. Required. Its 5 inner properties are:
+3. `owner` - username of the initial owner of the organization.
+4. `description` – Description of the organization. Required.
+5. `contacts` – Inner JSON object describing the contacts. Required. Its 5 inner properties are:
    - `email` – E-mail. Required. Will be used as name of the owner of the organization.
    - `name` – Name of the contact. Required.
    - `surname` – Surname. Required.
    - `web` – URL. Optional.
    - `phone` – Array of strings for phone numbers. Optional.
    - `logo` – URL. Optional.
-   - `tag` – Array of strings for tags. Optional.
-   - `active` – Can take `true` or `false` as values. Indicates whether the organization is enabled or disabled. Optional, will default to `true` if omitted.
+6. `tag` – Array of strings for tags. Optional.
+7. `active` – Can take `true` or `false` as values. Indicates whether the organization is enabled or disabled. Optional, will default to `true` if omitted.
 
 **Sample request body**:
 
@@ -140,6 +102,7 @@ The `name` and `surname` fields inside the `contacts` object also must match the
 	  "name":"My Organization",
 	  "slug":"my_org",
 	  "description":"This is my test organization.",
+	  "owner": "rossi@example.com",
 	  "contacts": {
 	    "email":"jsmith@my_org.com ",
 	    "name":"John",
@@ -157,8 +120,10 @@ API for searching organizations. Organizations are searched by name. Responses a
 
 If the authenticated user has administrator privileges, they will see all organizations, otherwise they will see only organizations they are part of.
 
-**End-point**: /api/organizations\
-**Method**: GET\
+**End-point**: /api/organizations
+
+**Method**: GET
+
 **Parameters**:
 1.	`name` – Name to search. Case insensitive. All organizations with a name that contains this parameter will be returned.
 2.	`page` – Page to be returned. Can be omitted, since most of the time the organizations returned will be less than 20. Starts from 0, so if you want the second page, use `page=1`.
@@ -168,10 +133,14 @@ If the authenticated user has administrator privileges, they will see all organi
 ### Update organization
 Updates an organization. Only certain fields may be updated. The `id` of the organization must be known, and used in the request URL.
 
-**Requirements**: must have the administrator privileges, or be owner of the organization.\
-**End-point**: /api/organizations/<organization_id>/info\
-**Method**: PUT\
+**Requirements**: must have the administrator privileges, or be owner of the organization.
+
+**End-point**: /api/organizations/<organization_id>/info
+
+**Method**: PUT
+
 **Body**: JSON with the fields to change. Only description, contacts and tags may be changed; any other field present in the request will be ignored. Fields will only be updated if present in the input, so if you do not want to change a field, simply omit it from the request.\
+
 **Sample request URL**: `http://localhost:7979/api/organizations/1/info`
 
 **Sample request body**:
@@ -188,100 +157,157 @@ Updates an organization. Only certain fields may be updated. The `id` of the org
 ### Enable organization
 Enables an organization. Simply changes the `active` field to `true`.
 
-**Requirements**: must have administrator privileges\
-**End-point**: /api/organizations/<organization_id>/enable\
-**Method**: PUT\
+**Requirements**: must have administrator privileges
+
+**End-point**: /api/organizations/<organization_id>/enable
+
+**Method**: PUT
+
 **Sample request URL**: `http://localhost:7979/api/organizations/3/enable`
 
 ### Disable organization
 Disables an organization. Simply changes the `active` field to `false`. Other than the endpoint, it is identical to the **Enable organization** API.
 
-**Requirements**: must have administrator privileges\
-**End-point**: /api/organizations/<organization_id>/disable\
-**Method**: PUT\
+**Requirements**: must have administrator privileges
+
+**End-point**: /api/organizations/<organization_id>/disable
+
+**Method**: PUT
+
 **Sample request URL**: `http://localhost:7979/api/organizations/3/disable`
 
 ### Delete organization
 Deletes an organization. Also unregisters all members belonging to it, deletes all their roles within it, and deletes all tenants within it. An organization must be disabled before it can be deleted.
 
-**Requirements**: must have administrator privileges\
-**End-point**: /api/organizations/<organization_id>\
-**Method**: DELETE\
+**Requirements**: must have administrator privileges
+
+**End-point**: /api/organizations/<organization_id>
+
+**Method**: DELETE
+
 **Sample request URL**: `http://localhost:7979/api/organizations/1`
+
+### List organization spaces
+List all spaces of the organization.
+
+**Requirements**: must have administrator privileges or be an organization owner
+
+**End-point**: /api/organizations/<organization_id>/spaces
+
+**Method**: GET
+
+**Sample request URL**: `http://localhost:7979/api/organizations/1/spaces`
+
+### Add organization space
+Add a space to the organization.
+
+**Requirements**: must have administrator privileges or be an organization owner
+
+**End-point**: /api/organizations/<organization_id>/spaces
+
+**Method**: PUT
+
+**Parameters**:
+1.  `space` – space to add. Should be unique within the organization. 
+
+**Sample request URL**: `http://localhost:7979/api/organizations/1/spaces?space=somespace`
+
+### Delete organization space
+Delete a space from the organization.
+
+**Requirements**: must have administrator privileges or be an organization owner
+
+**End-point**: /api/organizations/<organization_id>/spaces
+
+**Method**: DELETE
+
+**Parameters**:
+1.  `space` – space to delete. Should be unique within the organization. 
+
+**Sample request URL**: `http://localhost:7979/api/organizations/1/spaces?space=somespace`
+
 
 ### List available components
 Lists available components, together with a few properties for each of them.
 
-**End-point**: /api/components\
+**End-point**: /api/components
+
 **Method**: GET
 
 ### List possible roles for a component
-Returns a list of strings, representing what roles may be attributed to a user when added to a tenant within a specific component.
+Returns a list of strings, representing what roles may be attributed to a user when added to a specific component.
 
-**End-point**: /api/components/<component_id>/roles\
-**Method**: GET\
+**End-point**: /api/components/<component_id>/roles
+
+**Method**: GET
+
 **Sample request URL**: `http://localhost:7979/api/components/nifi/roles`
 
-### Configure tenants for an organization
-Allows configuring which tenants an organization should have.
+### List organization components
+List all components enabled for the organization.
 
-**Requirements**: must have administrator privileges\
-**End-point**: /api/organizations/<organization_id>/configuration\
-**Method**: POST\
-**Body**: JSON object containing components and tenants for each component.
-1. `componentId` – Identifies the component. Must be chosen among the values that can be found by calling the **Listing available components** API. Note that if a component is not specified in the body, it will not be altered.
-2. `tenants` – Array of strings for the tenants. If a component previously contained tenants that are not present in this new array, those tenants will be removed.
+**Requirements**: must have administrator privileges or be an organization owner
 
-**Sample request body**:
+**End-point**: /api/organizations/<organization_id>/configuration
 
-	[
-	  {
-	    "componentId":"nifi",
-	    "tenants":[
-	      "trento",
-	      "ferrara"
-	    ]
-	  },{
-	    "componentId":"dss",
-	    "tenants":[
-	      "reggio"
-	    ]
-	  }
-	]
+**Method**: GET
 
-Note that only tenants for the `nifi` and `dss` components will be affected, as no other components are present in the input. For example, tenants for the component `apimanager` will not be altered, since `apimanager` was not specified in the body.
-
-### Display tenants of the organization
-Displays the tenants that have been configured for the input organization.
-
-**Requirements**: must have administrator privileges, or be the owner of the organization\
-**End-point**: /api/organizations/<organization_id>/configuration\
-**Method**: GET\
 **Sample request URL**: `http://localhost:7979/api/organizations/1/configuration`
+
+### Update organization components
+List all components enabled for the organization.
+
+**Requirements**: must have administrator privileges
+
+**End-point**: /api/organizations/<organization_id>/configuration
+
+**Method**: POST
+
+**Body**: JSON with the components to enable. The components should have a form of the object with at leat `componentId` field. 
+The components not in the list will be disabled.
+
+**Sample request URL**: `http://localhost:7979/api/organizations/1/configuration`
+
+**Sample Body**:
+
+  [
+    {
+      "componentId":"nifi"
+    },{
+      "componentId":"dss"
+    }
+  ]
 
 ### List users in an organization
 Lists users that belong to the indicated organization. The `id` of the organization must be known. An optional parameter may be specified to act as a filter on the desired users’ names.
 
-**Requirements**: must have administrator privileges, or be the owner of the organization\
-**End-point**: /api/organizations/<organization_id>/members\
-**Method**: GET\
-**Parameters**:
-1.	`username`: If specified, only members whose user name contains this value (case insensitive) will be returned. If omitted, all members of the organization will be returned.
+**Requirements**: must have administrator privileges, or be the owner of the organization
 
-**Sample request URL**: `http://localhost:7979/api/organizations/1/members?username=john`
+**End-point**: /api/organizations/<organization_id>/members
+
+**Method**: GET
+
+**Sample request URL**: `http://localhost:7979/api/organizations/1/members`
 
 ### Add a user to an organization
-Grants a user the roles listed in the request body. All roles they previously had within the organization, but that are not present in this new configuration, will be removed. The user will be added to the organization, in case they were previously not registered. This means that AAC must have a user with this username, otherwise an error will occur. The response will also contain the `id` of the member within the organization.\
+Grants a user the roles listed in the request body. All roles they previously had within the organization, but that are not present in this new configuration, will be removed. The user will be added to the organization, in case they were previously not registered. This means that AAC must have a user with this username, otherwise an error will occur. The response will also contain the `id` of the member within the organization.
+
 It is also possible, for administrators only, to grant/revoke the status of owner of the organization through this API.
 
-**Requirements**: must have administrator privileges, or be owner of the organization (cannot grant/revoke owner status)\
-**End-point**: /api/organizations/<organization_id>/members\
-**Method**: POST\
+The listed roles will be associated to the user. This service manages ONLY the resource and component roles. The roles previously associated to the user and not present in the list will be removed.
+
+**Requirements**: must have administrator privileges, or be owner of the organization (cannot grant/revoke owner status)
+
+**End-point**: /api/organizations/<organization_id>/members
+
+**Method**: POST
+
 **Body**: JSON object containing the user’s name and the roles they should have:
 1. `username` – Name of the user to add. Must be a valid name recognized by the identity provider.
-2. `roles` – Array of JSON objects representing the roles to add. Each role has 2 properties:
-   - `contextSpace` – domain of the role. It must be one of the domains registered in the organization. It should have the following structure: `components/<component_id>/<tenant>`
-   - `role` – Role of the user in the domain
+2. `roles` – Array of JSON objects representing the roles to add. Each role has the following properties:
+   - `type` – type of the role. May be one of `organization`, `resources`, or `components/<componentId>`. 
+   - `space` - data space to be associated to the role. May be empty meaning that the role is at the organization level.
+   - `role` – Role of the user for the type and space.
 3. `owner` - Boolean parameter that can only be set by administrators. If this parameter appears in a call performed without administrator rights, it will be ignored.
   
 **Sample request URL**: `http://localhost:7979/api/organizations/1/members`
@@ -291,21 +317,26 @@ It is also possible, for administrators only, to grant/revoke the status of owne
 	{
 	  "username":"bob@test.com",
 	  "roles": [{
-	    "contextSpace":"components/nifi/trento",
+	    "type": "components/nifi",
+	    "space":"trento",
 	    "role":"ROLE_MANAGER"
 	  },{
-	    "contextSpace":"components/nifi/ferrara",
+      "type": "components/nifi",
+      "space":"ferrara",
 	    "role":"ROLE_USER"
 	  }],
 	  "owner":"true"
 	}
 
 ### Remove a user from an organization
-Unregisters a user from an organization, stripping them of all roles they had within it. The `id` of the organization, as well as the `id` of the member to remove, must be known.
+Unregisters a user from an organization, stripping them of all roles they had within it. The `id` of the organization, as well as the `userId` of the member to remove, must be known.
 
-**Requirements**: must have administrator privileges, or be the owner of the organization\
-**End-point**: /api/organizations/<organization_id>/members/<member_id>\
-**Method**: DELETE\
+**Requirements**: must have administrator privileges, or be the owner of the organization
+
+**End-point**: /api/organizations/<organization_id>/members/<member_id>
+
+**Method**: DELETE
+
 **Sample request URL**: `http://localhost:7979/api/organizations/1/members/2`
 
 ## Running with Docker

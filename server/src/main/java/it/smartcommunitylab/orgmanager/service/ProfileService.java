@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.AACException;
 import it.smartcommunitylab.aac.AACProfileService;
@@ -18,7 +17,6 @@ import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 
 @Service
-@Transactional
 public class ProfileService {
     private final static Logger logger = LoggerFactory.getLogger(ProfileService.class);
 
