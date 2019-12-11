@@ -1,293 +1,265 @@
 package it.smartcommunitylab.orgmanager.service;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import javax.persistence.EntityNotFoundException;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.model.BasicProfile;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.orgmanager.common.Constants;
+import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
+import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
+import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
+import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
-import it.smartcommunitylab.orgmanager.componentsmodel.Component;
-import it.smartcommunitylab.orgmanager.componentsmodel.UserInfo;
-import it.smartcommunitylab.orgmanager.componentsmodel.utils.CommonUtils;
-import it.smartcommunitylab.orgmanager.config.SecurityConfig;
-import it.smartcommunitylab.orgmanager.dto.ComponentsModel;
+import it.smartcommunitylab.orgmanager.common.SystemException;
+import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 import it.smartcommunitylab.orgmanager.dto.OrganizationMemberDTO;
 import it.smartcommunitylab.orgmanager.dto.RoleDTO;
-import it.smartcommunitylab.orgmanager.dto.UserRightsDTO;
 import it.smartcommunitylab.orgmanager.model.Organization;
-import it.smartcommunitylab.orgmanager.model.OrganizationMember;
-import it.smartcommunitylab.orgmanager.model.Role;
-import it.smartcommunitylab.orgmanager.model.Tenant;
-import it.smartcommunitylab.orgmanager.repository.OrganizationMemberRepository;
 import it.smartcommunitylab.orgmanager.repository.OrganizationRepository;
-import it.smartcommunitylab.orgmanager.repository.RoleRepository;
-import it.smartcommunitylab.orgmanager.repository.TenantRepository;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class OrganizationMemberService {
+    private final static Logger logger = LoggerFactory.getLogger(OrganizationMemberService.class);
 
-	@Autowired
-	private OrganizationRepository organizationRepository;
-	
-	@Autowired
-	private OrganizationMemberRepository organizationMemberRepository;
-	
-	@Autowired
-	private TenantRepository tenantRepository;
-	
-	@Autowired
-	private RoleRepository roleRepository;
-	
-	@Autowired
-	private OrgManagerUtils utils;
-	
-	@Autowired
-	private SecurityConfig securityConfig;
-	
-	@Autowired
-	private ComponentsModel componentsModel;
-	
-	private Log log = LogFactory.getLog(OrganizationMemberService.class);
-	
-	/**
-	 * Lists users within an organization.
-	 * 
-	 * @param organizationId - ID of the organization
-	 * @param username - If specified, only users whose name contains this string will be returned
-	 * @return - Users in the organization
-	 */
-	public List<OrganizationMemberDTO> getUsers(Long organizationId, String username) {
-		if (username == null)
-			username = ""; // null is not accepted, but an empty string works just fine when a filter on the name is not desired
-		Organization organization = organizationRepository.getOne(organizationId); // retrieves the organization
-		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
-		if (!utils.userHasAdminRights() && !utils.userIsOwner(organization))
-			throw new AccessDeniedException("Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
-		
-		List<OrganizationMemberDTO> membersListDTO = new ArrayList<OrganizationMemberDTO>();
-		List<Object[]> memberRolesList = roleRepository.findOrganizationMembersWithRoles(organizationId, username);
-		Map<OrganizationMember, List<Role>> memberRolesMap = utils.createMemberToRolesMap(memberRolesList);
+    @Autowired
+    private OrganizationRepository organizationRepository;
 
-		for (OrganizationMember m : memberRolesMap.keySet())
-			membersListDTO.add(new OrganizationMemberDTO(m, memberRolesMap.get(m)));
-		return membersListDTO;
-	}
-	
-	/**
-	 * Returns an object that indicates whether or not the authenticated user has administrator rights and a list of IDs of organizations the user is owner of.
-	 * 
-	 * @return - Object that contains the authenticated user's rights
-	 */
-	public UserRightsDTO getUserRights() {
-		return new UserRightsDTO(utils.getAuthenticatedUserName(), utils.userHasAdminRights(),
-				organizationMemberRepository.findOwnedOrganizations(utils.getAuthenticatedUserId()));
-	}
-	
-	/**
-	 * User is granted the roles listed in the request body. Previously granted roles not present in this new configuration will be revoked.
-	 * 
-	 * @param organizationId - ID of the organization to add the member to
-	 * @param memberDTO - Request body, contains the member to add and their roles
-	 * @return - The updated member
-	 */
-	public OrganizationMemberDTO handleUserRoles(Long organizationId, OrganizationMemberDTO memberDTO) {
-		Organization organization = organizationRepository.getOne(organizationId);
-		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
-		
-		// Checks if the user has permission to perform this action
-		boolean authAsAdmin = utils.userHasAdminRights();
-		if (!authAsAdmin) {
-			OrganizationMember authenticatedUser = organizationMemberRepository.findByIdpIdAndOrganization(utils.getAuthenticatedUserId(), organization);
-			if (!authenticatedUser.getOwner())
-				throw new AccessDeniedException("Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private ProfileService profileService;
+
+    @Autowired
+    private ComponentService componentService;
+
+    /**
+     * Lists users within an organization.
+     * 
+     * @param organizationId - ID of the organization
+     * @return - Users in the organization
+     * @throws IdentityProviderAPIException
+     */
+    public List<OrganizationMemberDTO> getUsers(long organizationId)
+            throws SystemException {
+
+        logger.debug("list users for organization " + String.valueOf(organizationId) );
+
+        try {
+            // find the organization
+            Organization organization = organizationRepository.findById(organizationId).orElse(null);
+            if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
+                throw new AccessDeniedException(
+                        "Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
+            }
+
+            // get members from role service
+            Set<User> users = roleService.getOrganizationMembers(organization.getSlug());
+
+            filterRoles(users, organization);
+            return users.stream().map(u -> OrganizationMemberDTO.from(u)).collect(Collectors.toList());
+        } catch (IdentityProviderAPIException e) {
+            logger.error(e.getMessage());
+            throw new SystemException(e.getMessage(), e);
+        }
+    }
+
+    private void filterRoles(Set<User> users, Organization organization) throws IdentityProviderAPIException {
+		for (User m : users) {
+			m.setRoles(roleService.getRoles(m, organization.getSlug()));
 		}
-		
-		// Builds a collection of all of the organization's tenants
-		List<String> orgTenants = new ArrayList<String>();
-		List<Tenant> tenants = tenantRepository.findByOrganization(organization);
-		List<String> tenantNames = new ArrayList<String>(); // List of just the names of the organization's tenants, used for some connectors
-		for (Tenant t : tenants) {
-			orgTenants.add(Constants.ROOT_COMPONENTS + "/" + t.toString());
-			tenantNames.add(t.getTenantId().getName());
-		}
-		
-		// Checks that the member's name was specified
-		if (memberDTO == null || memberDTO.getUsername() == null || memberDTO.getUsername().trim().equals(""))
-			throw new IllegalArgumentException("No user name specified.");
-		
-		// If the member is already present in the database, retrieves it
-		String userName = memberDTO.getUsername().trim();
-		OrganizationMember storedMember = organizationMemberRepository.findByUsernameAndOrganization(userName, organization);
-		Long userIdpId; // ID used by the identity provider for the user
-		boolean isOwner = memberDTO.getOwner();
-		
-		if (storedMember == null) { // member is new, create it
-			userIdpId = utils.getUserId(userName); // retrieves the ID from the identity provider
-			if (!authAsAdmin) // if the calling user does not have administrator rights, they cannot grant owner status
-				isOwner = false;
-			storedMember = new OrganizationMember(userName, organization, userIdpId, isOwner);
-		} else {
-			userIdpId = storedMember.getIdpId();
-			if (!authAsAdmin)
-				isOwner = storedMember.getOwner(); // if the calling user does not have administrator rights, owner status cannot be changed
-			storedMember.setOwner(isOwner); // Updates owner status; does not have any effect if the calling user does not have administrator rights
-		}
-		storedMember = organizationMemberRepository.save(storedMember); // stores member
-		
-		Set<RoleDTO> rolesDTO = memberDTO.getRoles();
-		Set<Role> rolesToAdd = new HashSet<Role>(); // roles to grant
-		Set<Role> rolesToDel = roleRepository.findByOrganizationMemberAndRoleNotIgnoreCase(storedMember, Constants.ROLE_PROVIDER); // roles to revoke
-		
-		// Builds set of owner-related roles; which will be either granted or revoked based on whether the user was marked as owner or not
-		Set<Role> ownerRoles = new HashSet<Role>();
-		// Owners have ROLE_PROVIDER role on the organization
-		Role ownerRole = new Role(securityConfig.getOrganizationManagementContext() + "/" + organization.getSlug(),
-				Constants.ROLE_PROVIDER, storedMember, null);
-		ownerRoles.add(ownerRole);
-		// Owners have ROLE_PROVIDER role on all tenants of the organization
-		for (Tenant t : tenants) {
-			Role tenantRole = new Role(Constants.ROOT_COMPONENTS + "/" + t.getTenantId().getComponentId() + "/" + t.getTenantId().getName(),
-					Constants.ROLE_PROVIDER, storedMember, t.getTenantId().getComponentId());
-			ownerRoles.add(tenantRole);
-		}
-		
-		// Builds set of non-owner-related (regular) roles that the request wants the member to have
-		if (rolesDTO != null) {
-			for (RoleDTO r : rolesDTO) {
-				if (!r.getRole().equals(Constants.ROLE_PROVIDER)) {
-					if (!orgTenants.contains(r.getContextSpace())) // role is not within the organization's tenants
-						throw new IllegalArgumentException("The following role is not within the organization's tenants: " + r);
-					rolesToAdd.add(new Role(r, storedMember)); // converts the role from view to model
-				}
-			}
-		}
-		rolesToDel.removeAll(rolesToAdd); // all regular roles present in the request should not be revoked
-		
-		roleRepository.saveAll(rolesToAdd); // grants all regular roles present in the request
-		roleRepository.deleteAll(rolesToDel); // revokes all previously held regular roles that are not present in the new configuration
-		
-		if (isOwner) // if the member is owner, all owner-related roles are granted
-			roleRepository.saveAll(ownerRoles);
-		else // if the member is not owner, all owner-related roles are revoked
-			roleRepository.deleteAll(ownerRoles);
-		
-		// If the user no longer has any roles within the organization, they are removed from it
-		Set<Role> updatedRoles = roleRepository.findByOrganizationMember(storedMember);
-		boolean removeUser = false;
-		if (updatedRoles.isEmpty()) { // no roles remaining
-			organizationMemberRepository.delete(storedMember);
-			removeUser = true;
-		}
-		
-		// Updates roles in the identity provider
-		utils.idpAddRoles(userIdpId, rolesToAdd);
-		utils.idpRemoveRoles(userIdpId, rolesToDel);
-		if (isOwner) // updates owner-related roles
-			utils.idpAddRoles(userIdpId, ownerRoles);
-		else
-			utils.idpRemoveRoles(userIdpId, ownerRoles);
-		
-		// Handles user in the components
-		Map<String, Component> componentMap = componentsModel.getListComponents();
-		UserInfo userInfo = utils.getIdpUserDetails(userName);
-		String resultMessage;
-		for (String s : componentMap.keySet()) {
-			
-			// Create the user; components are supposed to not do anything if the user already exists
-			resultMessage = componentMap.get(s).createUser(userInfo);
-			if(CommonUtils.isErroneousResult(resultMessage))
-				throw new EntityNotFoundException(resultMessage);
-			
-			// Grant/revoke owner status to the user
-			if (isOwner) {
-				resultMessage = componentMap.get(s).addOwner(userInfo, organization.getName());
-				if(CommonUtils.isErroneousResult(resultMessage))
-					throw new EntityNotFoundException(resultMessage);
-			} else {
-				resultMessage = componentMap.get(s).removeOwner(userInfo, organization.getName());
-				if(CommonUtils.isErroneousResult(resultMessage))
-					throw new EntityNotFoundException(resultMessage);
-			}
-			
-			// Grant all roles present in the new configuration
-			for (Role r : rolesToAdd) {
-				if (r.getComponentId().equals(s)) {
-					resultMessage = componentMap.get(s).assignRoleToUser(r.getSpaceRole(), organization.getName(), userInfo);
-					if(CommonUtils.isErroneousResult(resultMessage))
-						throw new EntityNotFoundException(resultMessage);
-				}
-			}
-			
-			// Revoke all roles missing in the new configuration
-			for (Role r : rolesToDel) {
-				if (r.getComponentId() != null && r.getComponentId().equals(s)) {
-					resultMessage = componentMap.get(s).revokeRoleFromUser(r.getSpaceRole(), organization.getName(), userInfo);
-					if(CommonUtils.isErroneousResult(resultMessage))
-						throw new EntityNotFoundException(resultMessage);
-				}
-			}
-			
-			// Remove user if no roles remain
-			if (removeUser)
-				componentMap.get(s).removeUserFromOrganization(userInfo, organization.getName(), tenantNames);
-		}
-		
-		return new OrganizationMemberDTO(storedMember, updatedRoles);
-	}
-	
-	/**
-	 * Removes a user from the organization.
-	 * 
-	 * @param organizationId - The organization the member will be removed from
-	 * @param memberId - ID of the member to remove
-	 */
-	public void removeUser(Long organizationId, Long memberId) {
-		Organization organization = organizationRepository.getOne(organizationId);
-		organization.toString(); // sometimes, even if the organization is not found, getOne will not return null: this line will make it throw EntityNotFoundException
-		// Checks if the user has permission to perform this action
-		if (!utils.userHasAdminRights() && !utils.userIsOwner(organization))
-			throw new AccessDeniedException("Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
-		
-		// Checks if the member actually belongs to the organization
-		OrganizationMember member = organizationMemberRepository.getOne(memberId); // retrieves the stored member
-		if (member == null)
-			throw new EntityNotFoundException("Organization with ID " + organizationId + " does not include a member with ID " + memberId + ": no changes were made.");
-		
-		Long memberIdpId = member.getIdpId(); // ID used by the identity provider for the member
-		Long authenticatedId = utils.getAuthenticatedUserId(); // ID used by the identity provider for the authenticated user
-		if (memberIdpId.equals(authenticatedId))
-			throw new IllegalArgumentException("You cannot remove yourself from the organization.");
-		
-		HashSet<Role> rolesToRemove = null;
-		rolesToRemove = roleRepository.findByOrganizationMember(member);// roles the member has within the organization
-		roleRepository.deleteAll(rolesToRemove);
-		organizationMemberRepository.delete(member); // member can be removed from the organization
-		
-		// Updates roles in the identity provider
-		utils.idpRemoveRoles(memberIdpId, rolesToRemove);
-		
-		List<String> tenantsList = new ArrayList<String>();
-		for (Tenant t : tenantRepository.findByOrganization(organization))
-			tenantsList.add(t.getTenantId().getName());
-		
-		// Removes the user for the components
-		Map<String, Component> componentMap = componentsModel.getListComponents();
-		for (String s : componentMap.keySet()) {
-			String resultMessage = componentMap.get(s).removeUserFromOrganization(utils.getIdpUserDetails(member.getUsername()), organization.getName(), tenantsList);
-			if(CommonUtils.isErroneousResult(resultMessage))
-				throw new EntityNotFoundException(resultMessage);
-		}
-	}
+    }
+
+    /**
+     * User is granted the roles listed in the request body. Previously granted
+     * roles not present in this new configuration will be revoked.
+     * 
+     * @param organizationId - ID of the organization to add the member to
+     * @param owner 
+     * @param memberDTO      - Request body, contains the member to add and their
+     *                       roles
+     * @return - The updated member
+     * @throws SystemException
+     * @throws NoSuchOrganizationException
+     * @throws InvalidArgumentException
+     * @throws NoSuchUserException
+     */
+    public OrganizationMemberDTO handleUserRoles(Long organizationId, String userName, Set<RoleDTO> roles, boolean owner)
+            throws SystemException, NoSuchOrganizationException, InvalidArgumentException, NoSuchUserException {
+
+        // finds the organization
+        Organization organization = organizationRepository.findById(organizationId).orElse(null);
+        if (organization == null) {
+            throw new NoSuchOrganizationException();
+        }
+
+        // Checks if the user has permission to perform this action
+        if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
+            throw new AccessDeniedException(
+                    "Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
+        }
+
+        // Checks that the member's name was specified
+        if (userName == null || userName.trim().equals("")) {
+            throw new InvalidArgumentException("No user name specified.");
+        }
+
+        logger.info("update roles for user " + userName + " from organization " + String.valueOf(organizationId));
+
+        try {
+            BasicProfile profile = profileService.getUserProfile(userName);
+            if (profile == null) {
+                logger.error("user " + userName + " does not exists");
+                throw new InvalidArgumentException("The user does not exists: " + userName);
+            }
+
+            String userId = profile.getUserId();
+            
+            User user = new User();
+            user.setUserId(userId);
+            user.setUsername(userName);
+            
+            Set<Role> allRoles = roleService.getRoles(user, organization.getSlug());
+            
+            Set<Role> oldRoles = allRoles.stream().filter(r -> !AACRoleDTO.isOrgRole(r)).collect(Collectors.toSet());
+	        Set<Role> rolesToAdd = new HashSet<>(); // roles to grant
+	        Set<Role> rolesToDel = new HashSet<>(); // roles to delete
+            
+	        Set<String> spaces = roleService.getOrgSpaces(organization.getSlug());
+	        Set<String> components = componentService.getConfigurations(organization.getId()).stream().map(c -> c.getComponentId()).collect(Collectors.toSet());
+	        
+	        for (RoleDTO dto: roles) {
+	        	Role role = !StringUtils.isEmpty(dto.getSpace())
+	        			? AACRoleDTO.concatRole(dto.getRole(), dto.getType(), organization.getSlug(), dto.getSpace())
+	        			: AACRoleDTO.concatRole(dto.getRole(), dto.getType(), organization.getSlug());
+	        	if (AACRoleDTO.isOrgRole(role)) continue;
+
+	        	if (!StringUtils.isEmpty(dto.getSpace()) && !spaces.contains(dto.getSpace())) {
+	        		throw new SecurityException("Unknown space: " + dto.getSpace());
+	        	}
+	        	if (AACRoleDTO.isComponentRole(role) && !components.contains(dto.getComponent())) {
+	        		throw new SecurityException("Unknown component: " + dto.getComponent());
+	        	}
+	        	
+	        	
+	        	if (oldRoles.contains(role)) {
+	        		oldRoles.remove(role);
+	        	} else {
+	        		rolesToAdd.add(role);
+	        	}
+	        }
+	        
+	        // removed roles
+	        for (Role role : oldRoles) {
+	        	rolesToDel.add(role);
+	        }
+
+	        // membership role is added for non-owners
+	        if (!owner) rolesToAdd.add(AACRoleDTO.orgMember(organization.getSlug()));
+	        
+	        
+	        Role ownerRole = AACRoleDTO.orgOwner(organization.getSlug());
+	        boolean ownerBefore = allRoles.contains(ownerRole);
+	        // removed from owners: remove from org and spaces
+	        if (ownerBefore && !owner) {
+	        	rolesToDel.add(ownerRole);
+	        	for (String space: spaces) {
+	        		rolesToDel.add(AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, Constants.ROOT_ORGANIZATIONS, organization.getSlug(), space));
+	        	}
+	        }
+	        // Added to owners: add to org and spaces, and space resources
+	        if (!ownerBefore && owner) {
+	        	rolesToAdd.add(ownerRole);
+	        	for (String space: spaces) {
+	        		rolesToAdd.add(AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, Constants.ROOT_ORGANIZATIONS, organization.getSlug(), space));
+	        	}
+	        }
+	        
+            User toUpdate = new User();
+            toUpdate.setUserId(userId);
+            toUpdate.setUsername(userName);
+            toUpdate.setRoles(rolesToDel);
+            if (rolesToDel.size() > 0) {
+                roleService.deleteRoles(Collections.singleton(toUpdate));
+            }
+            toUpdate.setRoles(rolesToAdd);
+            if (rolesToAdd.size() > 0) {
+                roleService.addRoles(Collections.singleton(toUpdate));
+            }
+            
+            user.setRoles(roleService.getRoles(user, organization.getSlug()));
+            return OrganizationMemberDTO.from(user);
+        } catch (IdentityProviderAPIException e) {
+            logger.error(e.getMessage());
+            throw new SystemException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Removes a user from the organization.
+     * 
+     * @param organizationId - The organization the member will be removed from
+     * @param memberId       - ID of the member to remove
+     * @throws NoSuchUserException
+     * @throws IdentityProviderAPIException
+     * @throws NoSuchOrganizationException
+     * @throws SystemException
+     * @throws InvalidArgumentException
+     */
+    public void removeUser(long organizationId, String memberId)
+            throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException {
+
+    	// finds the organization
+        Organization organization = organizationRepository.findById(organizationId).orElse(null);
+        if (organization == null) {
+            throw new NoSuchOrganizationException();
+        }
+        // Checks if the user has permission to perform this action
+        if (!OrgManagerUtils.userHasAdminRights() && !OrgManagerUtils.userIsOwner(organization.getSlug())) {
+            throw new AccessDeniedException(
+                    "Access is denied: user is not registered as owner of the organization and does not have administrator rights.");
+        }
+
+        logger.info("remove user " + memberId + " from organization " + String.valueOf(organizationId));
+
+        try {
+            // ID used by the identity provider for the
+            // authenticated user
+            String authenticatedId = OrgManagerUtils.getAuthenticatedUserId();
+            if (!OrgManagerUtils.userHasAdminRights() && memberId.equals(authenticatedId)) {
+                // non-admin are inside the organization so we can not remove them
+                throw new InvalidArgumentException("You cannot remove yourself from the organization.");
+            }
+
+            User user = new User();
+            user.setUserId(memberId);
+            BasicProfile profile = profileService.getUserProfileById(memberId);
+            if (profile == null) {
+                logger.error("user " + memberId + " does not exists");
+                throw new InvalidArgumentException("The user does not exists: " + memberId);
+            }
+
+            Set<Role> roles = roleService.getRoles(user, organization.getSlug());
+            // update roles
+            user.setRoles(roles);
+            roleService.deleteRoles(Collections.singleton(user));
+        } catch (IdentityProviderAPIException e) {
+            logger.error(e.getMessage());
+            throw new SystemException(e.getMessage(), e);
+        }
+    }
 }

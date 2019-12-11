@@ -1,16 +1,14 @@
 package it.smartcommunitylab.orgmanager.dto;
 
-import java.util.HashSet;
-
 public class ComponentConfigurationDTO {
 	private String componentId; // identifies the component this configuration is for
-	private HashSet<String> tenants;
+	private String name;
 	
 	public ComponentConfigurationDTO() {}
 	
-	public ComponentConfigurationDTO(String componentId, HashSet<String> tenants) {
+	public ComponentConfigurationDTO(String componentId, String name) {
 		this.componentId = componentId;
-		this.tenants = tenants;
+		this.name = name;
 	}
 	
 	public String getComponentId() {
@@ -20,27 +18,13 @@ public class ComponentConfigurationDTO {
 	public void setComponentId(String componentId) {
 		this.componentId = componentId;
 	}
-	
-	public HashSet<String> getTenants() {
-		return tenants;
+
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 	
-	public void setTenants(HashSet<String> tenants) {
-		this.tenants = tenants;
-	}
 	
-	/**
-	 * Adds a tenant to the tenants set.
-	 * 
-	 * @param tenant - The tenant to add
-	 */
-	public void addTenant(String tenant) {
-		if (tenants == null)
-			tenants = new HashSet<String>(); // initializes the set
-		tenants.add(tenant); // adds the tenant
-	}
-	
-	public String toString() {
-		return this.getClass().getSimpleName() + " ID=" + componentId;
-	}
 }

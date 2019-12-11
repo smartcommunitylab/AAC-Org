@@ -1,38 +1,36 @@
 package it.smartcommunitylab.orgmanager.config;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.jwk.JwkTokenStore;
 
+import it.smartcommunitylab.aac.AACProfileService;
+import it.smartcommunitylab.aac.AACRoleService;
 import it.smartcommunitylab.aac.AACService;
+import it.smartcommunitylab.aac.model.TokenData;
+import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 
 @Configuration
 @EnableResourceServer
-@RestController
 public class SecurityConfig extends ResourceServerConfigurerAdapter {
-		
-	@Value("${security.oauth2.client.organizationManagementScope}")
-	private String orgMgmtScope;
-	
-	@Value("${security.oauth2.client.organizationManagementContext}")
-	private String orgMgmtContext;
-	
-	@Value("${security.oauth2.client.tokenInfoUri}")
-	private String tokenInfoUri;
-	
-	@Value("${security.oauth2.client.tokenName}")
-	private String tokenName;
-	
-	@Value("${security.oauth2.client.userIdField}")
-	private String userIdField;
-	
+
 	@Value("${security.oauth2.client.clientId}")
 	private String clientId;
 	
@@ -41,57 +39,45 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	
 	@Value("${aac.uri}")
 	private String aacUri;
+		
+	@Value("${security.oauth2.resource.jwk.keySetUri}")
+	private String jwkSetUri;
 	
-	@Value("${aac.apis.manageRolesApi}")
-	private String manageRolesApi;
+	private AACService aacService;
+	private ConcurrentHashMap<String, TokenData> tokens = new ConcurrentHashMap<>();
 	
-	@Value("${aac.apis.userProfilesApi}")
-	private String userProfilesApi;
-	
-	@Value("${aac.apis.currentUserRolesApi}")
-	private String currentUserRolesApi;
-	
-	@Value("${aac.apis.currentUserProfileApi}")
-	private String currentUserProfileApi;
-	
-	public String getOrganizationManagementScope() {
-		return orgMgmtScope; // scope that denotes certain privileges in creating, updating, configuring and deleting organizations
+	/**
+	 * Initializes the service to obtain client tokens.
+	 */
+	@PostConstruct
+	private void init() {
+		// Generates the service to obtain the proper client tokens needed for certain calls to the identity provider's APIs
+		aacService = new AACService(aacUri, clientId, clientSecret);
+	}
+
+	public AACRoleService getAACRoleService() {
+		return new AACRoleService(aacUri); // service for various operations on AAC roles
+	}
+	public AACProfileService getAACProfileService() {
+		return new AACProfileService(aacUri); // service for various operations on AAC Profiles
 	}
 	
-	public String getOrganizationManagementContext() {
-		return orgMgmtContext; // context that denotes certain privileges in creating, updating, configuring and deleting organizations
-	}
 	
-	public String getTokenInfoUri() {
-		return tokenInfoUri; // identity provider API endpoint to check the token's information
-	}
-	
-	public AACService getAACService() {
-		return new AACService(aacUri, clientId, clientSecret); // service for various operations on AAC
-	}
-	
-	public String getManageRolesUri() {
-		return aacUri + manageRolesApi; // identity provider API endpoint to add or remove roles
-	}
-	
-	public String getUserProfilesUri() {
-		return aacUri + userProfilesApi; // identity provider API endpoint to retrieve user profiles
-	}
-	
-	public String getCurrentUserRolesUri() {
-		return aacUri + currentUserRolesApi; // identity provider IP API endpoint to list the current user's roles
-	}
-	
-	public String getCurrentUserProfileUri() {
-		return aacUri + currentUserProfileApi; // identity provider API endpoint to get the current user's basic profile
-	}
-	
-	public String getTokenName() {
-		return tokenName; // Name of the token parameter to use with tokenInfoUri
-	}
-	
-	public String getUserIdField() {
-		return userIdField; // Name of the field that contains the username in the identity provider's token information API's response
+	public String getToken(String scope) throws IdentityProviderAPIException {
+		TokenData data = tokens.get(scope);
+		if (data == null || (data.getExpires_on() - 1000*60*60) > System.currentTimeMillis()) {
+			synchronized (tokens) {
+				if (!tokens.containsKey(scope))
+					try {
+						TokenData dt = aacService.generateClientToken(scope);
+						tokens.putIfAbsent(scope, dt);
+					} catch (Exception e) {
+						throw new IdentityProviderAPIException("Unable to generate an access token with the desired scope.");
+					}
+			}
+			
+		}
+		return tokens.get(scope).getAccess_token();
 	}
 	
 	/**
@@ -112,19 +98,34 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 		resources.resourceId(clientId);
 	}
 	
-	/**
-	 * Bean to validate the token.
-	 * 
-	 * @return - RemoteTokenServices bean
-	 */
-	@Primary
 	@Bean
-	public RemoteTokenServices tokenService() {
-		RemoteTokenServices tokenServices = new RemoteTokenServices();
-		tokenServices.setCheckTokenEndpointUrl(tokenInfoUri); // endpoint to check token information
-		tokenServices.setClientId(clientId);
-		tokenServices.setClientSecret(clientSecret);
-		return tokenServices;
+    public TokenStore tokenStore() {
+        return new JwkTokenStore(jwkSetUri, jwtAccessTokenConverter());
+    }
+ 
+	@Bean
+	public AccessTokenConverter accessTokenConverter() {
+		return new ClaimAwareAccessTokenConverter();
 	}
 	
+    @Bean
+    public JwtAccessTokenConverter jwtAccessTokenConverter() {
+        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+        converter.setAccessTokenConverter(accessTokenConverter());
+        return converter;
+    }
+
+    public static class ClaimAwareAccessTokenConverter extends DefaultAccessTokenConverter {
+    	 
+        @Override
+        public OAuth2Authentication extractAuthentication(Map<String, ?> claims) {
+        	HashMap<String, Object> copy = new HashMap<>(claims);
+        	if (!claims.containsKey(AUTHORITIES)) copy.put(AUTHORITIES, claims.get("roles"));
+        	
+            OAuth2Authentication authentication = super.extractAuthentication(copy);
+            ((UsernamePasswordAuthenticationToken)authentication.getUserAuthentication()).setDetails(claims);
+            return authentication;
+        }
+    }
+    
 }

@@ -1,13 +1,10 @@
 import { NgModule, Injectable } from '@angular/core';
 import { RouterModule, Routes, Router, CanActivate, CanActivateChild, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
-import { LoginComponent } from './components/login/login.component';
-import { ActiveOrgComponent } from './components/active-org/active-org.component';
-import { InactivateOrgComponent } from './components/inactivate-org/inactivate-org.component';
-import { BlockOrgComponent } from './components/block-org/block-org.component';
 import { DetailsOrgComponent } from './components/details-org/details-org.component';
 
 import { LoginService } from './services/auth/login.service';
+import { OrgListComponent } from './components/org-list/org-list.component';
 
 /**
  * Authentication guard for the console
@@ -41,11 +38,9 @@ export class AuthGuard implements CanActivate, CanActivateChild {
 
 const routes: Routes = [
   { path: '', redirectTo: '/activeOrg', pathMatch: 'full', canActivate: [AuthGuard]},
-  { path: 'activeOrg', component: ActiveOrgComponent, canActivate: [AuthGuard] },
+  { path: 'activeOrg', component: OrgListComponent, canActivate: [AuthGuard] },
   { path: 'detailsOrg/:id', component: DetailsOrgComponent, canActivate: [AuthGuard] },
-  { path: 'inactiveOrg', component: InactivateOrgComponent, canActivate: [AuthGuard] },
-  { path: 'blockOrg', component: BlockOrgComponent, canActivate: [AuthGuard] },
-  { path: 'login', component: LoginComponent },
+  { path: 'inactiveOrg', component: OrgListComponent, canActivate: [AuthGuard] , data: {inactive: true}},
   { path: '**', redirectTo: 'activeOrg/', pathMatch: 'full'}
 ];
 

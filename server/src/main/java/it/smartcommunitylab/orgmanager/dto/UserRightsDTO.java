@@ -7,9 +7,9 @@ import org.apache.commons.lang3.StringUtils;
 public class UserRightsDTO {
 	private String userName;
 	private boolean admin;
-	private Collection<Long> ownedOrganizations;
+	private Collection<String> ownedOrganizations;
 	
-	public UserRightsDTO(String userName, boolean admin, Collection<Long> ownedOrganizations) {
+	public UserRightsDTO(String userName, boolean admin, Collection<String> ownedOrganizations) {
 		this.userName = userName;
 		this.admin = admin;
 		this.ownedOrganizations = ownedOrganizations;
@@ -31,11 +31,11 @@ public class UserRightsDTO {
 		this.admin = admin;
 	}
 	
-	public Collection<Long> getOwnedOrganizations() {
+	public Collection<String> getOwnedOrganizations() {
 		return ownedOrganizations;
 	}
 	
-	public void setOwnedOrganizations(Collection<Long> ownedOrganizations) {
+	public void setOwnedOrganizations(Collection<String> ownedOrganizations) {
 		this.ownedOrganizations = ownedOrganizations;
 	}
 	

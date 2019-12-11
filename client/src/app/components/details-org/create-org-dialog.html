@@ -1,0 +1,92 @@
+<!-- <div class="dialog-overflow-hidden"> -->
+    <h2 mat-dialog-title>Organization</h2>
+    <mat-dialog-content  >
+            <mat-label class="mat-h4">Please provide this information</mat-label>
+            <form [formGroup]="formDoc" novalidate *ngIf="formDoc && org">
+                <!-- Organization Name -->
+                <mat-form-field class="dialog-container-form-field" >
+                    <input matInput  placeholder="Name of the organization" [(ngModel)]="org.name" formControlName="orgNameControl" >
+                    <mat-icon matSuffix>mode_edit</mat-icon>
+                    <!-- <mat-error *ngIf="formDoc.controls.orgNameControl.invalid">{{getErrorMessage4orgName()}}</mat-error> -->
+                </mat-form-field>
+                <!-- Domain name of the Provider Organization -->
+                <mat-form-field class="dialog-container-form-field">
+                    <input matInput  placeholder="Domain" [(ngModel)]="org.slug" formControlName="orgDomainControl" >
+                    <mat-icon matSuffix>mode_edit</mat-icon>
+                </mat-form-field> 
+                <!-- Owner Email Address -->
+                <mat-form-field class="dialog-container-form-field" *ngIf="!org.id">
+                    <input matInput type="email" placeholder="Owner's username / email" [(ngModel)]="org.owner" formControlName="ownerEmailControl" >
+                    <mat-icon matSuffix>email</mat-icon>
+                    <mat-error *ngIf="formDoc.controls.ownerEmailControl.invalid">{{getErrorMessage4ownerEmail()}}</mat-error>
+                </mat-form-field>
+
+                <!-- Description of the Organization -->
+                <mat-form-field class="dialog-container-form-field"  >
+                    <textarea matInput  placeholder="Description" [(ngModel)]="org.description" formControlName="orgDescriptionControl"  ></textarea>
+                    <mat-error *ngIf="formDoc.controls.orgDescriptionControl.invalid">{{getErrorMessage4orgDescription()}}</mat-error>
+                </mat-form-field>
+                <!-- Name and Surname input field -->
+                <table class="nameInput-full-width" cellspacing="0">
+                    <tr>
+                        <td>
+                            <mat-form-field class="nameInput-full-width">
+                                <input matInput placeholder="Contact name" [(ngModel)]="org.contacts.name" formControlName="contactNameControl" >
+                                <mat-icon matSuffix>mode_edit</mat-icon>
+                            </mat-form-field>
+                        </td>
+                        <td>
+                            <mat-form-field class="nameInput-full-width">
+                                <input matInput placeholder="Contact surname" [(ngModel)]="org.contacts.surname" formControlName="contactSurnameControl" >
+                                <mat-icon matSuffix>mode_edit</mat-icon>
+                            </mat-form-field>
+                        </td>
+                    </tr>
+                </table>
+            
+                <mat-form-field class="dialog-container-form-field" >
+                    <input matInput type="email" placeholder="Contact email" [(ngModel)]="org.contacts.email" formControlName="contactEmailControl" >
+                    <mat-icon matSuffix>email</mat-icon>
+                    <mat-error *ngIf="formDoc.controls.contactEmailControl.invalid">{{getErrorMessage4contactEmail()}}</mat-error>
+                </mat-form-field>
+
+                <!-- Organization Web Address -->   
+                <mat-form-field class="dialog-container-form-field" >
+                    <input matInput  placeholder="Web address" [(ngModel)]="org.contacts.web" formControlName="webAddressControl">
+                    <mat-icon matSuffix>mode_edit</mat-icon>
+                </mat-form-field>
+                <mat-form-field class="dialog-container-form-field">
+                    <input matInput  placeholder="Logo URL" [(ngModel)]="org.contacts.logo" formControlName="logoControl">
+                    <mat-icon matSuffix>mode_edit</mat-icon>
+                </mat-form-field>
+                <!-- Contact Telephone -->
+				<mat-list-item>Phone numbers</mat-list-item>
+				<td *ngFor="let num of phoneNumbers; let i = index">
+					<button mat-raised-button (mousedown)="removePhoneNumber(i)">{{num}}<mat-icon>close</mat-icon></button>
+				</td>
+				<mat-form-field class="dialog-container-form-field" >
+					<input type="tel" [(ngModel)]="newPhoneNumber" [ngModelOptions]="{standalone: true}" name="newPhoneNumber" matInput placeholder="Add number (hit space to confirm)" (keyup.space)="addPhoneNumber(newPhoneNumber); newPhoneNumber = null;" >
+					<mat-icon matSuffix>phone</mat-icon>
+				</mat-form-field>
+                <!-- Tag -->
+				<mat-list-item>Tags</mat-list-item>
+				<td *ngFor="let t of tags; let i = index">
+					<button mat-raised-button (mousedown)="removeTag(i)">{{t}}<mat-icon>close</mat-icon></button>
+				</td>
+				<mat-form-field class="dialog-container-form-field" >
+					<input [(ngModel)]="newTag" [ngModelOptions]="{standalone: true}" name="newTag" matInput placeholder="Add tag (hit space to confirm)" (keyup.space)="addTag(newTag); newTag = null;" >
+					<mat-icon matSuffix>mode_edit</mat-icon>
+				</mat-form-field>
+                <mat-slide-toggle *ngIf="org && org.id" color="primary" formControlName="statusControl" [checked]="formDoc.controls.statusControl.value">Enabled</mat-slide-toggle>
+            </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions *ngIf="formDoc && org">
+        <button mat-button (click)="save()"
+            tabindex="1" 
+            [disabled]="!formDoc || formDoc.invalid ">OK
+        </button>
+        <span class="fill-remaining-space"></span>
+        <button mat-button (click)="onNoClick()" tabindex="-1">Cancel</button>
+    </mat-dialog-actions>
+<!-- </div> -->

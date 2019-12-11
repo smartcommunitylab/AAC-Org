@@ -5,3 +5,9 @@
 body {
     margin: 0!important;   
 }
+
+
+
+.mat-chip-list-wrapper {
+    display: inline-flex !important;
+}

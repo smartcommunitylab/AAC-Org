@@ -1,0 +1,22 @@
+<h2 mat-dialog-title>List of components</h2>
+<mat-dialog-content>
+        <form #componentForm="ngForm" novalidate>
+            <table class="mat-table">
+                <tbody>
+                    <tr class="mat-row" *ngFor="let component of components; let indexComponent = index;">
+                        <td class="mat-cell">{{component.name}}</td>
+                        <td>
+                            <mat-slide-toggle color="primary" [name]="component.componentId + '-active'" [(ngModel)]="component.active"></mat-slide-toggle>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </form>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+    <button mat-button tabindex="1" (click)="save()" [disabled]="!componentForm.form.valid">OK</button>
+    <span class="fill-remaining-space"></span>
+    <button mat-button (click)="onNoClick()" tabindex="-1">Cancel</button>
+</mat-dialog-actions>
