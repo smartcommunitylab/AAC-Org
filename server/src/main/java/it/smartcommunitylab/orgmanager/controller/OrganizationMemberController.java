@@ -28,8 +28,8 @@ public class OrganizationMemberController {
     private OrganizationMemberService organizationMemberService;
 
     @GetMapping("/api/organizations/{id}/members")
-    public List<OrganizationMemberDTO> getUsers(@PathVariable long id, String username) throws SystemException {
-        return organizationMemberService.getUsers(id, username);
+    public List<OrganizationMemberDTO> getUsers(@PathVariable long id) throws SystemException {
+        return organizationMemberService.getUsers(id);
     }
 
     @GetMapping("/api/auths")
