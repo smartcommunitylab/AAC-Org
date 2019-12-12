@@ -85,9 +85,12 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 	 */
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
-		http.antMatcher("/**").authorizeRequests().antMatchers("/", "/login**", "/webjars/**", "/error**", "/swagger*", "/v2/api-docs**").permitAll()
-				.anyRequest().authenticated().and().logout().logoutSuccessUrl("/").permitAll()
-				.and().cors().and().csrf().disable();
+        http.antMatcher("/**").authorizeRequests()
+                .antMatchers("/api/auth/login","/api/auth/callback","/api/auth/user","api/auth/profile").permitAll()
+                .antMatchers("/", "/login**", "/webjars/**", "/error**", "/swagger*", "/v2/api-docs**").permitAll()
+                .antMatchers("/api/**").authenticated()
+//                .anyRequest().authenticated().and().logout().logoutSuccessUrl("/").permitAll()
+                .and().cors().and().csrf().disable();
 	}
 	
 	/**
