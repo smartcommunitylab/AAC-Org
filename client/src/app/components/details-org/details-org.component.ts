@@ -387,7 +387,7 @@ export class CreateOrganizationDialogComponent implements OnInit {
     this.tags =  this.org && this.org.tag ? this.org.tag.slice() : [];
     this.formDoc = this._fb.group({
       orgNameControl        : new FormControl({value: 'orgNameControl', disabled: this.org !== null && !!this.org.id}, [Validators.required]),
-      ownerEmailControl     : new FormControl({value: 'ownerEmailControl', disabled: this.org !== null && !!this.org.id}, [Validators.required, Validators.email]),
+      ownerEmailControl     : new FormControl({value: 'ownerEmailControl', disabled: this.org !== null && !!this.org.id}, [Validators.required]),
       orgDescriptionControl : new FormControl('orgDescriptionControl', [Validators.required]),
       orgDomainControl      : new FormControl({value: 'orgDomainControl', disabled: this.org !== null && !!this.org.id}, [Validators.required]),
       contactEmailControl     : new FormControl({value: 'contactEmailControl'}, optionalValidator([Validators.email])),
