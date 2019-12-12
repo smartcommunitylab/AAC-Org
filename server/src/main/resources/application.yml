@@ -1,6 +1,6 @@
 # SERVER ENDPOINT
 server:
-  port: ${OMC_SERVER_PORT:7979}
+  port: ${SERVER_PORT:7979}
   servlet:
     session:
       cookie:
@@ -17,7 +17,7 @@ client:
 # SPRING CONFIGURATION
 spring:
   datasource:
-    url: ${JDBC_URL:jdbc:h2:file:../data/db}
+    url: ${JDBC_URL:jdbc:h2:file:./data/db}
     username: ${JDBC_USER:omc}
     password: ${JDBC_PASS:omc}
     driver-class-name: ${JDBC_DRIVER:org.h2.Driver}

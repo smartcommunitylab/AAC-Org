@@ -1,11 +1,11 @@
-FROM node:alpine as node
-COPY ./client/* /tmp/
+FROM node:10-alpine as node
+COPY ./client /tmp
 WORKDIR /tmp
 RUN npm install && npm install -g @angular/cli && \
     ng build --prod
 
 FROM maven:3.3-jdk-8 AS mvn
-COPY ./server/* /tmp/
+COPY ./server /tmp
 WORKDIR /tmp
 COPY --from=node /tmp/dist/* /tmp/src/main/resources/static/
 RUN mvn package -DskipTests
@@ -25,5 +25,5 @@ RUN  addgroup -g ${USER_GROUP_ID} ${USER_GROUP}; \
 WORKDIR  ${USER_HOME}
 COPY --chown=aac-org:aac-org --from=mvn /tmp/target/*.jar ${USER_HOME}/${APP}
 USER aac-org
-EXPOSE 8080
+EXPOSE 7979
 ENTRYPOINT java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar ${APP}
