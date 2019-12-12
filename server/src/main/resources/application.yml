@@ -6,15 +6,23 @@ server:
       cookie:
         name: ${OMC_SERVER_SERVLET_SESSION_COOKIE_NAME:ORGMANAGERSESSIONID}
 
+# public url
+application:
+   url: ${APPLICATION_URL:}
+   
+# client url if frontend deployed on another server   
+client:
+   url: ${CLIENT_URL:}   
+
 # SPRING CONFIGURATION
 spring:
   datasource:
-    url: ${OMC_SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/orgmanager}
-    username: ${OMC_SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${OMC_SPRING_DATASOURCE_PASSWORD:password}
-    driver-class-name: ${OMC_SPRING_DATASOURCE_DRIVERCLASSNAME:org.postgresql.Driver}
+    url: ${JDBC_URL:jdbc:h2:file:../data/db}
+    username: ${JDBC_USER:omc}
+    password: ${JDBC_PASS:omc}
+    driver-class-name: ${JDBC_DRIVER:org.h2.Driver}
   jpa:
-    database-platform: ${OMC_SPRING_JPA_DATABASEPLATFORM:org.hibernate.dialect.PostgreSQLDialect}
+    database-platform: ${JDBC_DIALECT:org.hibernate.dialect.H2Dialect}
     generate-ddl: ${OMC_SPRING_JPA_GENERATEDDL:true}
     hibernate:
       ddl-auto: ${OMC_SPRING_JPA_HIBERNATE_DDLAUTO:update}
@@ -31,20 +39,25 @@ spring:
 security:
   oauth2:
     client:
-      clientId: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTID:48ccbed6-c9d7-453c-86a4-e471ca09a0e7}
-      clientSecret: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTSECRET:33e7080f-e93b-4687-90b8-2887c4f507fc}
+      userAuthorizationUri: ${OAUTH_AUTH_URI:}
+      accessTokenUri: ${OAUTH_TOKEN_URI:}
+      clientId: ${OAUTH2_CLIENT_CLIENTID:}
+      clientSecret: ${OAUTH2_CLIENT_CLIENTSECRET:}
+      scopes: ${OAUTH_SCOPES:profile,email,user.roles.me}
     resource:
-      id: ${OMC_SECURITY_OAUTH2_CLIENT_CLIENTID:48ccbed6-c9d7-453c-86a4-e471ca09a0e7}
+      id: ${OAUTH2_CLIENT_CLIENTID:}
       jwk:
-        keySetUri: ${OMC_SECURITY_OAUTH2_JWK_URI:http://localhost:8080/aac/jwk}
+        keySetUri: ${OMC_SECURITY_OAUTH2_JWK_URI:}
 
 # AAC APIS
 aac:
-  uri: ${OMC_AAC_URI:http://localhost:8080/aac/}
+  uri: ${AAC_URI:}
 
 # LOGGING
 logging:
   level:
+    ROOT: INFO
+    it.smartcommunitylab.aac: ${LOG_LEVEL:DEBUG}
     org.springframework.security: ${OMC_LOGGING_LEVEL_ORGSPRINGFRAMEWORKSECURITY:DEBUG}
 
 # SWAGGER
