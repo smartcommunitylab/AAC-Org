@@ -6,6 +6,18 @@ server:
       cookie:
         name: ${OMC_SERVER_SERVLET_SESSION_COOKIE_NAME:ORGMANAGERSESSIONID}
 
+management:
+   server:
+      port: ${MANAGEMENT_PORT:7878}
+   endpoints:
+      web:
+         base-path: /
+         exposure:
+            include: health,info,metrics
+            
+
+      
+
 # public url
 application:
    url: ${APPLICATION_URL:}
