@@ -69,8 +69,8 @@ aac:
 logging:
   level:
     ROOT: INFO
-    it.smartcommunitylab.aac: ${LOG_LEVEL:DEBUG}
-    org.springframework.security: ${OMC_LOGGING_LEVEL_ORGSPRINGFRAMEWORKSECURITY:DEBUG}
+    it.smartcommunitylab.orgmanager: ${LOG_LEVEL:DEBUG}
+    org.springframework.security: ${OMC_LOGGING_LEVEL_ORGSPRINGFRAMEWORKSECURITY:INFO}
 
 # SWAGGER
 swagger:
