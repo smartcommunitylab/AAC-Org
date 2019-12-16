@@ -29,8 +29,10 @@ management role for a space 'space1' and be able to use a 'DSS' tool in that spa
 Org-Manager requires the [AAC](https://github.com/smartcommunitylab/AAC) identity provider to work. It is also necessary that
 AAC works in JWT token mode. A dedicated client app  should be created for the Org Manager with
 - redirect URL matching the Org Manager endpoint, e.g., `http://localhost:7979/orgmanager`;
-- Grant Types that include `Implicit` and `Client credentials`; 
+- Grant Types that include `Authorization Code`,  `Implicit` and `Client credentials`; 
 - scopes enabled for role and profile management (see permissions under `Basic profile service` and `Role Management Services`): `profile.basicprofile.all, user.roles.write, user.roles.read, user.roles.read.all, client.roles.read.all, user.roles.manage.all`.
+
+Do note that in order to obtain the `profile.basicprofile.all` scope it is mandatory that the client owner (ie the developer) possesses the required role inside AAC.
 
 For more information on running the server inside a Docker container, see the [Running with Docker](#running-with-docker) section.
 
