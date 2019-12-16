@@ -43,6 +43,7 @@ import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.model.BasicProfile;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
+import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.service.ProfileService;
 
 @Controller
@@ -219,9 +220,10 @@ public class AuthController {
             throw new LoginException();
         }
 
-        _log.error("user name "+auth.getName());
-        BasicProfile profile =  profileService.getUserProfileById(auth.getName());
-        _log.error(profile.toString());
+        String userName = OrgManagerUtils.getAuthenticatedUserId();
+        _log.info("user name " + userName);
+        BasicProfile profile = profileService.getUserProfileById(userName);
+        _log.debug(profile.toString());
         return profile;
     }
 
