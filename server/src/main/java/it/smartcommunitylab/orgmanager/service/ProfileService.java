@@ -1,5 +1,7 @@
 package it.smartcommunitylab.orgmanager.service;
 
+import java.util.Collection;
+
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -10,7 +12,6 @@ import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.AACException;
 import it.smartcommunitylab.aac.AACProfileService;
 import it.smartcommunitylab.aac.model.BasicProfile;
-import it.smartcommunitylab.aac.model.BasicProfiles;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
@@ -51,12 +52,12 @@ public class ProfileService {
         }
         logger.debug("get profile for username " + userName);
         try {
-            BasicProfiles profiles = aacProfileService.searchUsersByUsername(getToken(), userName);
-            if (profiles == null || profiles.getProfiles() == null || profiles.getProfiles().isEmpty()) {
+            Collection<BasicProfile> profiles = aacProfileService.searchUsersByUsername(getToken(), userName);
+            if (profiles == null || profiles.isEmpty()) {
                 throw new NoSuchUserException(
                         "Profile for user " + userName + " could not be found; unable to continue.");
             }
-            return profiles.getProfiles().get(0);
+            return profiles.iterator().next();
         } catch (SecurityException | AACException e) {
             throw new IdentityProviderAPIException("Unable to obtain profile information: " + e.getMessage());
         }

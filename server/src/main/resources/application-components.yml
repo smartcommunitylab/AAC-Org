@@ -40,3 +40,14 @@ componentsconfig:
     - name: CKAN Open Data Catalogue
       componentId: ckan
       roles: ROLE_MANAGER,ROLE_USER
+      
+    # Minio
+    - name: Minio
+      componentId: minio
+      roles: ROLE_READWRITE,ROLE_READONLY
+      
+      
+    # Resource Manager
+    - name: Resource Manager
+      componentId: resourcemanager
+      roles: ROLE_ADMIN,ROLE_USER,ROLE_RESOURCE_ADMIN,ROLE_CONSUMER_ADMIN
