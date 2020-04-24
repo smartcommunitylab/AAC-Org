@@ -1,0 +1,14 @@
+FROM maven:3-jdk-8 as mvn
+COPY ./server /tmp
+WORKDIR /tmp
+RUN  mvn install -DskipTests
+
+FROM node:lts as node
+COPY ./client /tmp
+WORKDIR /tmp
+RUN npm install
+
+FROM alpine
+COPY --from=mvn /root/.m2 /root/.m2
+RUN ls -la
+COPY --from=node /tmp/node_modules /root/node_modules
