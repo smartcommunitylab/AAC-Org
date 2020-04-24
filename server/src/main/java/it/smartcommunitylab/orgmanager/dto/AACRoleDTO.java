@@ -28,6 +28,7 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 @SuppressWarnings("serial")
 public class AACRoleDTO extends Role {
 
+    private static final String RESOURCES_PREFIX = Constants.ROOT_RESOURCES + "/";
 	private static final String COMPONENTS_PREFIX = Constants.ROOT_COMPONENTS + "/";
 	private static final String ORGANIZATION_PREFIX = Constants.ROOT_ORGANIZATIONS + "/";
 	
@@ -88,10 +89,13 @@ public class AACRoleDTO extends Role {
 		return new AACRoleDTO(Constants.ROOT_ORGANIZATIONS, name, Constants.ROLE_MEMBER);
 	}
 	
-	public static boolean isComponentRole(Role role) {
-		return role.getContext() != null && role.getContext().startsWith(COMPONENTS_PREFIX);
-	}
-	
+    public static boolean isComponentRole(Role role) {
+        return role.getContext() != null && role.getContext().startsWith(COMPONENTS_PREFIX);
+    }
+
+    public static boolean isResourceRole(Role role) {
+        return role.getContext() != null && role.getContext().startsWith(RESOURCES_PREFIX);
+    }
 	/**
 	 * @param r
 	 * @return

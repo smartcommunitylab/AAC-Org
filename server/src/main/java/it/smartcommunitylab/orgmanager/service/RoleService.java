@@ -94,6 +94,7 @@ public class RoleService {
             logger.debug("get organization members for slug " + slug);
             return new HashSet<> (aacRoleService.getSpaceUsers(member.canonicalSpace(), null, false, 0, 1000, getToken()));
         } catch (SecurityException | AACException e) {
+            e.printStackTrace();
             throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
         }
     }
@@ -271,7 +272,7 @@ public class RoleService {
      */
     public Set<Role> getRoles(User user, String slug) throws IdentityProviderAPIException {
         try {
-            logger.debug("get roles for  user " + user.getUserId());
+            logger.debug("get roles for  user " + user.getUserId() + " with slug "+slug);
             Collection<Role> roles = aacRoleService.getRolesByUserId(getToken(), user.getUserId());
             // filter for the organization
             Set<String> prefixes = getOrgPrefixes(slug);
