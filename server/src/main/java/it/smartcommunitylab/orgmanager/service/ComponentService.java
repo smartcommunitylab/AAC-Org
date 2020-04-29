@@ -1,6 +1,7 @@
 package it.smartcommunitylab.orgmanager.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,17 +11,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityNotFoundException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.model.Role;
@@ -37,8 +32,7 @@ import it.smartcommunitylab.orgmanager.dto.ComponentConfigurationDTO;
 import it.smartcommunitylab.orgmanager.dto.ComponentDTO;
 import it.smartcommunitylab.orgmanager.dto.SpaceDTO;
 
-//@Service
-@Transactional(readOnly = true)
+@Service
 public class ComponentService {
 
     private final static Logger logger = LoggerFactory.getLogger(ComponentService.class);
@@ -68,7 +62,7 @@ public class ComponentService {
      * Component handling
      */
 
-    public List<SpaceDTO> listComponents(String organization)
+    public List<String> listComponents(String organization)
             throws IdentityProviderAPIException {
 
         // Admin or org owner/provider can manage org spaces
@@ -78,10 +72,109 @@ public class ComponentService {
             throw new AccessDeniedException("Access is denied: insufficient rights.");
         }
 
-        // spaces are listed in org sub-context
+        // components are listed in org sub-context
         String context = getOrgContext(organization);
-        return roleService.listSpaces(context).stream().map(r -> SpaceDTO.from(r))
+        return roleService.listSpaces(context).stream().map(r -> r.getSpace())
                 .collect(Collectors.toList());
+    }
+
+    public List<ComponentDTO> getComponents(String organization)
+            throws IdentityProviderAPIException {
+
+        // Admin or org owner/provider can manage org spaces
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        // components are listed in org sub-context
+        String context = getOrgContext(organization);
+        List<String> spaces = listComponents(organization);
+
+        List<ComponentDTO> components = new ArrayList<>();
+
+        // fetch all role definitions and build component model
+        for (String s : spaces) {
+            // we expect roles only for owner
+            String owner = roleService.getSpaceOwner(context, s);
+            // keep only roles matching
+            List<Role> cRoles = roleService.getRoles(owner)
+                    .stream()
+                    .filter(r -> context.equals(r.getContext()) && s.equals(r.getSpace()))
+                    .collect(Collectors.toList());
+
+            components.add(ComponentDTO.from(cRoles));
+        }
+
+        return components;
+
+    }
+
+    public List<ComponentDTO> listConfigurations() {
+        logger.debug("list components");
+        List<ComponentDTO> components = new ArrayList<ComponentDTO>();
+
+        // retrieve configuration
+        List<Map<String, String>> componentProperties = componentsConfiguration.getComponents();
+
+        // retrieves all properties used in the output
+        for (Map<String, String> map : componentProperties) {
+            String name = map.get(Constants.FIELD_NAME);
+            String componentId = map.get(Constants.FIELD_COMPONENT_ID);
+            String rolesString = map.get(Constants.FIELD_ROLES);
+            List<String> roles = parseRoles(rolesString);
+            // adds the component to the output list
+            components.add(new ComponentDTO(name, componentId, roles));
+        }
+
+        return components;
+    }
+
+    public ComponentDTO addComponent(String organization, String componentId, String owner)
+            throws IdentityProviderAPIException {
+
+        // Admin or org owner/provider can manage org spaces
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        // components are listed in org sub-context
+        String context = getOrgContext(organization);
+
+        // add space
+        AACRoleDTO spaceRole = roleService.addSpace(context, componentId, owner);
+
+        // find all providers and enlist in space
+        Set<String> providers = new HashSet<>(
+                roleService.getSpaceProviders(AACRoleDTO.ORGANIZATION_PREFIX, organization));
+        providers.add(owner);
+        AACRoleDTO providerRole = AACRoleDTO.providerRole(context, componentId);
+
+        for (String provider : providers) {
+            // add for each provider an entry
+            roleService.addRoles(provider, Collections.singletonList(providerRole.getAuthority()));
+        }
+
+        // search for configuration for roles
+        List<String> roles = Collections.emptyList();
+        List<ComponentDTO> configurations = listConfigurations();
+        for (ComponentDTO conf : configurations) {
+            if (conf.getComponentId().equals(componentId)) {
+                roles = conf.getRoles();
+                break;
+            }
+        }
+
+        if (!roles.isEmpty()) {
+            // register for owner
+            roleService.addRoles(owner, roles);
+        }
+
+        return ComponentDTO.from(componentId, roles);
+
     }
 
     /*
@@ -271,14 +364,14 @@ public class ComponentService {
 //        }
 //    }
 //
-//    protected List<String> parseRoles(String rolesString) {
-//        if (StringUtils.isEmpty(rolesString)) {
-//            return Collections.emptyList();
-//        }
-//
-//        return StringUtils.commaDelimitedListToSet(rolesString).stream()
-//                .map(r -> r.trim())
-//                .filter(r -> !"".equals(r))
-//                .collect(Collectors.toList());
-//    }
+    protected List<String> parseRoles(String rolesString) {
+        if (StringUtils.isEmpty(rolesString)) {
+            return Collections.emptyList();
+        }
+
+        return StringUtils.commaDelimitedListToSet(rolesString).stream()
+                .map(r -> r.trim())
+                .filter(r -> !"".equals(r))
+                .collect(Collectors.toList());
+    }
 }

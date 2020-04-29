@@ -35,7 +35,23 @@ public class SpaceService {
      * Space handling
      */
 
-    public List<SpaceDTO> listSpaces(String organization)
+    public List<String> listSpaces(String organization)
+            throws IdentityProviderAPIException {
+
+        // Admin or org owner/provider can manage org spaces
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        // spaces are listed in org sub-context
+        String context = getOrgContext(organization);
+        return roleService.listSpaces(context).stream().map(r -> r.getSpace())
+                .collect(Collectors.toList());
+    }
+
+    public List<SpaceDTO> getSpaces(String organization)
             throws IdentityProviderAPIException {
 
         // Admin or org owner/provider can manage org spaces
@@ -51,7 +67,7 @@ public class SpaceService {
                 .collect(Collectors.toList());
     }
 
-    public SpaceDTO addSpace(String organization, String space)
+    public SpaceDTO addSpace(String organization, String space, String owner)
             throws IdentityProviderAPIException {
         // Admin or org owner/provider can manage org spaces
         if (!OrgManagerUtils.userHasAdminRights()
@@ -62,10 +78,11 @@ public class SpaceService {
 
         // spaces are listed in org sub-context
         String context = getOrgContext(organization);
-        ;
 
-        // find org owner
-        String owner = roleService.getSpaceOwner(AACRoleDTO.ORGANIZATION_PREFIX, organization);
+        // DISABLED
+//        // find org owner
+//        String owner = roleService.getSpaceOwner(AACRoleDTO.ORGANIZATION_PREFIX, organization);
+
         // add space
         AACRoleDTO spaceRole = roleService.addSpace(context, space, owner);
 
@@ -112,6 +129,8 @@ public class SpaceService {
 
         // remove space
         roleService.deleteSpace(context, space, owner);
+        
+        //TODO find all space assignment in components and resources and remove
 
     }
 

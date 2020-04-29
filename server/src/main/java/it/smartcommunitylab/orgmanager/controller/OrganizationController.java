@@ -6,8 +6,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import it.smartcommunitylab.aac.model.Page;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
@@ -39,8 +38,21 @@ public class OrganizationController {
     private SpaceService spaceService;
 
     @GetMapping("/api/organizations")
-    public List<OrganizationDTO> listOrganizations() throws IdentityProviderAPIException {
-        return organizationService.listOrganizations();
+    public Page<OrganizationDTO> listOrganizations() throws IdentityProviderAPIException {
+        List<OrganizationDTO> list = organizationService.listOrganizations();
+        Page page = new Page<OrganizationDTO>();
+        page.setFirst(true);
+        page.setLast(true);
+        page.setNumber(1);
+        page.setNumberOfElements(list.size());
+        page.setSize(1000);
+        page.setTotalElements(list.size());
+        page.setTotalPages(1);
+
+        page.setContent(list);
+
+        return page;
+    
     }
 
     @PostMapping("/api/organizations")
@@ -106,7 +118,7 @@ public class OrganizationController {
     @GetMapping("api/organizations/{slug}/spaces")
     public List<String> getSpaces(@PathVariable String slug)
             throws NoSuchOrganizationException, IdentityProviderAPIException {
-        return spaceService.listSpaces(slug).stream().map(s -> s.getSlug()).collect(Collectors.toList());
+        return spaceService.getSpaces(slug).stream().map(s -> s.getSlug()).collect(Collectors.toList());
     }
 
     @PutMapping("api/organizations/{slug}/spaces")

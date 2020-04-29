@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
@@ -47,7 +48,7 @@ import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.dto.UserRightsDTO;
 import it.smartcommunitylab.orgmanager.service.ProfileService;
 
-@Controller
+@RestController
 @Api(value = "/auth")
 public class AuthController {
 
@@ -80,9 +81,12 @@ public class AuthController {
     @Autowired
     private ProfileService profileService;
 
-    @GetMapping("/api/auths")
+    @GetMapping(value = "/api/auth/user", produces = "application/json")
     public UserRightsDTO getUserRights() {
-        return OrgManagerUtils.getUserRights();
+        _log.trace("called userrights");
+        UserRightsDTO dto = OrgManagerUtils.getUserRights();
+        _log.trace(dto.toString());
+        return dto;
     }
 
     /*

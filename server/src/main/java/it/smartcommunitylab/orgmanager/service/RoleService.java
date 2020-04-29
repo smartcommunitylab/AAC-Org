@@ -81,7 +81,11 @@ public class RoleService {
             return aacRoleService
                     .getSpaceUsers(context, role.getRole(), true, 0, 1000, getToken())
                     .stream()
-                    .flatMap(u -> u.getRoles().stream().filter(r -> r.getContext().equals(context)))
+                    // we need to filter since AAC returns garbage on search
+                    .flatMap(u -> u.getRoles()
+                            .stream()
+                            .filter(r -> (context.equals(r.getContext())
+                                    && role.getRole().equals(r.getRole()))))
                     .map(r -> AACRoleDTO.from(r))
                     .collect(Collectors.toSet());
         } catch (SecurityException | AACException e) {

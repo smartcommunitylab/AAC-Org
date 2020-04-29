@@ -40,7 +40,7 @@ public class OrganizationDTO {
     }
 
     public String getPath() {
-        return AACRoleDTO.ORGANIZATION_PREFIX + "/" + slug;
+        return AACRoleDTO.ORGANIZATION_PREFIX + slug;
     }
 
     @Override

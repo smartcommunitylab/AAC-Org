@@ -189,6 +189,8 @@ public class OrgManagerUtils {
      */
     public static Collection<String> findOwnedOrganizations() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("authorities "+authentication.getAuthorities().toString());
+        
         return authentication.getAuthorities().stream()
                 .map(ga -> AACRoleDTO.parse(ga.getAuthority()))
                 .filter(r -> Constants.ROOT_ORGANIZATIONS.equals(r.getContext())

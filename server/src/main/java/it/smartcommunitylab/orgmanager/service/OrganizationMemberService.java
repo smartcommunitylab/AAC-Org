@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.model.BasicProfile;
@@ -396,10 +395,8 @@ public class OrganizationMemberService {
         // 5. within org/resources
         // 6. within resources/spaces
 
-        List<String> spaces = spaceService.listSpaces(organization).stream().map(s -> s.getSlug())
-                .collect(Collectors.toList());
-        List<String> components = componentService.listComponents(organization).stream().map(s -> s.getSlug())
-                .collect(Collectors.toList());
+        List<String> spaces = spaceService.listSpaces(organization);
+        List<String> components = componentService.listComponents(organization);
 
         // filter
         List<AACRoleDTO> orgRoles = new ArrayList<>();

@@ -39,6 +39,8 @@ public class OrganizationService {
         Collection<AACRoleDTO> spaces = roleService.listSpaces(context);
         List<OrganizationDTO> orgs = new ArrayList<>();
 
+        logger.debug("list orgs result " + orgs.toString());
+
         // parse and filter, will also apply permissions
         for (AACRoleDTO s : spaces) {
             try {
@@ -71,13 +73,17 @@ public class OrganizationService {
         AACRoleDTO orgRole = AACRoleDTO.ownerRole(context, organization);
 
         // find owner
-        String owner = roleService.getSpaceOwner(context, organization);
-
-        if (owner == null) {
+        String ownerId = roleService.getSpaceOwner(context, organization);
+        if (ownerId == null) {
             throw new NoSuchOrganizationException();
         }
 
-        return OrganizationDTO.from(owner, orgRole);
+        try {
+            BasicProfile profile = profileService.getUserProfileById(ownerId);
+            return OrganizationDTO.from(profile.getUsername(), orgRole);
+        } catch (NoSuchUserException e) {
+            throw new NoSuchOrganizationException();
+        }
 
     }
 

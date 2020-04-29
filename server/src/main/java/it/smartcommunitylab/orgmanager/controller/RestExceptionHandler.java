@@ -1,12 +1,10 @@
 package it.smartcommunitylab.orgmanager.controller;
 
-import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -97,22 +95,22 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(error, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * The entity, such as an organization or member, could not be found.
-     * 
-     * @param e - Exception
-     * @return - Response with error and proper status code
-     */
-    @ExceptionHandler(EntityNotFoundException.class)
-    protected ResponseEntity<String> handleEntityNotFound(EntityNotFoundException e) {
-        JSONObject error = new JSONObject();
-        try {
-            error.put("error", "entity_not_found");
-            error.put("error_description", e.getMessage());
-        } catch (JSONException je) {
-        }
-        return buildResponseEntity(error, HttpStatus.NOT_FOUND);
-    }
+//    /**
+//     * The entity, such as an organization or member, could not be found.
+//     * 
+//     * @param e - Exception
+//     * @return - Response with error and proper status code
+//     */
+//    @ExceptionHandler(EntityNotFoundException.class)
+//    protected ResponseEntity<String> handleEntityNotFound(EntityNotFoundException e) {
+//        JSONObject error = new JSONObject();
+//        try {
+//            error.put("error", "entity_not_found");
+//            error.put("error_description", e.getMessage());
+//        } catch (JSONException je) {
+//        }
+//        return buildResponseEntity(error, HttpStatus.NOT_FOUND);
+//    }
 
     /**
      * Input is either malformed or contains values that cannot be accepted.
@@ -166,24 +164,24 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(error, HttpStatus.FORBIDDEN);
     }
 
-    /**
-     * Creation of a record violates a constraint. Usually caused by threads running
-     * concurrently and creating records with the same value in a column where they
-     * are supposed to be unique. May be solved simply by repeating the operation.
-     * 
-     * @param e - Exception
-     * @return - Response with error and proper status code
-     */
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    protected ResponseEntity<String> handleDataIntegrityViolation(DataIntegrityViolationException e) {
-        JSONObject error = new JSONObject();
-        try {
-            error.put("error", "data_integrity_error");
-            error.put("error_description", "Unable to execute operation. Try again.");
-        } catch (JSONException je) {
-        }
-        return buildResponseEntity(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//    /**
+//     * Creation of a record violates a constraint. Usually caused by threads running
+//     * concurrently and creating records with the same value in a column where they
+//     * are supposed to be unique. May be solved simply by repeating the operation.
+//     * 
+//     * @param e - Exception
+//     * @return - Response with error and proper status code
+//     */
+//    @ExceptionHandler(DataIntegrityViolationException.class)
+//    protected ResponseEntity<String> handleDataIntegrityViolation(DataIntegrityViolationException e) {
+//        JSONObject error = new JSONObject();
+//        try {
+//            error.put("error", "data_integrity_error");
+//            error.put("error_description", "Unable to execute operation. Try again.");
+//        } catch (JSONException je) {
+//        }
+//        return buildResponseEntity(error, HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
     /**
      * Unable to call identity provider's API. Usually happens when creating
