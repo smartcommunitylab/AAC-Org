@@ -2,9 +2,12 @@ package it.smartcommunitylab.orgmanager.dto;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import it.smartcommunitylab.aac.model.BasicProfile;
+import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.orgmanager.common.Constants;
 
@@ -69,18 +72,38 @@ public class OrganizationMemberDTO {
         return this.getClass().getSimpleName() + " [" + id + "]: Username=" + username + ", Owner=" + owner;
     }
 
-    public static OrganizationMemberDTO from(User user) {
+    /*
+     * Builders
+     */
+    public static OrganizationMemberDTO from(BasicProfile profile, List<AACRoleDTO> roles) {
         OrganizationMemberDTO dto = new OrganizationMemberDTO();
-        dto.id = user.getUserId();
-        dto.username = user.getUsername();
-        if (user.getRoles() != null) {
-	        dto.roles = user.getRoles().stream()
-	                .map(r -> new RoleDTO(r.canonicalSpace(), r.getRole()))
-	                .collect(Collectors.toSet());
-	
-	        dto.owner = dto.roles.stream().anyMatch(r -> r.getType().equals(Constants.ROOT_ORGANIZATIONS) && r.getSpace() == null && r.getRole().equals(Constants.ROLE_PROVIDER));
+        dto.id = profile.getUserId();
+        dto.username = profile.getUsername();
+        if (roles != null) {
+            dto.roles = roles.stream()
+                    .map(r -> RoleDTO.from(r))
+                    .collect(Collectors.toSet());
+
+            dto.owner = dto.roles.stream().anyMatch(r -> r.getType().equals(Constants.ROOT_ORGANIZATIONS)
+                    && r.getSpace() == null && r.getRole().equals(Constants.ROLE_OWNER));
         }
-        
+
         return dto;
     };
+
+//    public static OrganizationMemberDTO from(User user) {
+//        OrganizationMemberDTO dto = new OrganizationMemberDTO();
+//        dto.id = user.getUserId();
+//        dto.username = user.getUsername();
+//        if (user.getRoles() != null) {
+//            dto.roles = user.getRoles().stream()
+//                    .map(r -> new RoleDTO(r.canonicalSpace(), r.getRole()))
+//                    .collect(Collectors.toSet());
+//
+//            dto.owner = dto.roles.stream().anyMatch(r -> r.getType().equals(Constants.ROOT_ORGANIZATIONS)
+//                    && r.getSpace() == null && r.getRole().equals(Constants.ROLE_OWNER));
+//        }
+//
+//        return dto;
+//    };
 }

@@ -4,14 +4,15 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.model.Role;
 
-public class OrganizationDTO {
+public class SpaceDTO {
     private String name;
     private String slug; // domain of the space
-    private String owner;
+    private String organization; // domain of org
 
-    public OrganizationDTO() {
+    public SpaceDTO() {
         name = "";
         slug = "";
+        organization = "";
 
     }
 
@@ -31,16 +32,16 @@ public class OrganizationDTO {
         this.slug = slug;
     }
 
-    public String getOwner() {
-        return owner;
+    public String getOrganization() {
+        return organization;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
+    public void setOrganization(String organization) {
+        this.organization = organization;
     }
 
     public String getPath() {
-        return AACRoleDTO.ORGANIZATION_PREFIX + "/" + slug;
+        return AACRoleDTO.ORGANIZATION_PREFIX + organization + "/" + slug;
     }
 
     @Override
@@ -51,17 +52,20 @@ public class OrganizationDTO {
     /*
      * Builder
      */
-    public static OrganizationDTO from(String owner, Role role) {
-        if (AACRoleDTO.isOrgRole(role, true) && StringUtils.hasText(role.getSpace())) {
-            OrganizationDTO dto = new OrganizationDTO();
+    public static SpaceDTO from(Role role) {
+        if (AACRoleDTO.isOrgRole(role, false) && StringUtils.hasText(role.getSpace())) {
+            SpaceDTO dto = new SpaceDTO();
             // TODO extract from attributes when available
             dto.name = role.getSpace();
             dto.slug = role.getSpace();
-            dto.owner = owner;
+            dto.organization = role.getContext()
+                    .substring(AACRoleDTO.ORGANIZATION_PREFIX.length())
+                    .replace("/" + AACRoleDTO.SPACES_PATH, "");
 
             return dto;
         } else {
             return null;
         }
     }
+
 }

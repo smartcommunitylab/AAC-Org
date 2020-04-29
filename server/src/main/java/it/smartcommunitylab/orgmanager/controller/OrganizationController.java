@@ -1,7 +1,9 @@
 package it.smartcommunitylab.orgmanager.controller;
 
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,11 +21,13 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
+import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO;
-import it.smartcommunitylab.orgmanager.dto.OrganizationDTO.Contacts;
+import it.smartcommunitylab.orgmanager.dto.SpaceDTO;
 import it.smartcommunitylab.orgmanager.service.OrganizationService;
+import it.smartcommunitylab.orgmanager.service.SpaceService;
 
 @RestController
 public class OrganizationController {
@@ -31,27 +35,28 @@ public class OrganizationController {
     @Autowired
     private OrganizationService organizationService;
 
+    @Autowired
+    private SpaceService spaceService;
+
     @GetMapping("/api/organizations")
-    public Page<OrganizationDTO> listOrganizations(String name, Pageable pageable) {
-        return organizationService.listOrganizations(name, pageable);
+    public List<OrganizationDTO> listOrganizations() throws IdentityProviderAPIException {
+        return organizationService.listOrganizations();
     }
 
     @PostMapping("/api/organizations")
     public OrganizationDTO createOrganization(@RequestBody OrganizationDTO organizationDTO)
-            throws SystemException, InvalidArgumentException {
+            throws SystemException, InvalidArgumentException, IdentityProviderAPIException, NoSuchUserException {
         // extract data
         String name = organizationDTO.getName();
-        String description = organizationDTO.getDescription();
         String owner = organizationDTO.getOwner();
         String slug = organizationDTO.getSlug();
-        Contacts contacts = organizationDTO.getContacts();
-        String[] tags = organizationDTO.getTags();
 
         // validate
         if (owner.isEmpty()) {
             // set current user as owner
             owner = OrgManagerUtils.getAuthenticatedUserName();
         }
+
         // normalizes the name
         name = name.trim().replaceAll("\\s+", " ");
         // checks if the name contains illegal characters
@@ -74,56 +79,59 @@ public class OrganizationController {
                             + slug);
         }
 
-        OrganizationDTO organization = organizationService.createOrganization(
-                name, slug, description,
-                owner, contacts, tags);
+        // TODO save the name
+        OrganizationDTO organization = organizationService.addOrganization(slug, owner);
 
         return organization;
     }
 
-    @PutMapping("/api/organizations/{id}/info")
-    public OrganizationDTO updateOrganization(@PathVariable long id, @RequestBody OrganizationDTO organizationDTO)
-            throws NoSuchOrganizationException {
-        // extract data
-        String description = organizationDTO.getDescription();
-        Contacts contacts = organizationDTO.getContacts();
-        String[] tags = organizationDTO.getTags();
+    // DEPRECATED
+//    @PutMapping("api/organizations/{id}/enable")
+//    public OrganizationDTO enableOrganization(@PathVariable long id) throws NoSuchOrganizationException {
+//        return organizationService.enableOrganization(id);
+//    }
+//
+//    @PutMapping("api/organizations/{id}/disable")
+//    public OrganizationDTO disableOrganization(@PathVariable long id) throws NoSuchOrganizationException {
+//        return organizationService.disableOrganization(id);
+//    }
 
-        // no validation
-        OrganizationDTO organization = organizationService.updateOrganization(
-                id,
-                description, contacts, tags);
-
-        return organization;
-    }
-
-    @PutMapping("api/organizations/{id}/enable")
-    public OrganizationDTO enableOrganization(@PathVariable long id) throws NoSuchOrganizationException {
-        return organizationService.enableOrganization(id);
+    @DeleteMapping("api/organizations/{slug}")
+    public void deleteOrganization(@PathVariable String slug)
+            throws NoSuchOrganizationException, InvalidArgumentException, SystemException,
+            IdentityProviderAPIException {
+        organizationService.deleteOrganization(slug);
     }
 
-    @PutMapping("api/organizations/{id}/disable")
-    public OrganizationDTO disableOrganization(@PathVariable long id) throws NoSuchOrganizationException {
-        return organizationService.disableOrganization(id);
+    @GetMapping("api/organizations/{slug}/spaces")
+    public List<String> getSpaces(@PathVariable String slug)
+            throws NoSuchOrganizationException, IdentityProviderAPIException {
+        return spaceService.listSpaces(slug).stream().map(s -> s.getSlug()).collect(Collectors.toList());
     }
 
-    @DeleteMapping("api/organizations/{id}")
-    public void deleteOrganization(@PathVariable long id)
-            throws NoSuchOrganizationException, InvalidArgumentException, SystemException {
-        organizationService.deleteOrganization(id);
+    @PutMapping("api/organizations/{slug}/spaces")
+    public List<String> addSpace(@PathVariable String slug, @RequestParam String space)
+            throws NoSuchOrganizationException, IdentityProviderAPIException {
+        // validate and normalize space
+        space = space.trim().replaceAll("\\s+", " ");
+        Pattern pattern = Pattern.compile(Constants.SLUG_PATTERN);
+        space = pattern.matcher(space).replaceAll("_");
+
+        SpaceDTO s = spaceService.addSpace(slug, space);
+
+        // return all spaces
+        return getSpaces(slug);
     }
 
-    @GetMapping("api/organizations/{id}/spaces")
-    public Set<String> getSpaces(@PathVariable long id) throws NoSuchOrganizationException, IdentityProviderAPIException {
-    	return organizationService.getOrgSpaces(id);
+    @DeleteMapping("api/organizations/{slug}/spaces")
+    public List<String> deleteSpace(@PathVariable String slug, @RequestParam String space)
+            throws NoSuchOrganizationException, IdentityProviderAPIException {
+
+        spaceService.deleteSpace(slug, space);
+
+        // return all spaces
+        return getSpaces(slug);
+
     }
-    @PutMapping("api/organizations/{id}/spaces")
-    public Set<String> addSpace(@PathVariable long id, @RequestParam String space) throws NoSuchOrganizationException, IdentityProviderAPIException {
-    	return organizationService.addOrgSpace(id, space);
-    }
-    @DeleteMapping("api/organizations/{id}/spaces")
-    public Set<String> deleteSpace(@PathVariable long id, @RequestParam String space) throws NoSuchOrganizationException, IdentityProviderAPIException {
-    	return organizationService.deleteOrgSpace(id, space);
-    }
-    
+
 }

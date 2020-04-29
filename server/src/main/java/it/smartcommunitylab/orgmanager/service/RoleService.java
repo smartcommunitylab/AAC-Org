@@ -19,6 +19,7 @@ package it.smartcommunitylab.orgmanager.service;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,11 +52,11 @@ public class RoleService {
 
     @Autowired
     private SecurityConfig securityConfig;
-
-    @Autowired
-    private ComponentsConfiguration componentsConfiguration;
-    
-    private static Set<String> componentIds;
+//
+//    @Autowired
+//    private ComponentsConfiguration componentsConfiguration;
+//
+//    private static Set<String> componentIds;
 
     /**
      * Initializes the service to obtain client tokens.
@@ -65,227 +66,405 @@ public class RoleService {
         // Generates the service to obtain the proper client tokens needed for certain
         // calls to the identity provider's APIs
         aacRoleService = securityConfig.getAACRoleService();
-        componentIds = componentsConfiguration.getComponents().stream().map(c -> c.get(Constants.FIELD_COMPONENT_ID)).collect(Collectors.toSet());
+//        componentIds = componentsConfiguration.getComponents().stream().map(c -> c.get(Constants.FIELD_COMPONENT_ID))
+//                .collect(Collectors.toSet());
     }
 
-    /**
-     * @param slug
-     * @return
-     * @throws IdentityProviderAPIException
+    /*
+     * Context/Space handling: respect the mapping 1 owner + N providers PER space
      */
-    public Set<User> getOrganizationOwners(String slug) throws IdentityProviderAPIException {
-        Role owner = AACRoleDTO.orgOwner(slug);
+    public Collection<AACRoleDTO> listSpaces(String context) throws IdentityProviderAPIException {
+        logger.debug("list spaces for context " + context);
+
         try {
-            logger.debug("get organization owners for slug " + slug);
-            return new HashSet<> (aacRoleService.getSpaceUsers(owner.canonicalSpace(), owner.getRole(), false, 0, 1000, getToken()));
+            Role role = AACRoleDTO.ownerRole(context, null);
+            return aacRoleService
+                    .getSpaceUsers(context, role.getRole(), true, 0, 1000, getToken())
+                    .stream()
+                    .flatMap(u -> u.getRoles().stream().filter(r -> r.getContext().equals(context)))
+                    .map(r -> AACRoleDTO.from(r))
+                    .collect(Collectors.toSet());
         } catch (SecurityException | AACException e) {
             throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
         }
     }
 
-    /**
-     * @param slug
-     * @return
-     * @throws IdentityProviderAPIException
-     */
-    public Set<User> getOrganizationMembers(String slug) throws IdentityProviderAPIException {
-        Role member = AACRoleDTO.orgMember(slug);
+    public AACRoleDTO addSpace(String context, String space, String owner) throws IdentityProviderAPIException {
+        logger.debug("add space " + space + " for context " + context);
+
         try {
-            logger.debug("get organization members for slug " + slug);
-            return new HashSet<> (aacRoleService.getSpaceUsers(member.canonicalSpace(), null, false, 0, 1000, getToken()));
+            Role role = AACRoleDTO.ownerRole(context, space);
+            aacRoleService.addRoles(getToken(), owner, Collections.singletonList(role.getAuthority()));
+
+            return AACRoleDTO.from(role);
         } catch (SecurityException | AACException e) {
-            e.printStackTrace();
-            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+            throw new IdentityProviderAPIException("Failed to associate org to owner");
         }
+
     }
 
-    /**
-     * @param canonicalSpace
-     * @return
-     * @throws IdentityProviderAPIException
-     */
-    public Set<User> getRoleUsers(String canonicalSpace) throws IdentityProviderAPIException {
-        logger.debug("get role users for space " + canonicalSpace);
-        return getRoleUsers(canonicalSpace, null, false);
-    }
+    public void deleteSpace(String context, String space, String owner) throws IdentityProviderAPIException {
+        logger.debug("delete space " + space + " for context " + context);
 
-    /**
-     * Parameterized role search: for subspaces and/or specific role.
-     * @param canonicalSpace
-     * @param role
-     * @param nested
-     * @return
-     * @throws IdentityProviderAPIException
-     */
-    public Set<User> getRoleUsers(String canonicalSpace, String role, boolean nested) throws IdentityProviderAPIException {
         try {
-            logger.debug("get role users for space " + canonicalSpace);
-            Collection<User> users = aacRoleService.getSpaceUsers(canonicalSpace, role, nested, 0, 1000, getToken());
-            for (User u : users) {
-            	u.setRoles(u.getRoles().stream().filter(r -> {
-            		String space = r.canonicalSpace();
-            		return (role == null || role.equals(r.getRole())) && (space.equals(canonicalSpace) || nested && space.startsWith(canonicalSpace + "/"));
-            	}).collect(Collectors.toSet()));
-            }
-            return new HashSet<> (users);
-        } catch (SecurityException | AACException e) {
-            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
-        }
-    }
-
-    /**
-     * Return set of prefixes for all the possible roles (resources, components, spaces) of the organizations
-     * @param slug
-     * @return
-     */
-    public Set<String> getOrgPrefixes(String slug) {
-		Set<String> prefixes = new HashSet<>();
-		prefixes.add(Constants.ROOT_RESOURCES + "/" + slug);
-		prefixes.add(Constants.ROOT_ORGANIZATIONS + "/" + slug);
-		componentIds.forEach(comp -> {
-			prefixes.add(Constants.ROOT_COMPONENTS + "/" + comp + "/" + slug);
-		});
-		return prefixes;
-    }
-    
-    /**
-     * 
-     * @param slug
-     * @return List of spaces rooted to the organization
-     * @throws IdentityProviderAPIException 
-     * @throws AACException 
-     * @throws SecurityException 
-     */
-    public Set<String> getOrgSpaces(String slug) throws IdentityProviderAPIException {
-    	String space = AACRoleDTO.orgOwner(slug).canonicalSpace();
-    	String prefix = space + "/";
-    	try {
-			return aacRoleService.getSpaceUsers(AACRoleDTO.orgOwner(slug).canonicalSpace(), null, true, 0, 1000, getToken())
-			.stream()
-			.flatMap(u -> u.getRoles().stream().map(r -> r.canonicalSpace()).filter(r -> r.startsWith(prefix)))
-			.map(r -> r.substring(prefix.length()))
-			.collect(Collectors.toSet());
-		} catch (SecurityException | AACException e) {
-            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
-		}
-    }
-
-    /**
-     * Add space to an organization: set org owners as space owners
-     * @param slug
-     * @param space
-     * @return
-     * @throws IdentityProviderAPIException
-     */
-    public Set<String> addOrgSpace(String slug, String space) throws IdentityProviderAPIException {
-    	String orgSpace = AACRoleDTO.orgOwner(slug).canonicalSpace();
-    	String spaceRole = AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, orgSpace, space).getAuthority();
-//    	String resourceRole = AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, Constants.ROOT_RESOURCES, slug, space).getAuthority();
-    	
-    	String token = getToken();
-    	
-    	Set<String> userIds = getOrganizationOwners(slug).stream().map(User::getUserId).collect(Collectors.toSet());
-    	try {
-			for (String userId: userIds) {
-//				aacRoleService.addRoles(token, userId, Arrays.asList(new String[] {spaceRole, resourceRole}));
-				aacRoleService.addRoles(token, userId, Collections.singletonList(spaceRole));
-			}
-		} catch (SecurityException | AACException e) {
-    		throw new IdentityProviderAPIException("Failed to associate org space to users");
-		}
-    	
-    	return getOrgSpaces(slug);
-    }
-
-    
-    /**
-     * Remove space from org: remove roles matching the org space and prefix spaces (e.g., resources and components)
-     * @param slug
-     * @param space
-     * @param prefixes
-     * @return
-     * @throws IdentityProviderAPIException
-     */
-    public Set<String> removeOrgSpace(String slug, String space) throws IdentityProviderAPIException {
-    	Set<String> canonicalSpaces = new HashSet<>();
-    	Set<User> users = new HashSet<>();
-    	
-    	Set<String> prefixes = getOrgPrefixes(slug);
-    	
-    	// consider removing role for users in all additional spaces (e.g., components or resources)
-    	for (String prefix: prefixes) {
-    		Role prefixRole = AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, prefix, space);
-    		String canonicalPrefixRoleSpace = prefixRole.canonicalSpace();
-    		canonicalSpaces.add(canonicalPrefixRoleSpace);
-        	users.addAll(getRoleUsers(canonicalPrefixRoleSpace));
-    	}
-    	
-    	String token = getToken();
-    	
-    	try {
-			for (User user: users) {
-				aacRoleService.deleteRoles(token, user.getUserId(), user.getRoles().stream().filter(r -> canonicalSpaces.contains(r.canonicalSpace())).map(r -> r.getAuthority()).collect(Collectors.toList()));
-			}
-		} catch (SecurityException | AACException e) {
-    		throw new IdentityProviderAPIException("Failed to associate org space to users");
-		}
-    	
-    	return getOrgSpaces(slug);
-    }
-
-    /**
-     * @param rolesToAdd
-     * @throws IdentityProviderAPIException
-     */
-    public void addRoles(Set<User> rolesToAdd) throws IdentityProviderAPIException {
-        try {
-        	String token = getToken();
-            for (User user : rolesToAdd) {
-                aacRoleService.addRoles(token, user.getUserId(),
-                        user.getRoles().stream().map(r -> r.getAuthority()).collect(Collectors.toList()));
-            }
-        } catch (SecurityException | AACException e) {
-            throw new IdentityProviderAPIException("Unable to call identity provider's API to add roles to user.");
-        }
-    }
-
-    /**
-     * @param rolesToRemove
-     * @throws IdentityProviderAPIException
-     */
-    public void deleteRoles(Set<User> rolesToRemove) throws IdentityProviderAPIException {
-        try {
-            for (User user : rolesToRemove) {
-                aacRoleService.deleteRoles(getToken(), user.getUserId(),
-                        user.getRoles().stream().map(r -> r.getAuthority()).collect(Collectors.toList()));
-            }
+            Role role = AACRoleDTO.ownerRole(context, space);
+            aacRoleService.deleteRoles(getToken(), owner, Collections.singletonList(role.getAuthority()));
         } catch (SecurityException | AACException e) {
             throw new IdentityProviderAPIException("Unable to call identity provider's API to delete user roles.");
         }
     }
 
-    /**
-     * Return all the roles of the user with respect to the specified organization
-     * @param username
-     * @param slug
-     * @throws IdentityProviderAPIException
-     */
-    public Set<Role> getRoles(User user, String slug) throws IdentityProviderAPIException {
+    public String getSpaceOwner(String context, String space) throws IdentityProviderAPIException {
+        logger.debug("get owner for context " + context + " space " + String.valueOf(space));
         try {
-            logger.debug("get roles for  user " + user.getUserId() + " with slug "+slug);
-            Collection<Role> roles = aacRoleService.getRolesByUserId(getToken(), user.getUserId());
-            // filter for the organization
-            Set<String> prefixes = getOrgPrefixes(slug);
-            roles = roles.stream().filter(r -> {
-            	String canonical = r.canonicalSpace();
-            	return prefixes.stream().anyMatch(p -> p.equals(canonical) || canonical.startsWith(p +"/"));
-            }).collect(Collectors.toSet());
+            Role role = AACRoleDTO.ownerRole(context, space);
+            Collection<User> users = aacRoleService.getSpaceUsers(role.canonicalSpace(), role.getRole(), false, 0, 1000,
+                    getToken());
+            if (users.isEmpty()) {
+                throw new AACException("no owner found");
+            } else {
+                // we expect ONE owner per space
+                return users.iterator().next().getUserId();
+            }
 
-            return new HashSet<> (roles);
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+        }
+    }
+
+    public Collection<String> getSpaceProviders(String context, String space) throws IdentityProviderAPIException {
+        logger.debug("get providers for context " + context + " space " + String.valueOf(space));
+        try {
+            Role role = AACRoleDTO.providerRole(context, space);
+            return aacRoleService.getSpaceUsers(role.canonicalSpace(), role.getRole(), false, 0, 1000, getToken())
+                    .stream()
+                    .map(r -> r.getUserId())
+                    .collect(Collectors.toSet());
+
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+        }
+    }
+
+    public Collection<String> getSpaceUsers(String context, String space) throws IdentityProviderAPIException {
+        logger.debug("get users for context " + context + " space " + String.valueOf(space));
+        try {
+            Role role = AACRoleDTO.providerRole(context, space);
+            return aacRoleService.getSpaceUsers(role.canonicalSpace(), null, false, 0, 1000, getToken())
+                    .stream()
+                    .map(r -> r.getUserId())
+                    .collect(Collectors.toSet());
+
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+        }
+    }
+
+    /*
+     * User roles
+     */
+    public Collection<AACRoleDTO> getRoles(String userId) throws IdentityProviderAPIException {
+        try {
+
+            return aacRoleService.getRolesByUserId(getToken(), userId)
+                    .stream()
+                    .map(r -> AACRoleDTO.from(r))
+                    .collect(Collectors.toList());
+
         } catch (SecurityException | AACException e) {
             throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve user roles.");
         }
     }
+
+    public void addRoles(String userId, List<String> roles) throws IdentityProviderAPIException {
+        try {
+            aacRoleService.addRoles(getToken(), userId, roles);
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to add roles to user.");
+        }
+    }
+
+    public void deleteRoles(String userId, List<String> roles) throws IdentityProviderAPIException {
+        try {
+            aacRoleService.deleteRoles(getToken(), userId, roles);
+        } catch (SecurityException | AACException e) {
+            throw new IdentityProviderAPIException("Unable to call identity provider's API to delete user roles.");
+        }
+    }
+
+//
+//    /**
+//     * @param slug
+//     * @return
+//     * @throws IdentityProviderAPIException
+//     */
+//    public Set<User> getOrganizationOwners(String slug) throws IdentityProviderAPIException {
+//        Role owner = AACRoleDTO.orgOwner(slug);
+//        try {
+//            logger.debug("get organization owners for slug " + slug);
+//            return new HashSet<>(
+//                    aacRoleService.getSpaceUsers(owner.canonicalSpace(), owner.getRole(), false, 0, 1000, getToken()));
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+//        }
+//    }
+//
+//    /**
+//     * @param slug
+//     * @return
+//     * @throws IdentityProviderAPIException
+//     */
+//    public Set<User> getOrganizationMembers(String slug) throws IdentityProviderAPIException {
+//        Role member = AACRoleDTO.orgMember(slug);
+//        try {
+//            logger.debug("get organization members for slug " + slug);
+//            return new HashSet<>(
+//                    aacRoleService.getSpaceUsers(member.canonicalSpace(), null, false, 0, 1000, getToken()));
+//        } catch (SecurityException | AACException e) {
+//            e.printStackTrace();
+//            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+//        }
+//    }
+//
+//    /**
+//     * @param canonicalSpace
+//     * @return
+//     * @throws IdentityProviderAPIException
+//     */
+//    public Set<User> getRoleUsers(String canonicalSpace) throws IdentityProviderAPIException {
+//        logger.debug("get role users for space " + canonicalSpace);
+//        return getRoleUsers(canonicalSpace, null, false);
+//    }
+//
+//    /**
+//     * Parameterized role search: for subspaces and/or specific role.
+//     * 
+//     * @param canonicalSpace
+//     * @param role
+//     * @param nested
+//     * @return
+//     * @throws IdentityProviderAPIException
+//     */
+//    public Set<User> getRoleUsers(String canonicalSpace, String role, boolean nested)
+//            throws IdentityProviderAPIException {
+//        try {
+//            logger.debug("get role users for space " + canonicalSpace);
+//            Collection<User> users = aacRoleService.getSpaceUsers(canonicalSpace, role, nested, 0, 1000, getToken());
+//            for (User u : users) {
+//                u.setRoles(u.getRoles().stream().filter(r -> {
+//                    String space = r.canonicalSpace();
+//                    return (role == null || role.equals(r.getRole()))
+//                            && (space.equals(canonicalSpace) || nested && space.startsWith(canonicalSpace + "/"));
+//                }).collect(Collectors.toSet()));
+//            }
+//            return new HashSet<>(users);
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+//        }
+//    }
+//
+//    /**
+//     * Return set of prefixes for all the possible roles (resources, components,
+//     * spaces) of the organizations
+//     * 
+//     * @param slug
+//     * @return
+//     */
+//    public Set<String> getOrgPrefixes(String slug) {
+//        Set<String> prefixes = new HashSet<>();
+//        prefixes.add(Constants.ROOT_RESOURCES + "/" + slug);
+//        prefixes.add(Constants.ROOT_ORGANIZATIONS + "/" + slug);
+//        componentIds.forEach(comp -> {
+//            prefixes.add(Constants.ROOT_COMPONENTS + "/" + comp + "/" + slug);
+//        });
+//        return prefixes;
+//    }
+//
+//    /**
+//     * 
+//     * @param slug
+//     * @return List of organization
+//     * @throws IdentityProviderAPIException
+//     * @throws AACException
+//     * @throws SecurityException
+//     */
+//    public Set<String> getOrgs() throws IdentityProviderAPIException {
+//        String context = Constants.ROOT_ORGANIZATIONS;
+//        try {
+//            return aacRoleService.getSpaceUsers(context, null, true, 0, 1000, getToken())
+//                    .stream()
+//                    .flatMap(u -> u.getRoles().stream().filter(r -> r.getContext().equals(context)))
+//                    .map(r -> r.getSpace())
+//                    .collect(Collectors.toSet());
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+//        }
+//    }
+//
+//    /**
+//     * Add space to an organization: set org owners as space owners
+//     * 
+//     * @param slug
+//     * @return
+//     * @throws IdentityProviderAPIException
+//     */
+//    public Set<String> addOrg(String slug, String owner) throws IdentityProviderAPIException {
+//        String orgRole = AACRoleDTO.orgOwner(slug).getAuthority();
+//        String token = getToken();
+//
+//        try {
+//            aacRoleService.addRoles(token, owner, Collections.singletonList(orgRole));
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Failed to associate org to owner");
+//        }
+//
+//        return getOrgSpaces(slug);
+//    }
+//
+//    /**
+//     * 
+//     * @param slug
+//     * @return List of spaces rooted to the organization
+//     * @throws IdentityProviderAPIException
+//     * @throws AACException
+//     * @throws SecurityException
+//     */
+//    public Set<String> getOrgSpaces(String slug) throws IdentityProviderAPIException {
+//        String context = Constants.ROOT_ORGANIZATIONS + "/" + slug;
+//        try {
+//            return aacRoleService
+//                    .getSpaceUsers(context, null, true, 0, 1000, getToken())
+//                    .stream()
+//                    .flatMap(u -> u.getRoles().stream().filter(r -> r.getContext().equals(context)))
+//                    .map(r -> r.getSpace())
+//                    .collect(Collectors.toSet());
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
+//        }
+//    }
+//
+//    /**
+//     * Add space to an organization: set org owners as space owners
+//     * 
+//     * @param slug
+//     * @param space
+//     * @return
+//     * @throws IdentityProviderAPIException
+//     */
+//    public Set<String> addOrgSpace(String slug, String space) throws IdentityProviderAPIException {
+//        String orgSpace = AACRoleDTO.orgOwner(slug).canonicalSpace();
+//        String spaceRole = AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, orgSpace, space).getAuthority();
+////    	String resourceRole = AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, Constants.ROOT_RESOURCES, slug, space).getAuthority();
+//
+//        String token = getToken();
+//
+//        Set<String> userIds = getOrganizationOwners(slug).stream().map(User::getUserId).collect(Collectors.toSet());
+//        try {
+//            for (String userId : userIds) {
+////				aacRoleService.addRoles(token, userId, Arrays.asList(new String[] {spaceRole, resourceRole}));
+//                aacRoleService.addRoles(token, userId, Collections.singletonList(spaceRole));
+//            }
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Failed to associate org space to users");
+//        }
+//
+//        return getOrgSpaces(slug);
+//    }
+//
+//    /**
+//     * Remove space from org: remove roles matching the org space and prefix spaces
+//     * (e.g., resources and components)
+//     * 
+//     * @param slug
+//     * @param space
+//     * @param prefixes
+//     * @return
+//     * @throws IdentityProviderAPIException
+//     */
+//    public Set<String> removeOrgSpace(String slug, String space) throws IdentityProviderAPIException {
+//        Set<String> canonicalSpaces = new HashSet<>();
+//        Set<User> users = new HashSet<>();
+//
+//        Set<String> prefixes = getOrgPrefixes(slug);
+//
+//        // consider removing role for users in all additional spaces (e.g., components
+//        // or resources)
+//        for (String prefix : prefixes) {
+//            Role prefixRole = AACRoleDTO.concatRole(Constants.ROLE_PROVIDER, prefix, space);
+//            String canonicalPrefixRoleSpace = prefixRole.canonicalSpace();
+//            canonicalSpaces.add(canonicalPrefixRoleSpace);
+//            users.addAll(getRoleUsers(canonicalPrefixRoleSpace));
+//        }
+//
+//        String token = getToken();
+//
+//        try {
+//            for (User user : users) {
+//                aacRoleService.deleteRoles(token, user.getUserId(),
+//                        user.getRoles().stream().filter(r -> canonicalSpaces.contains(r.canonicalSpace()))
+//                                .map(r -> r.getAuthority()).collect(Collectors.toList()));
+//            }
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Failed to associate org space to users");
+//        }
+//
+//        return getOrgSpaces(slug);
+//    }
+//
+//    /**
+//     * @param rolesToAdd
+//     * @throws IdentityProviderAPIException
+//     */
+//    public void addRoles(Set<User> rolesToAdd) throws IdentityProviderAPIException {
+//        try {
+//            String token = getToken();
+//            for (User user : rolesToAdd) {
+//                aacRoleService.addRoles(token, user.getUserId(),
+//                        user.getRoles().stream().map(r -> r.getAuthority()).collect(Collectors.toList()));
+//            }
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Unable to call identity provider's API to add roles to user.");
+//        }
+//    }
+//
+//    /**
+//     * @param rolesToRemove
+//     * @throws IdentityProviderAPIException
+//     */
+//    public void deleteRoles(Set<User> rolesToRemove) throws IdentityProviderAPIException {
+//        try {
+//            for (User user : rolesToRemove) {
+//                aacRoleService.deleteRoles(getToken(), user.getUserId(),
+//                        user.getRoles().stream().map(r -> r.getAuthority()).collect(Collectors.toList()));
+//            }
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Unable to call identity provider's API to delete user roles.");
+//        }
+//    }
+//
+//    /**
+//     * Return all the roles of the user with respect to the specified organization
+//     * 
+//     * @param username
+//     * @param slug
+//     * @throws IdentityProviderAPIException
+//     */
+//    public Set<Role> getRoles(User user, String slug) throws IdentityProviderAPIException {
+//        try {
+//            logger.debug("get roles for  user " + user.getUserId() + " with slug " + slug);
+//            Collection<Role> roles = aacRoleService.getRolesByUserId(getToken(), user.getUserId());
+//            // filter for the organization
+//            Set<String> prefixes = getOrgPrefixes(slug);
+//            roles = roles.stream().filter(r -> {
+//                String canonical = r.canonicalSpace();
+//                return prefixes.stream().anyMatch(p -> p.equals(canonical) || canonical.startsWith(p + "/"));
+//            }).collect(Collectors.toSet());
+//
+//            return new HashSet<>(roles);
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve user roles.");
+//        }
+//    }
 
     /**
      * Generates a client access token with the input scope.

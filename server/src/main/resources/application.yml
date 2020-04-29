@@ -28,21 +28,6 @@ client:
 
 # SPRING CONFIGURATION
 spring:
-  datasource:
-    url: ${JDBC_URL:jdbc:h2:file:./data/db}
-    username: ${JDBC_USER:omc}
-    password: ${JDBC_PASS:omc}
-    driver-class-name: ${JDBC_DRIVER:org.h2.Driver}
-  jpa:
-    database-platform: ${JDBC_DIALECT:org.hibernate.dialect.H2Dialect}
-    generate-ddl: ${OMC_SPRING_JPA_GENERATEDDL:true}
-    hibernate:
-      ddl-auto: ${OMC_SPRING_JPA_HIBERNATE_DDLAUTO:update}
-    properties:
-      hibernate:
-        jdbc:
-          lob:
-            non_contextual_creation: ${OMC_SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_LOB_NONCONTEXTUALCREATION:true}
   profiles:
     include:
       - components

@@ -44,6 +44,7 @@ import it.smartcommunitylab.aac.model.BasicProfile;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
+import it.smartcommunitylab.orgmanager.dto.UserRightsDTO;
 import it.smartcommunitylab.orgmanager.service.ProfileService;
 
 @Controller
@@ -78,6 +79,11 @@ public class AuthController {
 
     @Autowired
     private ProfileService profileService;
+
+    @GetMapping("/api/auths")
+    public UserRightsDTO getUserRights() {
+        return OrgManagerUtils.getUserRights();
+    }
 
     /*
      * Login

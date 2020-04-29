@@ -68,16 +68,20 @@ public class OrgManagerUtils {
         return false;
     }
 
+    /*
+     * Ownership
+     */
+
     /**
-     * Returns true if the authenticated user is owner of the organization
+     * Returns true if the authenticated user is owner of the space
      * 
      * @param organization - The organization whose owner might be the authenticated
      *                     user
      * @return - true if the authenticated user is owner, false otherwise
      */
-    public static boolean userIsOwner(String organization) {
+    public static boolean userIsOwner(String context, String space) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String orgOwner = AACRoleDTO.orgOwner(organization).getAuthority();
+        String orgOwner = AACRoleDTO.ownerRole(context, space).getAuthority();
         return authentication.getAuthorities().stream().anyMatch(ga -> orgOwner.equals(ga.getAuthority()));
     }
 
@@ -86,13 +90,49 @@ public class OrgManagerUtils {
      * 
      * @param organization - The organization whose owner might be the authenticated
      *                     user
-     * @return
+     * @return - true if the authenticated user is owner, false otherwise
      */
-    public static boolean userIsMember(String organization) {
+    public static boolean userIsOwner(String organization) {
+        return userIsOwner(AACRoleDTO.ORGANIZATION_PREFIX, organization);
+    }
+
+    /**
+     * Returns true if the authenticated user is owner of the space
+     * 
+     * @param organization - The organization whose owner might be the authenticated
+     *                     user
+     * @return - true if the authenticated user is owner, false otherwise
+     */
+    public static boolean userIsProvider(String context, String space) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Role orgMember = AACRoleDTO.orgMember(organization);
+        String orgOwner = AACRoleDTO.providerRole(context, space).getAuthority();
+        return authentication.getAuthorities().stream().anyMatch(ga -> orgOwner.equals(ga.getAuthority()));
+    }
+
+    /**
+     * Returns true if the authenticated user is owner of the organization
+     * 
+     * @param organization - The organization whose owner might be the authenticated
+     *                     user
+     * @return - true if the authenticated user is owner, false otherwise
+     */
+    public static boolean userIsProvider(String organization) {
+        return userIsProvider(AACRoleDTO.ORGANIZATION_PREFIX, organization);
+    }
+
+    /*
+     * Membership
+     */
+    public static boolean userIsMember(String context, String space) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Role orgMember = AACRoleDTO.memberRole(context, space);
+        // any role is valid for membership
         return authentication.getAuthorities().stream()
                 .anyMatch(ga -> AACRoleDTO.matchContextSpace(orgMember, ga.getAuthority()));
+    }
+
+    public static boolean userIsMember(String organization) {
+        return userIsMember(AACRoleDTO.ORGANIZATION_PREFIX, organization);
     }
 
     /**

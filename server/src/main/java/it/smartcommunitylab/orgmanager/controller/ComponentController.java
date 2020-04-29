@@ -21,29 +21,29 @@ import it.smartcommunitylab.orgmanager.service.ComponentService;
 
 @RestController
 public class ComponentController {
-    @Autowired
-    private ComponentService componentService;
-
-    @GetMapping("/api/components")
-    public Page<ComponentDTO> listComponents(Pageable pageable) {
-        return componentService.listComponents(pageable);
-    }
-
-    @GetMapping("/api/components/{componentId}/roles")
-    public List<String> getComponentRoles(@PathVariable String componentId) {
-        return componentService.getComponentRoles(componentId);
-    }
-
-    @GetMapping("/api/organizations/{id}/configuration")
-    public List<ComponentConfigurationDTO> showConfigurations(@PathVariable long id)
-            throws NoSuchOrganizationException, IdentityProviderAPIException {
-        return componentService.getConfigurations(id);
-    }
-
-    @PostMapping("/api/organizations/{id}/configuration")
-    public List<ComponentConfigurationDTO> updateConfigurations(@PathVariable long id,
-            @RequestBody List<ComponentConfigurationDTO> configurationDTO)
-            throws NoSuchOrganizationException, SystemException, InvalidArgumentException {
-        return componentService.updateConfigurations(id, configurationDTO);
-    }
+//    @Autowired
+//    private ComponentService componentService;
+//
+//    @GetMapping("/api/components")
+//    public Page<ComponentDTO> listComponents(Pageable pageable) {
+//        return componentService.listComponents(pageable);
+//    }
+//
+//    @GetMapping("/api/components/{componentId}/roles")
+//    public List<String> getComponentRoles(@PathVariable String componentId) {
+//        return componentService.getComponentRoles(componentId);
+//    }
+//
+//    @GetMapping("/api/organizations/{id}/configuration")
+//    public List<ComponentConfigurationDTO> showConfigurations(@PathVariable long id)
+//            throws NoSuchOrganizationException, IdentityProviderAPIException {
+//        return componentService.getConfigurations(id);
+//    }
+//
+//    @PostMapping("/api/organizations/{id}/configuration")
+//    public List<ComponentConfigurationDTO> updateConfigurations(@PathVariable long id,
+//            @RequestBody List<ComponentConfigurationDTO> configurationDTO)
+//            throws NoSuchOrganizationException, SystemException, InvalidArgumentException {
+//        return componentService.updateConfigurations(id, configurationDTO);
+//    }
 }
