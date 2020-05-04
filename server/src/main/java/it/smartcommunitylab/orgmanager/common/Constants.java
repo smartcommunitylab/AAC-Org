@@ -23,9 +23,9 @@ public class Constants {
     public static final String FIELD_NAME = "name";
     public static final String FIELD_COMPONENT_ID = "componentId";
     public static final String FIELD_ROLES = "roles";
-    public static final String SLUG_PATTERN = "^[a-z0-9_.]*$";
-    public static final String SLUG_CHARS = "[^a-z0-9_.]+";
+    public static final String SLUG_PATTERN = "^[a-z0-9_]*$";
+    public static final String SLUG_CHARS = "[^a-z0-9_]+";
     public static final String NAME_PATTERN = "^[a-zA-Z0-9 _-]+$";
 
-    public static final String SLUG_SEPARATOR = "."; //TODO change to "-" when AAC supports it
+    public static final String SLUG_SEPARATOR = "."; //to use "-" AAC should support it
 }
