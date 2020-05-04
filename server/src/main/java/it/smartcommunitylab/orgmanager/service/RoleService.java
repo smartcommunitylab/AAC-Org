@@ -36,6 +36,7 @@ import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
+import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
@@ -89,6 +90,7 @@ public class RoleService {
                     .map(r -> AACRoleDTO.from(r))
                     .collect(Collectors.toSet());
         } catch (SecurityException | AACException e) {
+            e.printStackTrace();
             throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
         }
     }
@@ -102,7 +104,8 @@ public class RoleService {
 
             return AACRoleDTO.from(role);
         } catch (SecurityException | AACException e) {
-            throw new IdentityProviderAPIException("Failed to associate org to owner");
+            e.printStackTrace();
+            throw new IdentityProviderAPIException("Failed to associate space to owner");
         }
 
     }
@@ -114,24 +117,26 @@ public class RoleService {
             Role role = AACRoleDTO.ownerRole(context, space);
             aacRoleService.deleteRoles(getToken(), owner, Collections.singletonList(role.getAuthority()));
         } catch (SecurityException | AACException e) {
+            e.printStackTrace();
             throw new IdentityProviderAPIException("Unable to call identity provider's API to delete user roles.");
         }
     }
 
-    public String getSpaceOwner(String context, String space) throws IdentityProviderAPIException {
+    public String getSpaceOwner(String context, String space) throws NoSuchUserException, IdentityProviderAPIException {
         logger.debug("get owner for context " + context + " space " + String.valueOf(space));
         try {
             Role role = AACRoleDTO.ownerRole(context, space);
             Collection<User> users = aacRoleService.getSpaceUsers(role.canonicalSpace(), role.getRole(), false, 0, 1000,
                     getToken());
             if (users.isEmpty()) {
-                throw new AACException("no owner found");
+                throw new NoSuchUserException();
             } else {
                 // we expect ONE owner per space
                 return users.iterator().next().getUserId();
             }
 
         } catch (SecurityException | AACException e) {
+            e.printStackTrace();
             throw new IdentityProviderAPIException("Unable to call identity provider's API to retrieve users in role.");
         }
     }
@@ -184,6 +189,7 @@ public class RoleService {
         try {
             aacRoleService.addRoles(getToken(), userId, roles);
         } catch (SecurityException | AACException e) {
+            e.printStackTrace();
             throw new IdentityProviderAPIException("Unable to call identity provider's API to add roles to user.");
         }
     }
@@ -192,6 +198,7 @@ public class RoleService {
         try {
             aacRoleService.deleteRoles(getToken(), userId, roles);
         } catch (SecurityException | AACException e) {
+            e.printStackTrace();
             throw new IdentityProviderAPIException("Unable to call identity provider's API to delete user roles.");
         }
     }

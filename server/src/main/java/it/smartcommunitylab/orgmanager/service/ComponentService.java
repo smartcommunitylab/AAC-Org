@@ -18,12 +18,16 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.model.BasicProfile;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
+import it.smartcommunitylab.orgmanager.common.NoSuchComponentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
+import it.smartcommunitylab.orgmanager.common.NoSuchSpaceException;
+import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
 import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
@@ -43,13 +47,16 @@ public class ComponentService {
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private ProfileService profileService;
+
     /*
      * Context
      */
     public String getOrgContext(String organization) {
         // components are listed in org sub-context
         return AACRoleDTO
-                .concatContext(AACRoleDTO.ORGANIZATION_PREFIX + organization + AACRoleDTO.COMPONENTS_PATH);
+                .concatContext(AACRoleDTO.ORGANIZATION_PREFIX + organization, AACRoleDTO.COMPONENTS_PATH);
     }
 
     public String getContext(String component) {
@@ -59,60 +66,10 @@ public class ComponentService {
     }
 
     /*
-     * Component handling
+     * Config
      */
-
-    public List<String> listComponents(String organization)
-            throws IdentityProviderAPIException {
-
-        // Admin or org owner/provider can manage org spaces
-        if (!OrgManagerUtils.userHasAdminRights()
-                && !OrgManagerUtils.userIsOwner(organization)
-                && !OrgManagerUtils.userIsProvider(organization)) {
-            throw new AccessDeniedException("Access is denied: insufficient rights.");
-        }
-
-        // components are listed in org sub-context
-        String context = getOrgContext(organization);
-        return roleService.listSpaces(context).stream().map(r -> r.getSpace())
-                .collect(Collectors.toList());
-    }
-
-    public List<ComponentDTO> getComponents(String organization)
-            throws IdentityProviderAPIException {
-
-        // Admin or org owner/provider can manage org spaces
-        if (!OrgManagerUtils.userHasAdminRights()
-                && !OrgManagerUtils.userIsOwner(organization)
-                && !OrgManagerUtils.userIsProvider(organization)) {
-            throw new AccessDeniedException("Access is denied: insufficient rights.");
-        }
-
-        // components are listed in org sub-context
-        String context = getOrgContext(organization);
-        List<String> spaces = listComponents(organization);
-
-        List<ComponentDTO> components = new ArrayList<>();
-
-        // fetch all role definitions and build component model
-        for (String s : spaces) {
-            // we expect roles only for owner
-            String owner = roleService.getSpaceOwner(context, s);
-            // keep only roles matching
-            List<Role> cRoles = roleService.getRoles(owner)
-                    .stream()
-                    .filter(r -> context.equals(r.getContext()) && s.equals(r.getSpace()))
-                    .collect(Collectors.toList());
-
-            components.add(ComponentDTO.from(cRoles));
-        }
-
-        return components;
-
-    }
-
     public List<ComponentDTO> listConfigurations() {
-        logger.debug("list components");
+        logger.debug("list configurations");
         List<ComponentDTO> components = new ArrayList<ComponentDTO>();
 
         // retrieve configuration
@@ -131,8 +88,118 @@ public class ComponentService {
         return components;
     }
 
-    public ComponentDTO addComponent(String organization, String componentId, String owner)
+    public ComponentDTO getConfiguration(String component) throws NoSuchComponentException {
+
+        ComponentDTO c = null;
+        // retrieve configuration
+        List<Map<String, String>> componentProperties = componentsConfiguration.getComponents();
+
+        // retrieves all properties used in the output
+        for (Map<String, String> map : componentProperties) {
+            String componentId = map.get(Constants.FIELD_COMPONENT_ID);
+            if (componentId.equals(component)) {
+                String name = map.get(Constants.FIELD_NAME);
+                String rolesString = map.get(Constants.FIELD_ROLES);
+                List<String> roles = parseRoles(rolesString);
+
+                c = new ComponentDTO(name, componentId, roles);
+                break;
+            }
+        }
+
+        if (c == null) {
+            throw new NoSuchComponentException();
+        }
+
+        return c;
+
+    }
+
+    /*
+     * Component handling
+     */
+
+    public List<String> listComponents(String organization)
             throws IdentityProviderAPIException {
+
+        // Admin or org owner/provider can manage org components
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        // components are listed in org sub-context
+        String context = getOrgContext(organization);
+        return roleService.listSpaces(context).stream().map(r -> r.getSpace())
+                .collect(Collectors.toList());
+    }
+
+    public List<ComponentDTO> getComponents(String organization)
+            throws IdentityProviderAPIException {
+
+        // Admin or org owner/provider can manage org components
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        List<String> spaces = listComponents(organization);
+
+        List<ComponentDTO> components = new ArrayList<>();
+
+        // fetch all role definitions and build component model
+        for (String s : spaces) {
+
+            try {
+                components.add(getComponent(organization, s));
+            } catch (NoSuchComponentException e) {
+                // skip invalid component
+            }
+
+        }
+
+        return components;
+
+    }
+
+    public ComponentDTO getComponent(String organization, String componentId)
+            throws NoSuchComponentException, IdentityProviderAPIException {
+
+        // Admin or org owner/provider can manage org components
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        // components are listed in org sub-context
+        String context = getOrgContext(organization);
+
+        try {
+            // we expect roles only for owner
+            String owner = roleService.getSpaceOwner(context, componentId);
+            // filter out system roles, keep only custom
+            List<String> cRoles = roleService.getRoles(owner)
+                    .stream()
+                    .filter(r -> context.equals(r.getContext())
+                            && componentId.equals(r.getSpace()))
+                    .filter(r -> !Constants.ROLE_OWNER.equals(r.getRole())
+                            && !Constants.ROLE_PROVIDER.equals(r.getRole()))
+                    .map(r -> r.getRole())
+                    .collect(Collectors.toList());
+
+            return ComponentDTO.from(componentId, cRoles);
+
+        } catch (NoSuchUserException e) {
+            throw new NoSuchComponentException();
+        }
+
+    }
+
+    public ComponentDTO addComponent(String organization, String componentId, String userName)
+            throws IdentityProviderAPIException, NoSuchUserException {
 
         // Admin or org owner/provider can manage org spaces
         if (!OrgManagerUtils.userHasAdminRights()
@@ -144,13 +211,18 @@ public class ComponentService {
         // components are listed in org sub-context
         String context = getOrgContext(organization);
 
+        // validate owner via idp
+        BasicProfile profile = profileService.getUserProfile(userName);
+
+        logger.info("add component " + componentId + " org " + organization + " owner " + userName);
+
         // add space
-        AACRoleDTO spaceRole = roleService.addSpace(context, componentId, owner);
+        AACRoleDTO spaceRole = roleService.addSpace(context, componentId, profile.getUserId());
 
         // find all providers and enlist in space
         Set<String> providers = new HashSet<>(
                 roleService.getSpaceProviders(AACRoleDTO.ORGANIZATION_PREFIX, organization));
-        providers.add(owner);
+        providers.add(profile.getUserId());
         AACRoleDTO providerRole = AACRoleDTO.providerRole(context, componentId);
 
         for (String provider : providers) {
@@ -158,28 +230,324 @@ public class ComponentService {
             roleService.addRoles(provider, Collections.singletonList(providerRole.getAuthority()));
         }
 
-        // search for configuration for roles
+        // search for configuration for custom roles
         List<String> roles = Collections.emptyList();
-        List<ComponentDTO> configurations = listConfigurations();
-        for (ComponentDTO conf : configurations) {
-            if (conf.getComponentId().equals(componentId)) {
-                roles = conf.getRoles();
-                break;
-            }
+        try {
+            ComponentDTO conf = getConfiguration(componentId);
+            roles = conf.getRoles();
+        } catch (NoSuchComponentException e) {
+            // conf is not required
         }
 
         if (!roles.isEmpty()) {
+            // we need to map roles definition with context
+            List<String> rolesToAdd = roles.stream().map(r -> new AACRoleDTO(context, componentId, r).getAuthority())
+                    .collect(Collectors.toList());
+
             // register for owner
-            roleService.addRoles(owner, roles);
+            roleService.addRoles(profile.getUserId(), rolesToAdd);
         }
 
         return ComponentDTO.from(componentId, roles);
 
     }
 
+    public void deleteComponent(String organization, String componentId)
+            throws IdentityProviderAPIException, NoSuchSpaceException {
+
+        // Admin or org owner/provider can manage org spaces
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        logger.info("delete component " + componentId + " org " + organization);
+
+        // spaces are listed in org sub-context
+        String context = getOrgContext(organization);
+
+        try {
+            // find owner
+            String owner = roleService.getSpaceOwner(context, componentId);
+
+            // find all providers and clear in space
+            Set<String> providers = new HashSet<>(
+                    roleService.getSpaceProviders(context, componentId));
+            providers.add(owner);
+            AACRoleDTO providerRole = AACRoleDTO.providerRole(context, componentId);
+
+            for (String provider : providers) {
+                // remove space role for each provider
+                roleService.deleteRoles(provider, Collections.singletonList(providerRole.getAuthority()));
+            }
+
+            // remove all roles definition saved on owner, except owner
+            List<String> cRoles = roleService.getRoles(owner)
+                    .stream()
+                    .filter(r -> context.equals(r.getContext())
+                            && componentId.equals(r.getSpace())
+                            && !Constants.ROLE_OWNER.equals(r.getRole()))
+                    .map(r -> r.getAuthority())
+                    .collect(Collectors.toList());
+
+            roleService.deleteRoles(owner, cRoles);
+
+            // remove space by deleting owner role
+            roleService.deleteSpace(context, componentId, owner);
+
+        } catch (NoSuchUserException e) {
+            throw new NoSuchSpaceException();
+        }
+
+    }
+
+    /*
+     * Roles handling
+     */
+    public ComponentDTO addRole(String organization, String componentId, String role)
+            throws IdentityProviderAPIException, NoSuchComponentException {
+
+        // Admin or org owner/provider can manage org spaces
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        // components are listed in org sub-context
+        String context = getOrgContext(organization);
+
+        // require component registration for organization
+        ComponentDTO component = getComponent(organization, componentId);
+        if (component == null) {
+            throw new NoSuchComponentException();
+        }
+
+        try {
+            // we save roles for owner
+            String owner = roleService.getSpaceOwner(context, componentId);
+
+            logger.info("add role " + role + " org " + organization + " component " + componentId);
+
+            if (!component.getRoles().contains(role)) {
+
+                // create role with context
+                AACRoleDTO componentRole = new AACRoleDTO(context, componentId, role);
+                String cRole = componentRole.getAuthority();
+
+                // save for owner
+                roleService.addRoles(owner, Collections.singletonList(cRole));
+
+                component.getRoles().add(role);
+            }
+
+            return component;
+        } catch (NoSuchUserException e) {
+            throw new NoSuchComponentException();
+        }
+    }
+
+    public ComponentDTO deleteRole(String organization, String componentId, String role)
+            throws IdentityProviderAPIException, NoSuchComponentException {
+
+        // Admin or org owner/provider can manage org spaces
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        // components are listed in org sub-context
+        String context = getOrgContext(organization);
+
+        // require component registration for organization
+        ComponentDTO component = getComponent(organization, componentId);
+        if (component == null) {
+            throw new NoSuchComponentException();
+        }
+
+        try {
+            // we save roles for owner
+            String owner = roleService.getSpaceOwner(context, componentId);
+
+            logger.info("delete role " + role + " org " + organization + " component " + componentId);
+
+            if (component.getRoles().contains(role)) {
+
+                // create role with context
+                AACRoleDTO componentRole = new AACRoleDTO(context, componentId, role);
+                String cRole = componentRole.getAuthority();
+
+                // delete for owner
+                roleService.deleteRoles(owner, Collections.singletonList(cRole));
+
+                component.getRoles().remove(role);
+            }
+
+            return component;
+        } catch (NoSuchUserException e) {
+            throw new NoSuchComponentException();
+        }
+    }
+
     /*
      * Spaces handling
      */
+
+    public List<String> listComponentSpaces(String componentId)
+            throws NoSuchComponentException, IdentityProviderAPIException {
+        // spaces are listed in context
+        String context = getContext(componentId);
+
+        return roleService.listSpaces(context).stream().map(r -> r.getSpace())
+                .collect(Collectors.toList());
+    }
+
+//    public List<String> listComponentSpace(String organization, String componentId)
+//            throws NoSuchComponentException, IdentityProviderAPIException {
+//        // Admin or org owner/provider can manage org spaces
+//        if (!OrgManagerUtils.userHasAdminRights()
+//                && !OrgManagerUtils.userIsOwner(organization)
+//                && !OrgManagerUtils.userIsProvider(organization)) {
+//            throw new AccessDeniedException("Access is denied: insufficient rights.");
+//        }
+//
+//        // components are listed in context
+//        String context = getContext(componentId);
+//
+//        // require component registration for organization
+//        ComponentDTO component = getComponent(organization, componentId);
+//        if (component == null) {
+//            throw new NoSuchComponentException();
+//        }
+//
+//        // we fetch all spaces and filter only those listed in org
+//        List<String> componentSpaces = listComponentSpaces(componentId);
+//        
+//        //TODO move to space or to manager
+//        List<String> orgSpaces = 
+//        
+//    }
+
+    public String registerComponentSpace(String organization, String componentId, String space, String userName,
+            List<String> providers)
+            throws IdentityProviderAPIException, NoSuchUserException, NoSuchComponentException {
+        // Admin or org owner/provider can manage org spaces
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        // components are listed in context
+        String context = getContext(componentId);
+
+        // require component registration for organization
+        ComponentDTO component = getComponent(organization, componentId);
+        if (component == null) {
+            throw new NoSuchComponentException();
+        }
+
+        // validate owner via idp
+        BasicProfile profile = profileService.getUserProfile(userName);
+
+        logger.info(
+                "add component space " + space + "for " + componentId + " org " + organization + " owner " + userName);
+
+        // add space
+        String cSpace = getSpaceSlug(organization, componentId, space);
+        AACRoleDTO spaceRole = roleService.addSpace(context, cSpace, profile.getUserId());
+
+        // ensure owner is a provider
+        providers.add(profile.getUserId());
+        AACRoleDTO providerRole = AACRoleDTO.providerRole(context, cSpace);
+
+        for (String provider : providers) {
+            // add for each provider an entry
+            roleService.addRoles(provider, Collections.singletonList(providerRole.getAuthority()));
+        }
+
+        // do not propagate roles to space. let manager handle
+        return cSpace;
+
+    }
+
+    public void unregisterComponentSpace(String organization, String componentId, String space)
+            throws IdentityProviderAPIException, NoSuchSpaceException {
+        // Admin or org owner/provider can manage org components
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        logger.info("delete component space " + space + "for " + componentId + " org " + organization);
+
+        // components are listed in context
+        String context = getContext(componentId);
+
+        try {
+            String cSpace = getSpaceSlug(organization, componentId, space);
+
+            // find owner
+            String owner = roleService.getSpaceOwner(context, cSpace);
+
+            // find all providers and clear in space
+            Set<String> providers = new HashSet<>(
+                    roleService.getSpaceProviders(context, cSpace));
+            providers.add(owner);
+            AACRoleDTO providerRole = AACRoleDTO.providerRole(context, cSpace);
+
+            for (String provider : providers) {
+                // remove space role for each provider
+                roleService.deleteRoles(provider, Collections.singletonList(providerRole.getAuthority()));
+            }
+
+            // clear all component roles for every space users
+            // merge custom defined plus configuration
+            Set<String> roles = new HashSet<>();
+
+            try {
+                ComponentDTO conf = getConfiguration(componentId);
+                roles.addAll(conf.getRoles());
+            } catch (NoSuchComponentException e) {
+                // conf is not required
+            }
+
+            // check component registration for organization
+            try {
+                ComponentDTO component = getComponent(organization, componentId);
+                roles.addAll(component.getRoles());
+            } catch (NoSuchComponentException e) {
+                // ignore
+            }
+
+            if (!roles.isEmpty()) {
+                // we need to map roles definition with context
+                List<String> rolesToDel = roles.stream().map(r -> new AACRoleDTO(context, cSpace, r).getAuthority())
+                        .collect(Collectors.toList());
+                Collection<String> users = roleService.getSpaceUsers(context, cSpace);
+
+                for (String user : users) {
+                    // we won't check if users have any role, since AAC lets us delete non-existent
+                    logger.debug("remove component roles " + rolesToDel.toString() + " for user " + user);
+                    roleService.deleteRoles(user, rolesToDel);
+                }
+            }
+
+            // remove space by deleting owner role
+            roleService.deleteSpace(context, cSpace, owner);
+
+        } catch (NoSuchUserException e) {
+            throw new NoSuchSpaceException();
+        }
+
+    }
+
+    public static String getSpaceSlug(String organization, String componentId, String space) {
+        return organization + Constants.SLUG_SEPARATOR + space;
+    }
 
 //    /**
 //     * Lists all components.

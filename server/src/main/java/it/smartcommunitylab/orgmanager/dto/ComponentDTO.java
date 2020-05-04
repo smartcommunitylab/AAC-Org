@@ -1,5 +1,6 @@
 package it.smartcommunitylab.orgmanager.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,7 +79,11 @@ public class ComponentDTO {
         ComponentDTO dto = new ComponentDTO();
         dto.name = component;
         dto.componentId = component;
-        dto.roles = roles;
+        dto.roles = new ArrayList<>();
+
+        if (roles != null && !roles.isEmpty()) {
+            dto.roles.addAll(roles);
+        }
 
         return dto;
     }

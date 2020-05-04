@@ -45,7 +45,7 @@ public class OrganizationService {
         for (AACRoleDTO s : spaces) {
             try {
                 orgs.add(getOrganization(s.getSpace()));
-            } catch (AccessDeniedException | NoSuchOrganizationException e) {
+            } catch (AccessDeniedException | NoSuchOrganizationException | NoSuchUserException e) {
                 // skip
                 logger.debug(e.getMessage());
             }
@@ -55,7 +55,7 @@ public class OrganizationService {
     }
 
     public OrganizationDTO getOrganization(String organization)
-            throws NoSuchOrganizationException, IdentityProviderAPIException {
+            throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchUserException {
 
         // Admin or org owner/provider can manage org
         if (!OrgManagerUtils.userHasAdminRights()
@@ -87,9 +87,8 @@ public class OrganizationService {
 
     }
 
-    public OrganizationDTO addOrganization(String organization, String owner)
-            throws IdentityProviderAPIException, InvalidArgumentException,
-            NoSuchUserException {
+    public OrganizationDTO addOrganization(String organization, String userName)
+            throws IdentityProviderAPIException, NoSuchUserException {
         // Admin or context owner/provider can manage org
         if (!OrgManagerUtils.userHasAdminRights()
                 && !OrgManagerUtils.userIsOwner(Constants.ROOT_ORGANIZATIONS)
@@ -101,20 +100,18 @@ public class OrganizationService {
         String context = Constants.ROOT_ORGANIZATIONS;
 
         // validate owner via idp
-        BasicProfile profile = profileService.getUserProfile(owner);
-        if (profile == null) {
-            logger.error("owner " + owner + " does not exists");
-            throw new InvalidArgumentException("The owner does not exists");
-        }
+        BasicProfile profile = profileService.getUserProfile(userName);
+
+        logger.info("create org " + organization + " owner " + userName);
 
         // add as space
-        AACRoleDTO orgRole = roleService.addSpace(context, organization, owner);
+        AACRoleDTO orgRole = roleService.addSpace(context, organization, profile.getUserId());
 
         // also enlist owner as provider
         AACRoleDTO providerRole = AACRoleDTO.providerRole(context, organization);
-        roleService.addRoles(owner, Collections.singletonList(providerRole.getAuthority()));
+        roleService.addRoles(profile.getUserId(), Collections.singletonList(providerRole.getAuthority()));
 
-        return OrganizationDTO.from(owner, orgRole);
+        return OrganizationDTO.from(userName, orgRole);
     }
 
     public void deleteOrganization(String organization)
@@ -129,25 +126,32 @@ public class OrganizationService {
             throw new AccessDeniedException("Access is denied: insufficient rights.");
         }
 
+        logger.info("delete org " + organization);
+
         // orgs are listed in root context
         String context = Constants.ROOT_ORGANIZATIONS;
 
-        // find owner
-        String owner = roleService.getSpaceOwner(context, organization);
+        try {
+            // find owner
+            String ownerId = roleService.getSpaceOwner(context, organization);
 
-        // find all providers and clear
-        Set<String> providers = new HashSet<>(
-                roleService.getSpaceProviders(context, organization));
-        providers.add(owner);
-        AACRoleDTO providerRole = AACRoleDTO.providerRole(context, organization);
+            // find all providers and clear
+            Set<String> providers = new HashSet<>(
+                    roleService.getSpaceProviders(context, organization));
+            providers.add(ownerId);
+            AACRoleDTO providerRole = AACRoleDTO.providerRole(context, organization);
 
-        for (String provider : providers) {
-            // remove role for each provider
-            roleService.deleteRoles(provider, Collections.singletonList(providerRole.getAuthority()));
+            for (String provider : providers) {
+                // remove role for each provider
+                roleService.deleteRoles(provider, Collections.singletonList(providerRole.getAuthority()));
+            }
+
+            // remove space
+            roleService.deleteSpace(context, organization, ownerId);
+
+        } catch (NoSuchUserException e) {
+            throw new NoSuchOrganizationException();
         }
-
-        // remove space
-        roleService.deleteSpace(context, organization, owner);
 
     }
 

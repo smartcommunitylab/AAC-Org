@@ -20,6 +20,7 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
+import it.smartcommunitylab.orgmanager.common.NoSuchSpaceException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
@@ -37,7 +38,7 @@ public class OrganizationController {
     @Autowired
     private SpaceService spaceService;
 
-    @GetMapping("/api/organizations")
+    @GetMapping("api/organizations")
     public Page<OrganizationDTO> listOrganizations() throws IdentityProviderAPIException {
         List<OrganizationDTO> list = organizationService.listOrganizations();
         Page page = new Page<OrganizationDTO>();
@@ -52,10 +53,10 @@ public class OrganizationController {
         page.setContent(list);
 
         return page;
-    
+
     }
 
-    @PostMapping("/api/organizations")
+    @PostMapping("api/organizations")
     public OrganizationDTO createOrganization(@RequestBody OrganizationDTO organizationDTO)
             throws SystemException, InvalidArgumentException, IdentityProviderAPIException, NoSuchUserException {
         // extract data
@@ -123,13 +124,15 @@ public class OrganizationController {
 
     @PutMapping("api/organizations/{slug}/spaces")
     public List<String> addSpace(@PathVariable String slug, @RequestParam String space)
-            throws NoSuchOrganizationException, IdentityProviderAPIException {
+            throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchUserException {
+        // set current user as owner
+        String owner = OrgManagerUtils.getAuthenticatedUserName();
+
         // validate and normalize space
-        space = space.trim().replaceAll("\\s+", " ");
-        Pattern pattern = Pattern.compile(Constants.SLUG_PATTERN);
+        Pattern pattern = Pattern.compile(Constants.SLUG_CHARS);
         space = pattern.matcher(space).replaceAll("_");
 
-        SpaceDTO s = spaceService.addSpace(slug, space);
+        SpaceDTO s = spaceService.addSpace(slug, space, owner);
 
         // return all spaces
         return getSpaces(slug);
@@ -137,7 +140,7 @@ public class OrganizationController {
 
     @DeleteMapping("api/organizations/{slug}/spaces")
     public List<String> deleteSpace(@PathVariable String slug, @RequestParam String space)
-            throws NoSuchOrganizationException, IdentityProviderAPIException {
+            throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchSpaceException {
 
         spaceService.deleteSpace(slug, space);
 

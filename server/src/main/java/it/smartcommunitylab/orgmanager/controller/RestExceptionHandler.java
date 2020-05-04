@@ -19,6 +19,7 @@ import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.InvalidConfigurationException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
+import it.smartcommunitylab.orgmanager.common.NoSuchSpaceException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.SystemException;
 
@@ -33,6 +34,17 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         JSONObject error = new JSONObject();
         try {
             error.put("error", "organization_not_found");
+            error.put("error_description", e.getMessage());
+        } catch (JSONException je) {
+        }
+        return buildResponseEntity(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(NoSuchSpaceException.class)
+    public ResponseEntity<String> noSuchSpace(NoSuchSpaceException e) {
+        JSONObject error = new JSONObject();
+        try {
+            error.put("error", "space_not_found");
             error.put("error_description", e.getMessage());
         } catch (JSONException je) {
         }

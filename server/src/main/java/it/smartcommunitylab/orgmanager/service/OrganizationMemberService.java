@@ -422,12 +422,13 @@ public class OrganizationMemberService {
 
             if (AACRoleDTO.isComponentRole(role)) {
                 // 3. check if component is enabled in org
-                if (components.contains(AACRoleDTO.componentName(role)) || !enabled) {
+                String componentId = AACRoleDTO.componentName(role);
+                if (components.contains(componentId) || !enabled) {
                     // 4. check if space belongs to this org
                     // NOTE: when flattened, org spaces slug are composed as [org]-[space]
                     // TODO rework to avoid loop
                     for (String space : spaces) {
-                        String cSpace = organization + Constants.SLUG_SEPARATOR + space;
+                        String cSpace = ComponentService.getSpaceSlug(organization, componentId, space);
                         if (cSpace.equals(role.getSpace())) {
                             orgRoles.add(role);
                             break;
