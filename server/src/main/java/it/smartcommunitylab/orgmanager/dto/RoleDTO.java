@@ -1,8 +1,18 @@
 package it.smartcommunitylab.orgmanager.dto;
 
-import it.smartcommunitylab.orgmanager.common.Constants;
+import java.util.Comparator;
+import java.util.regex.Pattern;
 
-public class RoleDTO {
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import it.smartcommunitylab.orgmanager.common.Constants;
+import it.smartcommunitylab.orgmanager.service.ComponentService;
+
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class RoleDTO implements Comparable<RoleDTO> {
 
     public static final String TYPE_ORG = "organization";
     public static final String TYPE_RESOURCE = "resource";
@@ -88,6 +98,26 @@ public class RoleDTO {
         this.resource = resource;
     }
 
+    @JsonIgnore
+    public boolean isOrgRole() {
+        return TYPE_ORG.equals(type);
+    }
+
+    @JsonIgnore
+    public boolean isSpaceRole() {
+        return (TYPE_SPACE.equals(type) && StringUtils.hasText(space));
+    }
+
+    @JsonIgnore
+    public boolean isComponentRole() {
+        return (TYPE_COMPONENT.equals(type) && StringUtils.hasText(component));
+    }
+
+    @JsonIgnore
+    public boolean isResourceRole() {
+        return (TYPE_RESOURCE.equals(type) && StringUtils.hasText(resource));
+    }
+
     @Override
     public String toString() {
         if (TYPE_ORG.equals(type)) {
@@ -110,6 +140,37 @@ public class RoleDTO {
     }
 
     /*
+     * Comparator
+     */
+    @Override
+    public int compareTo(RoleDTO r) {
+        int c = 1;
+        if (type != null) {
+            c = r.getType() == null ? 1 : type.compareTo(r.getType());
+            if (c != 0) {
+                return c;
+            }
+        }
+        if (space != null) {
+            c = r.getSpace() == null ? 1 : space.compareTo(r.getSpace());
+            if (c != 0) {
+                return c;
+            }
+        }
+        if (component != null) {
+            c = r.getComponent() == null ? 1 : component.compareTo(r.getComponent());
+            if (c != 0) {
+                return c;
+            }
+        }
+        if (role != null) {
+            c = r.getRole() == null ? 1 : role.compareTo(r.getRole());
+            return c;
+        }
+        return 1;
+    }
+
+    /*
      * Builders
      */
     public static RoleDTO from(AACRoleDTO aacRole) {
@@ -125,7 +186,7 @@ public class RoleDTO {
                 dto.type = TYPE_ORG;
             } else {
                 // space
-                if (aacRole.getContext().endsWith(AACRoleDTO.SPACES_PATH)) {
+                if (aacRole.getContext().endsWith(Constants.ROOT_SPACES)) {
                     dto.type = TYPE_SPACE;
                     dto.space = aacRole.getSpace();
                 }
@@ -134,10 +195,15 @@ public class RoleDTO {
 
         if (AACRoleDTO.isComponentRole(aacRole)) {
             dto.type = TYPE_COMPONENT;
-            dto.space = aacRole.getSpace();
 
             // need to extract component from context
             dto.component = AACRoleDTO.componentName(aacRole);
+
+            // need to unpack space from organization
+            // we treat separator as literal
+            String[] ss = aacRole.getSpace().split(Pattern.quote(Constants.SLUG_SEPARATOR), 2);
+            dto.space = ss.length > 1 ? ss[1] : ss[0];
+
         }
 
         if (AACRoleDTO.isResourceRole(aacRole)) {
@@ -166,17 +232,19 @@ public class RoleDTO {
         }
 
         if (TYPE_SPACE.equals(dto.getType())) {
-            context = AACRoleDTO.ORGANIZATION_PREFIX + organization + AACRoleDTO.SPACES_PATH;
+            context = Constants.ROOT_ORGANIZATIONS + Constants.PATH_SEPARATOR + organization + Constants.ROOT_SPACES;
             space = dto.getSpace();
         }
 
         if (TYPE_COMPONENT.equals(dto.getType())) {
-            context = AACRoleDTO.COMPONENTS_PREFIX + dto.getComponent();
-            space = dto.getSpace();
+            context = Constants.ROOT_COMPONENTS + Constants.PATH_SEPARATOR + dto.getComponent();
+            // note this matches componentService handling
+            space = organization + Constants.SLUG_SEPARATOR + dto.getSpace();
         }
 
+        // TODO define mapping
         if (TYPE_RESOURCE.equals(dto.getType())) {
-            context = AACRoleDTO.RESOURCES_PREFIX + dto.getResource();
+            context = Constants.ROOT_RESOURCES + Constants.PATH_SEPARATOR + dto.getResource();
             space = dto.getSpace();
         }
 

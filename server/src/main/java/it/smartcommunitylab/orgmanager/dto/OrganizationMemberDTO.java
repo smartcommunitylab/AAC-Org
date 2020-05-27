@@ -82,10 +82,11 @@ public class OrganizationMemberDTO {
         if (roles != null) {
             dto.roles = roles.stream()
                     .map(r -> RoleDTO.from(r))
-                    .collect(Collectors.toSet());
+                    .sorted()
+                    .collect(Collectors.toSet());                    ;
 
-            dto.owner = dto.roles.stream().anyMatch(r -> r.getType().equals(Constants.ROOT_ORGANIZATIONS)
-                    && r.getSpace() == null && r.getRole().equals(Constants.ROLE_OWNER));
+            dto.owner = dto.roles.stream().anyMatch(r -> RoleDTO.TYPE_ORG.equals(r.getType())
+                    && r.getSpace() == null && Constants.ROLE_OWNER.equals(r.getRole()));
         }
 
         return dto;

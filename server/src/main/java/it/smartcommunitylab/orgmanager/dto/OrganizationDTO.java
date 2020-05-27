@@ -1,11 +1,17 @@
 package it.smartcommunitylab.orgmanager.dto;
 
+import javax.validation.constraints.Pattern;
+
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.orgmanager.common.Constants;
 
 public class OrganizationDTO {
+
+    @Pattern(regexp = Constants.NAME_PATTERN)
     private String name;
+    @Pattern(regexp = Constants.SLUG_PATTERN)
     private String slug; // domain of the space
     private String owner;
 
@@ -40,7 +46,7 @@ public class OrganizationDTO {
     }
 
     public String getPath() {
-        return AACRoleDTO.ORGANIZATION_PREFIX + slug;
+        return Constants.ROOT_ORGANIZATIONS + Constants.PATH_SEPARATOR + slug;
     }
 
     @Override

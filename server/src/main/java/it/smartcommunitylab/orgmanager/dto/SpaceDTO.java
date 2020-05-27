@@ -3,6 +3,7 @@ package it.smartcommunitylab.orgmanager.dto;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.orgmanager.common.Constants;
 
 public class SpaceDTO {
     private String name;
@@ -14,6 +15,13 @@ public class SpaceDTO {
         slug = "";
         organization = "";
 
+    }
+
+    public SpaceDTO(String name, String slug, String organization) {
+        super();
+        this.name = name;
+        this.slug = slug;
+        this.organization = organization;
     }
 
     public String getName() {
@@ -41,7 +49,7 @@ public class SpaceDTO {
     }
 
     public String getPath() {
-        return AACRoleDTO.ORGANIZATION_PREFIX + organization + "/" + slug;
+        return Constants.ROOT_ORGANIZATIONS + organization + Constants.PATH_SEPARATOR + slug;
     }
 
     @Override
@@ -59,8 +67,8 @@ public class SpaceDTO {
             dto.name = role.getSpace();
             dto.slug = role.getSpace();
             dto.organization = role.getContext()
-                    .substring(AACRoleDTO.ORGANIZATION_PREFIX.length())
-                    .replace("/" + AACRoleDTO.SPACES_PATH, "");
+                    .substring(Constants.ROOT_ORGANIZATIONS.length() + 1)
+                    .replace(Constants.PATH_SEPARATOR + Constants.ROOT_SPACES, "");
 
             return dto;
         } else {

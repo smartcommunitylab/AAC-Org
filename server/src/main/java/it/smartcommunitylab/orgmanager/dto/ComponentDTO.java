@@ -5,19 +5,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.orgmanager.common.Constants;
 
-public class ComponentDTO {
-    private String name;
-    private String componentId; // identifies the component
-    private List<String> roles; // roles that may be assigned within the component
+public class ComponentDTO extends ModelDTO {
 
     public ComponentDTO() {
+        super();
     }
 
     public ComponentDTO(String name, String componentId, List<String> roles) {
-        this.name = name;
-        this.componentId = componentId;
-        this.roles = roles;
+        super(name, componentId, roles);
     }
 
     public String getName() {
@@ -26,14 +23,6 @@ public class ComponentDTO {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getComponentId() {
-        return componentId;
-    }
-
-    public void setComponentId(String componentId) {
-        this.componentId = componentId;
     }
 
     public List<String> getRoles() {
@@ -45,7 +34,7 @@ public class ComponentDTO {
     }
 
     public String getPath() {
-        return AACRoleDTO.COMPONENTS_PREFIX + componentId;
+        return Constants.ROOT_COMPONENTS + Constants.PATH_SEPARATOR + id;
     }
 
     @Override
@@ -56,29 +45,29 @@ public class ComponentDTO {
     /*
      * Builder
      */
-    public static ComponentDTO from(List<Role> roles) {
-        ComponentDTO dto = new ComponentDTO();
-
-        if (roles.size() == 0) {
-            return null;
-        }
-
-        // fetch from first as component
-        String component = roles.get(0).getSpace();
-
-        dto.name = component;
-        dto.componentId = component;
-
-        // map roles
-        dto.roles = roles.stream().map(r -> r.getRole()).collect(Collectors.toList());
-
-        return dto;
-    }
+//    public static ComponentDTO from(List<Role> roles) {
+//        ComponentDTO dto = new ComponentDTO();
+//
+//        if (roles.size() == 0) {
+//            return null;
+//        }
+//
+//        // fetch from first as component
+//        String component = roles.get(0).getSpace();
+//
+//        dto.name = component;
+//        dto.id = component;
+//
+//        // map roles
+//        dto.roles = roles.stream().map(r -> r.getRole()).collect(Collectors.toList());
+//
+//        return dto;
+//    }
 
     public static ComponentDTO from(String component, List<String> roles) {
         ComponentDTO dto = new ComponentDTO();
         dto.name = component;
-        dto.componentId = component;
+        dto.id = component;
         dto.roles = new ArrayList<>();
 
         if (roles != null && !roles.isEmpty()) {

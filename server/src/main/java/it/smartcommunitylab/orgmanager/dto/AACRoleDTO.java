@@ -28,14 +28,11 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 @SuppressWarnings("serial")
 public class AACRoleDTO extends Role {
 
-    public static final String RESOURCES_PREFIX = Constants.ROOT_RESOURCES + "/";
-    public static final String COMPONENTS_PREFIX = Constants.ROOT_COMPONENTS + "/";
-    public static final String ORGANIZATION_PREFIX = Constants.ROOT_ORGANIZATIONS + "/";
+//    public static final String PATH_SEPARATOR = "/";
 
-    public static final String SPACES_PATH = "spaces";
-    public static final String COMPONENTS_PATH = Constants.ROOT_COMPONENTS;
-
-    public static final String PATH_SEPARATOR = "/";
+    private static final String RESOURCES_PREFIX = Constants.ROOT_RESOURCES + Constants.PATH_SEPARATOR;
+    private static final String COMPONENTS_PREFIX = Constants.ROOT_COMPONENTS + Constants.PATH_SEPARATOR;
+    private static final String ORGANIZATION_PREFIX = Constants.ROOT_ORGANIZATIONS + Constants.PATH_SEPARATOR;
 
     public AACRoleDTO() {
         super();
@@ -185,7 +182,7 @@ public class AACRoleDTO extends Role {
 //    }
 
     public static String concatContext(String... parts) {
-        return StringUtils.arrayToDelimitedString(parts, PATH_SEPARATOR);
+        return StringUtils.arrayToDelimitedString(parts, Constants.PATH_SEPARATOR);
     }
 
 }
