@@ -93,7 +93,7 @@ public class OrgManagerUtils {
      * @return - true if the authenticated user is owner, false otherwise
      */
     public static boolean userIsOwner(String organization) {
-        return userIsOwner(AACRoleDTO.ORGANIZATION_PREFIX, organization);
+        return userIsOwner(Constants.ROOT_ORGANIZATIONS, organization);
     }
 
     /**
@@ -117,7 +117,7 @@ public class OrgManagerUtils {
      * @return - true if the authenticated user is owner, false otherwise
      */
     public static boolean userIsProvider(String organization) {
-        return userIsProvider(AACRoleDTO.ORGANIZATION_PREFIX, organization);
+        return userIsProvider(Constants.ROOT_ORGANIZATIONS, organization);
     }
 
     /*
@@ -132,7 +132,7 @@ public class OrgManagerUtils {
     }
 
     public static boolean userIsMember(String organization) {
-        return userIsMember(AACRoleDTO.ORGANIZATION_PREFIX, organization);
+        return userIsMember(Constants.ROOT_ORGANIZATIONS, organization);
     }
 
     /**
@@ -189,8 +189,8 @@ public class OrgManagerUtils {
      */
     public static Collection<String> findOwnedOrganizations() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("authorities "+authentication.getAuthorities().toString());
-        
+        System.out.println("authorities " + authentication.getAuthorities().toString());
+
         return authentication.getAuthorities().stream()
                 .map(ga -> AACRoleDTO.parse(ga.getAuthority()))
                 .filter(r -> Constants.ROOT_ORGANIZATIONS.equals(r.getContext())
