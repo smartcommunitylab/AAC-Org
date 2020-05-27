@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,15 +59,6 @@ public class OrganizationService {
     public OrganizationDTO getOrganization(String organization)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchUserException {
 
-        // Admin or org owner/provider can manage org
-        if (!OrgManagerUtils.userHasAdminRights()
-                && !OrgManagerUtils.userIsOwner(Constants.ROOT_ORGANIZATIONS)
-                && !OrgManagerUtils.userIsProvider(Constants.ROOT_ORGANIZATIONS)
-                && !OrgManagerUtils.userIsOwner(organization)
-                && !OrgManagerUtils.userIsProvider(organization)) {
-            throw new AccessDeniedException("Access is denied: insufficient rights.");
-        }
-
         // orgs are listed in root context
         String context = Constants.ROOT_ORGANIZATIONS;
 
@@ -89,12 +82,6 @@ public class OrganizationService {
 
     public OrganizationDTO addOrganization(String organization, String userName)
             throws IdentityProviderAPIException, NoSuchUserException {
-        // Admin or context owner/provider can manage org
-        if (!OrgManagerUtils.userHasAdminRights()
-                && !OrgManagerUtils.userIsOwner(Constants.ROOT_ORGANIZATIONS)
-                && !OrgManagerUtils.userIsProvider(Constants.ROOT_ORGANIZATIONS)) {
-            throw new AccessDeniedException("Access is denied: insufficient rights.");
-        }
 
         // orgs are listed in root context
         String context = Constants.ROOT_ORGANIZATIONS;
@@ -114,17 +101,8 @@ public class OrganizationService {
         return OrganizationDTO.from(userName, orgRole);
     }
 
-    public void deleteOrganization(String organization)
+    public void deleteOrganization(String organization, boolean cleanup)
             throws NoSuchOrganizationException, IdentityProviderAPIException {
-
-        // Admin or org owner/provider can manage org
-        if (!OrgManagerUtils.userHasAdminRights()
-                && !OrgManagerUtils.userIsOwner(Constants.ROOT_ORGANIZATIONS)
-                && !OrgManagerUtils.userIsProvider(Constants.ROOT_ORGANIZATIONS)
-                && !OrgManagerUtils.userIsOwner(organization)
-                && !OrgManagerUtils.userIsProvider(organization)) {
-            throw new AccessDeniedException("Access is denied: insufficient rights.");
-        }
 
         logger.info("delete org " + organization);
 
@@ -146,10 +124,42 @@ public class OrganizationService {
                 roleService.deleteRoles(provider, Collections.singletonList(providerRole.getAuthority()));
             }
 
+            // fetch org members
+            Collection<String> users = roleService.getSpaceUsers(context, organization);
+
+            if (cleanup) {
+                // clear all custom roles defined in space
+
+                // parse each user and remove all space roles
+                for (String user : users) {
+                    List<String> rolesToDel = roleService
+                            .getRoles(user).stream()
+                            .filter(r -> (context.equals(r.getContext())
+                                    && organization.equals(r.getSpace())
+                                    && !Constants.ROLE_OWNER.equals(r.getRole())))
+                            .map(r -> r.getAuthority())
+                            .collect(Collectors.toList());
+
+                    logger.debug("remove org roles " + rolesToDel.toString() + " for user " + user);
+                    roleService.deleteRoles(user, rolesToDel);
+                }
+
+            } else {
+                // remove only member role
+                AACRoleDTO memberRole = AACRoleDTO.memberRole(context, organization);
+
+                for (String user : users) {
+                    logger.debug("remove org roles " + memberRole.getAuthority() + " for user " + user);
+                    roleService.deleteRoles(user, Collections.singletonList(memberRole.getAuthority()));
+                }
+            }
+
             // remove space
             roleService.deleteSpace(context, organization, ownerId);
 
-        } catch (NoSuchUserException e) {
+        } catch (
+
+        NoSuchUserException e) {
             throw new NoSuchOrganizationException();
         }
 

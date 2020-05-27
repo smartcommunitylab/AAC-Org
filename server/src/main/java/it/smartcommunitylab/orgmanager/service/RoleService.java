@@ -37,7 +37,7 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
-import it.smartcommunitylab.orgmanager.config.ComponentsConfig.ComponentsConfiguration;
+import it.smartcommunitylab.orgmanager.config.ModelsConfig.ComponentsConfiguration;
 import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 
@@ -187,7 +187,9 @@ public class RoleService {
 
     public void addRoles(String userId, List<String> roles) throws IdentityProviderAPIException {
         try {
-            aacRoleService.addRoles(getToken(), userId, roles);
+            if (!roles.isEmpty()) {
+                aacRoleService.addRoles(getToken(), userId, roles);
+            }
         } catch (SecurityException | AACException e) {
             e.printStackTrace();
             throw new IdentityProviderAPIException("Unable to call identity provider's API to add roles to user.");
@@ -196,7 +198,9 @@ public class RoleService {
 
     public void deleteRoles(String userId, List<String> roles) throws IdentityProviderAPIException {
         try {
-            aacRoleService.deleteRoles(getToken(), userId, roles);
+            if (!roles.isEmpty()) {
+                aacRoleService.deleteRoles(getToken(), userId, roles);
+            }
         } catch (SecurityException | AACException e) {
             e.printStackTrace();
             throw new IdentityProviderAPIException("Unable to call identity provider's API to delete user roles.");
