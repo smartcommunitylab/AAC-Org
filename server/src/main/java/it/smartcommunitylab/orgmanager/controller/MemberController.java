@@ -1,9 +1,13 @@
 package it.smartcommunitylab.orgmanager.controller;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,50 +16,115 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import it.smartcommunitylab.orgmanager.dto.UserRightsDTO;
+import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
-import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
 import it.smartcommunitylab.orgmanager.dto.OrganizationMemberDTO;
 import it.smartcommunitylab.orgmanager.dto.RoleDTO;
-import it.smartcommunitylab.orgmanager.service.OrganizationMemberService;
+import it.smartcommunitylab.orgmanager.manager.MemberManager;
 
 @RestController
-public class OrganizationMemberController {
+@Validated
+public class MemberController {
 
     @Autowired
-    private OrganizationMemberService organizationMemberService;
+    private MemberManager memberManager;
 
-    @GetMapping("/api/organizations/{slug}/members")
-    public List<OrganizationMemberDTO> getUsers(@PathVariable String slug)
+    /*
+     * Global
+     */
+    @GetMapping("/api/users")
+    public List<OrganizationMemberDTO> listUsers()
             throws SystemException, IdentityProviderAPIException {
-        return organizationMemberService.getUsers(slug);
+        return memberManager.listUsers();
     }
 
-    @PutMapping("api/organizations/{slug}/members/{memberId}")
-    public OrganizationMemberDTO addUser(@PathVariable String slug, @PathVariable String memberId)
+    /*
+     * Org
+     */
+    @GetMapping("/api/organizations/{slug}/members")
+    public List<OrganizationMemberDTO> listMembers(
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug)
+            throws SystemException, IdentityProviderAPIException {
+        return memberManager.listUsers(slug);
+    }
+
+    @PostMapping("api/organizations/{slug}/members")
+    public List<OrganizationMemberDTO> addMembers(
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestBody String[] members)
             throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException,
             IdentityProviderAPIException {
-        return organizationMemberService.addUser(slug, memberId);
+
+        List<OrganizationMemberDTO> list = new ArrayList<>();
+        for (String userId : members) {
+            list.add(memberManager.addUser(slug, userId));
+        }
+
+        return list;
+
+    }
+
+    @GetMapping("/api/organizations/{slug}/members/{memberId}")
+    public OrganizationMemberDTO getMember(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @PathVariable String memberId)
+            throws SystemException, IdentityProviderAPIException, NoSuchUserException {
+        return memberManager.getUser(slug, memberId);
     }
 
     @DeleteMapping("api/organizations/{slug}/members/{memberId}")
-    public void removeUser(@PathVariable String slug, @PathVariable String memberId)
-            throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException {
-        organizationMemberService.removeUser(slug, memberId);
+    public void removeMember(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @PathVariable String memberId)
+            throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException,
+            IdentityProviderAPIException {
+        memberManager.removeUser(slug, memberId);
     }
 
-    @PostMapping("/api/organizations/{slug}/members")
-    public OrganizationMemberDTO handleUserRoles(@PathVariable String slug,
-            @RequestBody OrganizationMemberDTO memberDTO)
-            throws SystemException, NoSuchOrganizationException, InvalidArgumentException, NoSuchUserException {
-        // extract
-        String userName = memberDTO.getUsername();
-        Set<RoleDTO> roles = memberDTO.getRoles();
-        return organizationMemberService.handleUserRoles(slug, userName, roles, memberDTO.getOwner());
+    /*
+     * Roles
+     */
+
+//    @PostMapping("/api/organizations/{slug}/members")
+//    public OrganizationMemberDTO handleMemberRoles(
+//            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+//            @RequestBody OrganizationMemberDTO memberDTO)
+//            throws SystemException, NoSuchOrganizationException, InvalidArgumentException, NoSuchUserException,
+//            IdentityProviderAPIException {
+//
+//        return memberManager.handleUserRoles(slug, memberDTO.getId(), memberDTO.getRoles(), false);
+//    }
+
+    @PutMapping("api/organizations/{slug}/members/{memberId}")
+    public OrganizationMemberDTO handleMemberRoles(
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @PathVariable String memberId,
+            @RequestBody RoleDTO[] roles)
+            throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException,
+            IdentityProviderAPIException {
+
+        // replace all user roles within org with these
+        List<RoleDTO> newRoles = Arrays.asList(roles);
+        return memberManager.handleUserRoles(slug, memberId, newRoles, false);
+    }
+
+    @PostMapping("api/organizations/{slug}/members/{memberId}")
+    public OrganizationMemberDTO addMemberRoles(
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @PathVariable String memberId,
+            @RequestBody(required = false) RoleDTO[] roles)
+            throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException,
+            IdentityProviderAPIException {
+        if (roles == null) {
+            // add user as member
+            return memberManager.addUser(slug, memberId);
+        } else {
+            // add new roles to user
+            List<RoleDTO> newRoles = Arrays.asList(roles);
+            return memberManager.addUserRoles(slug, memberId, newRoles);
+        }
     }
 
 }

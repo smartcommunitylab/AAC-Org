@@ -1,11 +1,14 @@
 package it.smartcommunitylab.orgmanager.controller;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
+//import java.util.regex.Pattern;
+
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,28 +26,31 @@ import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
 import it.smartcommunitylab.orgmanager.common.NoSuchSpaceException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
-import it.smartcommunitylab.orgmanager.common.SystemException;
-import it.smartcommunitylab.orgmanager.dto.ComponentConfigurationDTO;
 import it.smartcommunitylab.orgmanager.dto.ComponentDTO;
-import it.smartcommunitylab.orgmanager.dto.SpaceDTO;
-import it.smartcommunitylab.orgmanager.service.ComponentService;
+import it.smartcommunitylab.orgmanager.manager.ComponentManager;
 
 @RestController
+@Validated
 public class ComponentController {
+
     @Autowired
-    private ComponentService componentService;
+    private ComponentManager componentManager;
+
+//    private Pattern pattern = Pattern.compile(Constants.SLUG_PATTERN);
 
     /*
      * Configurations
      */
     @GetMapping("api/components")
-    public List<ComponentDTO> listConfigurations() {
-        return componentService.listConfigurations();
+    public List<ComponentDTO> listModels() {
+        return componentManager.listModels();
     }
 
     @GetMapping("api/components/{componentId}/roles")
-    public List<String> getComponentDefaultRoles(@PathVariable String componentId) throws NoSuchComponentException {
-        return componentService.getConfiguration(componentId).getRoles();
+    public List<String> getComponentDefaultRoles(
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String componentId)
+            throws NoSuchComponentException {
+        return componentManager.getModel(componentId).getRoles();
     }
 
     /*
@@ -52,9 +58,16 @@ public class ComponentController {
      */
 
     @GetMapping("api/organizations/{slug}/components")
-    public List<ComponentDTO> getComponents(@PathVariable String slug)
+    public List<ComponentDTO> listComponents(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug)
             throws NoSuchOrganizationException, IdentityProviderAPIException {
-        return componentService.getComponents(slug);
+        return componentManager.listComponents(slug);
+    }
+
+    @GetMapping("api/organizations/{slug}/components/{componentId}")
+    public ComponentDTO getComponent(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String componentId)
+            throws NoSuchComponentException, IdentityProviderAPIException {
+        return componentManager.getComponent(slug, componentId);
     }
 
 //    @PostMapping("/api/organizations/{id}/components")
@@ -64,84 +77,154 @@ public class ComponentController {
 //        return componentService.updateConfigurations(id, configurationDTO);
 //    }
 //    
-    @PutMapping("api/organizations/{slug}/components")
-    public ComponentDTO addComponent(@PathVariable String slug, @RequestParam String componentId)
+
+    @PostMapping("api/organizations/{slug}/components")
+    public List<ComponentDTO> addComponents(
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestBody String[] componentIds)
             throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException,
             NoSuchUserException {
         // set current user as owner
         String owner = OrgManagerUtils.getAuthenticatedUserName();
 
-        return componentService.addComponent(slug, componentId, owner);
+//        // validate and normalize space
+//        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(Constants.SLUG_CHARS);
+
+        List<ComponentDTO> components = new ArrayList<>();
+        for (String componentId : componentIds) {
+//            // normalize if needed
+//            componentId = pattern.matcher(componentId).replaceAll(Constants.SLUG_FILL);
+
+            components.add(componentManager.addComponent(slug, componentId, owner));
+        }
+
+        return components;
+    }
+
+    @PutMapping("api/organizations/{slug}/components")
+    public ComponentDTO addComponent(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestParam String componentId)
+            throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException,
+            NoSuchUserException, InvalidArgumentException {
+        // set current user as owner
+        String owner = OrgManagerUtils.getAuthenticatedUserName();
+
+        return componentManager.addComponent(slug, componentId, owner);
     }
 
     @DeleteMapping("api/organizations/{slug}/components")
-    public void deleteComponent(@PathVariable String slug, @RequestParam String componentId)
+    public void deleteComponent(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestParam String componentId,
+            @RequestParam(required = false, defaultValue = "false") boolean cleanup)
             throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException {
 
-        // TODO delete all spaces
-
+        componentManager.deleteComponent(slug, componentId, cleanup);
     }
 
     /*
-     * Roles
+     * Org component roles
      */
     @GetMapping("api/organizations/{slug}/components/{componentId}/roles")
-    public List<String> getComponentRoles(@PathVariable String slug, @PathVariable String componentId)
+    public List<String> getComponentRoles(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String componentId)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchComponentException {
-        return componentService.getComponent(slug, componentId).getRoles();
+        return componentManager.getComponent(slug, componentId).getRoles();
+    }
+
+    @PostMapping("api/organizations/{slug}/components/{componentId}/roles")
+    public List<String> addComponentRoles(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String componentId,
+            @RequestBody String[] roles)
+            throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException,
+            NoSuchUserException {
+
+        ComponentDTO component = componentManager.getComponent(slug, componentId);
+        List<String> cRoles = component.getRoles();
+        for (String role : roles) {
+            cRoles = componentManager.addRole(slug, componentId, role);
+        }
+
+        return cRoles;
     }
 
     @PutMapping("api/organizations/{slug}/components/{componentId}/roles")
-    public ComponentDTO addComponentRole(@PathVariable String slug, @PathVariable String componentId,
-            @RequestParam String role)
+    public List<String> addComponentRole(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String componentId,
+            @Valid @Pattern(regexp = Constants.ROLE_PATTERN) @RequestParam String role)
             throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException,
             NoSuchUserException {
 
-        return componentService.addRole(slug, componentId, role);
+        return componentManager.addRole(slug, componentId, role);
     }
 
     @DeleteMapping("api/organizations/{slug}/components/{componentId}/roles")
-    public void deleteComponentRole(@PathVariable String slug, @PathVariable String componentId,
-            @RequestParam String role)
+    public List<String> deleteComponentRole(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String componentId,
+            @Valid @Pattern(regexp = Constants.ROLE_PATTERN) @RequestParam String role)
             throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException {
 
-        componentService.deleteRole(slug, componentId, role);
+        return componentManager.deleteRole(slug, componentId, role);
 
     }
 
     /*
-     * Components
+     * Org component spaces
      */
 
     @GetMapping("api/organizations/{slug}/components/{componentId}/spaces")
-    public List<String> getComponentSpaces(@PathVariable String slug, @PathVariable String componentId)
+    public List<String> getComponentSpaces(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String componentId)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchComponentException {
-        // TODO filter spaces per org wrt defined
-        return componentService.listComponentSpaces(componentId);
+        return componentManager.listComponentSpaces(slug, componentId);
+    }
+
+    @PostMapping("api/organizations/{slug}/components/{componentId}/spaces")
+    public List<String> addComponentSpace(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String componentId,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestBody String[] spaces)
+            throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException,
+            NoSuchUserException, NoSuchSpaceException {
+
+        List<String> list = new ArrayList<>();
+        for (String space : spaces) {
+            // TODO check if space exists in org
+            list.add(componentManager.registerComponentSpace(slug, componentId, space));
+        }
+        return list;
     }
 
     @PutMapping("api/organizations/{slug}/components/{componentId}/spaces")
-    public String addComponentSpace(@PathVariable String slug, @PathVariable String componentId,
-            @RequestParam String space)
+    public String addComponentSpace(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String componentId,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestParam String space)
             throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException,
-            NoSuchUserException {
+            NoSuchUserException, NoSuchSpaceException {
 
-        // set current user as owner
-        String owner = OrgManagerUtils.getAuthenticatedUserName();
-
-        // TODO fetch providers
-        List<String> providers = new ArrayList<>();
-        return componentService.registerComponentSpace(slug, componentId, space, owner, providers);
+        // TODO check if space exists in org
+        return componentManager.registerComponentSpace(slug, componentId, space);
     }
 
     @DeleteMapping("api/organizations/{slug}/components/{componentId}/spaces")
-    public void deleteComponentSpace(@PathVariable String slug, @PathVariable String componentId,
-            @RequestParam String space)
+    public void deleteComponentSpace(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String componentId,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestParam String space,
+            @RequestParam(required = false, defaultValue = "false") boolean cleanup)
             throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException,
             NoSuchSpaceException {
 
-        componentService.unregisterComponentSpace(slug, componentId, space);
+        componentManager.unregisterComponentSpace(slug, componentId, space, cleanup);
 
     }
 
+    /*
+     * Helpers
+     */
+    // TODO replace with spring utils
+//    private void validateSlug(String slug) throws InvalidArgumentException {
+//        if (!pattern.matcher(slug).matches()) {
+//            throw new InvalidArgumentException(
+//                    "The string contains illegal characters (only lowercase alphanumeric characters and underscore are allowed): "
+//                            + slug);
+//        }
+//    }
 }

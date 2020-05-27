@@ -1,11 +1,14 @@
 package it.smartcommunitylab.orgmanager.controller;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import it.smartcommunitylab.aac.model.Page;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
@@ -26,38 +28,45 @@ import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.common.SystemException;
 import it.smartcommunitylab.orgmanager.dto.OrganizationDTO;
 import it.smartcommunitylab.orgmanager.dto.SpaceDTO;
-import it.smartcommunitylab.orgmanager.service.OrganizationService;
-import it.smartcommunitylab.orgmanager.service.SpaceService;
+import it.smartcommunitylab.orgmanager.manager.OrganizationManager;
 
 @RestController
+@Validated
 public class OrganizationController {
 
     @Autowired
-    private OrganizationService organizationService;
+    private OrganizationManager orgManager;
 
-    @Autowired
-    private SpaceService spaceService;
+//
+//    @GetMapping("api/organizations")
+//    public Page<OrganizationDTO> listOrganizations() throws IdentityProviderAPIException {
+//        List<OrganizationDTO> list = organizationService.listOrganizations();
+//        Page page = new Page<OrganizationDTO>();
+//        page.setFirst(true);
+//        page.setLast(true);
+//        page.setNumber(1);
+//        page.setNumberOfElements(list.size());
+//        page.setSize(1000);
+//        page.setTotalElements(list.size());
+//        page.setTotalPages(1);
+//
+//        page.setContent(list);
+//
+//        return page;
+//
+//    }
 
+    /*
+     * Org
+     */
     @GetMapping("api/organizations")
-    public Page<OrganizationDTO> listOrganizations() throws IdentityProviderAPIException {
-        List<OrganizationDTO> list = organizationService.listOrganizations();
-        Page page = new Page<OrganizationDTO>();
-        page.setFirst(true);
-        page.setLast(true);
-        page.setNumber(1);
-        page.setNumberOfElements(list.size());
-        page.setSize(1000);
-        page.setTotalElements(list.size());
-        page.setTotalPages(1);
-
-        page.setContent(list);
-
-        return page;
+    public List<OrganizationDTO> listOrganizations() throws IdentityProviderAPIException {
+        return orgManager.listOrganizations();
 
     }
 
     @PostMapping("api/organizations")
-    public OrganizationDTO createOrganization(@RequestBody OrganizationDTO organizationDTO)
+    public OrganizationDTO createOrganization(@Valid @RequestBody OrganizationDTO organizationDTO)
             throws SystemException, InvalidArgumentException, IdentityProviderAPIException, NoSuchUserException {
         // extract data
         String name = organizationDTO.getName();
@@ -72,30 +81,58 @@ public class OrganizationController {
 
         // normalizes the name
         name = name.trim().replaceAll("\\s+", " ");
-        // checks if the name contains illegal characters
-        Pattern pattern = Pattern.compile(Constants.NAME_PATTERN);
-        if (!pattern.matcher(name).matches()) {
-            throw new InvalidArgumentException("Organization name " + name
-                    + " is not allowed, please use only alphanumeric characters, space ( ), dash (-) or underscore (_).");
-        }
-
-        // checks that the slug is either null or valid
-        if (slug == null || slug.equals("")) {
-            // generated slug is normalized
-            slug = name.replaceAll(" ", "_").replaceAll("-", "_").toLowerCase();
-        }
-        // validate slug
-        pattern = Pattern.compile(Constants.SLUG_PATTERN);
-        if (!pattern.matcher(slug).matches()) {
-            throw new InvalidArgumentException(
-                    "The slug contains illegal characters (only lowercase alphanumeric characters and underscore are allowed): "
-                            + slug);
-        }
+//        // checks if the name contains illegal characters
+//        Pattern pattern = Pattern.compile(Constants.NAME_PATTERN);
+//        if (!pattern.matcher(name).matches()) {
+//            throw new InvalidArgumentException("Organization name " + name
+//                    + " is not allowed, please use only alphanumeric characters, space ( ), dash (-) or underscore (_).");
+//        }
+//
+//        // checks that the slug is either null or valid
+//        if (slug == null || slug.equals("")) {
+//            // generated slug is normalized
+//            slug = name.replaceAll(" ", "_").replaceAll("-", "_").toLowerCase();
+//        }
+//        // validate slug
+//        pattern = Pattern.compile(Constants.SLUG_PATTERN);
+//        if (!pattern.matcher(slug).matches()) {
+//            throw new InvalidArgumentException(
+//                    "The slug contains illegal characters (only lowercase alphanumeric characters and underscore are allowed): "
+//                            + slug);
+//        }
 
         // TODO save the name
-        OrganizationDTO organization = organizationService.addOrganization(slug, owner);
+        OrganizationDTO organization = orgManager.addOrganization(slug, owner);
 
         return organization;
+    }
+
+    @PutMapping("api/organizations/{slug}")
+    public OrganizationDTO addOrganization(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug)
+            throws IdentityProviderAPIException, NoSuchUserException, InvalidArgumentException {
+
+        // set current user as owner
+        String owner = OrgManagerUtils.getAuthenticatedUserName();
+
+//        // validate slug
+//        Pattern pattern = Pattern.compile(Constants.SLUG_PATTERN);
+//        if (!pattern.matcher(slug).matches()) {
+//            throw new InvalidArgumentException(
+//                    "The slug contains illegal characters (only lowercase alphanumeric characters and underscore are allowed): "
+//                            + slug);
+//        }
+
+        OrganizationDTO organization = orgManager.addOrganization(slug, owner);
+
+        return organization;
+
+    }
+
+    @GetMapping("api/organizations/{slug}")
+    public OrganizationDTO getOrganization(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug)
+            throws NoSuchOrganizationException, InvalidArgumentException, SystemException,
+            IdentityProviderAPIException {
+        return orgManager.getOrganization(slug);
     }
 
     // DEPRECATED
@@ -110,39 +147,61 @@ public class OrganizationController {
 //    }
 
     @DeleteMapping("api/organizations/{slug}")
-    public void deleteOrganization(@PathVariable String slug)
+    public void deleteOrganization(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @RequestParam(required = false, defaultValue = "false") boolean cleanup)
             throws NoSuchOrganizationException, InvalidArgumentException, SystemException,
             IdentityProviderAPIException {
-        organizationService.deleteOrganization(slug);
+        orgManager.deleteOrganization(slug, cleanup);
     }
+
+    /*
+     * Org spaces
+     */
 
     @GetMapping("api/organizations/{slug}/spaces")
-    public List<String> getSpaces(@PathVariable String slug)
+    public List<String> getSpaces(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug)
             throws NoSuchOrganizationException, IdentityProviderAPIException {
-        return spaceService.getSpaces(slug).stream().map(s -> s.getSlug()).collect(Collectors.toList());
+        return orgManager.listSpaces(slug).stream().map(s -> s.getSlug()).collect(Collectors.toList());
     }
 
-    @PutMapping("api/organizations/{slug}/spaces")
-    public List<String> addSpace(@PathVariable String slug, @RequestParam String space)
+    @PostMapping("api/organizations/{slug}/spaces")
+    public List<String> addSpaces(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestBody String[] spaces)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchUserException {
         // set current user as owner
         String owner = OrgManagerUtils.getAuthenticatedUserName();
 
-        // validate and normalize space
-        Pattern pattern = Pattern.compile(Constants.SLUG_CHARS);
-        space = pattern.matcher(space).replaceAll("_");
+        List<String> list = new ArrayList<>();
+        for (String space : spaces) {
+            SpaceDTO s = orgManager.addSpace(slug, space, owner);
 
-        SpaceDTO s = spaceService.addSpace(slug, space, owner);
+            list.add(s.getSlug());
+        }
 
-        // return all spaces
-        return getSpaces(slug);
+        return list;
+    }
+
+    @PutMapping("api/organizations/{slug}/spaces")
+    public String addSpace(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestParam String space)
+            throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchUserException,
+            InvalidArgumentException {
+
+        // set current user as owner
+        String owner = OrgManagerUtils.getAuthenticatedUserName();
+
+        SpaceDTO s = orgManager.addSpace(slug, space, owner);
+
+        return s.getSlug();
     }
 
     @DeleteMapping("api/organizations/{slug}/spaces")
-    public List<String> deleteSpace(@PathVariable String slug, @RequestParam String space)
+    public List<String> deleteSpace(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestParam String space,
+            @RequestParam(required = false, defaultValue = "false") boolean cleanup)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchSpaceException {
 
-        spaceService.deleteSpace(slug, space);
+        orgManager.deleteSpace(slug, space, cleanup);
 
         // return all spaces
         return getSpaces(slug);
