@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,15 +48,15 @@ public class MemberController {
      */
     @GetMapping("/api/organizations/{slug}/members")
     public List<OrganizationMemberDTO> listMembers(
-            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug)
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug)
             throws SystemException, IdentityProviderAPIException {
         return memberManager.listUsers(slug);
     }
 
     @PostMapping("api/organizations/{slug}/members")
     public List<OrganizationMemberDTO> addMembers(
-            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
-            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestBody String[] members)
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @RequestBody @Valid @Pattern(regexp = Constants.USERID_PATTERN) String[] members)
             throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException,
             IdentityProviderAPIException {
 
@@ -69,15 +70,17 @@ public class MemberController {
     }
 
     @GetMapping("/api/organizations/{slug}/members/{memberId}")
-    public OrganizationMemberDTO getMember(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
-            @PathVariable String memberId)
+    public OrganizationMemberDTO getMember(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @PathVariable @Valid @Pattern(regexp = Constants.USERID_PATTERN) String memberId)
             throws SystemException, IdentityProviderAPIException, NoSuchUserException {
         return memberManager.getUser(slug, memberId);
     }
 
     @DeleteMapping("api/organizations/{slug}/members/{memberId}")
-    public void removeMember(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
-            @PathVariable String memberId)
+    public void removeMember(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @PathVariable @Valid @Pattern(regexp = Constants.USERID_PATTERN) String memberId)
             throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException,
             IdentityProviderAPIException {
         memberManager.removeUser(slug, memberId);
@@ -99,8 +102,8 @@ public class MemberController {
 
     @PutMapping("api/organizations/{slug}/members/{memberId}")
     public OrganizationMemberDTO handleMemberRoles(
-            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
-            @PathVariable String memberId,
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @PathVariable @Valid @Pattern(regexp = Constants.USERID_PATTERN) String memberId,
             @RequestBody RoleDTO[] roles)
             throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException,
             IdentityProviderAPIException {
@@ -112,8 +115,8 @@ public class MemberController {
 
     @PostMapping("api/organizations/{slug}/members/{memberId}")
     public OrganizationMemberDTO addMemberRoles(
-            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
-            @PathVariable String memberId,
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @PathVariable @Valid @Pattern(regexp = Constants.USERID_PATTERN) String memberId,
             @RequestBody(required = false) RoleDTO[] roles)
             throws NoSuchUserException, NoSuchOrganizationException, SystemException, InvalidArgumentException,
             IdentityProviderAPIException {

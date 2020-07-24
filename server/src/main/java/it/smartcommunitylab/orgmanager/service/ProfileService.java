@@ -9,13 +9,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import it.smartcommunitylab.aac.AACContext;
 import it.smartcommunitylab.aac.AACException;
 import it.smartcommunitylab.aac.AACProfileService;
 import it.smartcommunitylab.aac.model.BasicProfile;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
-import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 
 @Service
 public class ProfileService {
@@ -24,7 +24,7 @@ public class ProfileService {
     private AACProfileService aacProfileService;
 
     @Autowired
-    private SecurityConfig securityConfig;
+    private AACContext aacContext;
 
     /**
      * Initializes the service to obtain client tokens.
@@ -33,7 +33,7 @@ public class ProfileService {
     private void init() {
         // Generates the service to obtain the proper client tokens needed for certain
         // calls to the identity provider's APIs
-        aacProfileService = securityConfig.getAACProfileService();
+        aacProfileService = aacContext.getAACProfileService();
     }
 
     /**
@@ -99,6 +99,10 @@ public class ProfileService {
      * @throws IdentityProviderAPIException
      */
     private String getToken() throws IdentityProviderAPIException {
-        return securityConfig.getToken(Constants.SCOPE_MANAGE_ROLES);
+        try {
+            return aacContext.getToken(Constants.SCOPE_MANAGE_ROLES);
+        } catch (AACException e) {
+            throw new IdentityProviderAPIException("Unable to generate an access token with the desired scope.");
+        }
     }
 }

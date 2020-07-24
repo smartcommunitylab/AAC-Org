@@ -1,6 +1,7 @@
 package it.smartcommunitylab.orgmanager.controller;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,7 +67,8 @@ public class OrganizationController {
     }
 
     @PostMapping("api/organizations")
-    public OrganizationDTO createOrganization(@Valid @RequestBody OrganizationDTO organizationDTO)
+    public OrganizationDTO createOrganization(
+            @RequestBody @Valid OrganizationDTO organizationDTO)
             throws SystemException, InvalidArgumentException, IdentityProviderAPIException, NoSuchUserException {
         // extract data
         String name = organizationDTO.getName();
@@ -108,7 +110,8 @@ public class OrganizationController {
     }
 
     @PutMapping("api/organizations/{slug}")
-    public OrganizationDTO addOrganization(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug)
+    public OrganizationDTO addOrganization(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug)
             throws IdentityProviderAPIException, NoSuchUserException, InvalidArgumentException {
 
         // set current user as owner
@@ -129,7 +132,8 @@ public class OrganizationController {
     }
 
     @GetMapping("api/organizations/{slug}")
-    public OrganizationDTO getOrganization(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug)
+    public OrganizationDTO getOrganization(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug)
             throws NoSuchOrganizationException, InvalidArgumentException, SystemException,
             IdentityProviderAPIException {
         return orgManager.getOrganization(slug);
@@ -147,7 +151,8 @@ public class OrganizationController {
 //    }
 
     @DeleteMapping("api/organizations/{slug}")
-    public void deleteOrganization(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
+    public void deleteOrganization(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
             @RequestParam(required = false, defaultValue = "false") boolean cleanup)
             throws NoSuchOrganizationException, InvalidArgumentException, SystemException,
             IdentityProviderAPIException {
@@ -159,14 +164,16 @@ public class OrganizationController {
      */
 
     @GetMapping("api/organizations/{slug}/spaces")
-    public List<String> getSpaces(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug)
+    public List<String> getSpaces(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug)
             throws NoSuchOrganizationException, IdentityProviderAPIException {
         return orgManager.listSpaces(slug).stream().map(s -> s.getSlug()).collect(Collectors.toList());
     }
 
     @PostMapping("api/organizations/{slug}/spaces")
-    public List<String> addSpaces(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
-            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestBody String[] spaces)
+    public List<String> addSpaces(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @RequestBody @Valid Collection<@Pattern(regexp = Constants.SLUG_PATTERN) String> spaces)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchUserException {
         // set current user as owner
         String owner = OrgManagerUtils.getAuthenticatedUserName();
@@ -182,8 +189,9 @@ public class OrganizationController {
     }
 
     @PutMapping("api/organizations/{slug}/spaces")
-    public String addSpace(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
-            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestParam String space)
+    public String addSpace(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @RequestParam @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String space)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchUserException,
             InvalidArgumentException {
 
@@ -196,8 +204,9 @@ public class OrganizationController {
     }
 
     @DeleteMapping("api/organizations/{slug}/spaces")
-    public List<String> deleteSpace(@Valid @Pattern(regexp = Constants.SLUG_PATTERN) @PathVariable String slug,
-            @Valid @Pattern(regexp = Constants.SLUG_PATTERN) @RequestParam String space,
+    public List<String> deleteSpace(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @RequestParam @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String space,
             @RequestParam(required = false, defaultValue = "false") boolean cleanup)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchSpaceException {
 

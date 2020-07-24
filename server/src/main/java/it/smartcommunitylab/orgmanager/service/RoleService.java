@@ -18,9 +18,7 @@ package it.smartcommunitylab.orgmanager.service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -30,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import it.smartcommunitylab.aac.AACContext;
 import it.smartcommunitylab.aac.AACException;
 import it.smartcommunitylab.aac.AACRoleService;
 import it.smartcommunitylab.aac.model.Role;
@@ -37,8 +36,6 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.orgmanager.common.Constants;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
-import it.smartcommunitylab.orgmanager.config.ModelsConfig.ComponentsConfiguration;
-import it.smartcommunitylab.orgmanager.config.SecurityConfig;
 import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 
 /**
@@ -52,7 +49,7 @@ public class RoleService {
     private AACRoleService aacRoleService;
 
     @Autowired
-    private SecurityConfig securityConfig;
+    private AACContext aacContext;
 //
 //    @Autowired
 //    private ComponentsConfiguration componentsConfiguration;
@@ -66,7 +63,7 @@ public class RoleService {
     private void init() {
         // Generates the service to obtain the proper client tokens needed for certain
         // calls to the identity provider's APIs
-        aacRoleService = securityConfig.getAACRoleService();
+        aacRoleService = aacContext.getAACRoleService();
 //        componentIds = componentsConfiguration.getComponents().stream().map(c -> c.get(Constants.FIELD_COMPONENT_ID))
 //                .collect(Collectors.toSet());
     }
@@ -489,7 +486,11 @@ public class RoleService {
      * @throws IdentityProviderAPIException
      */
     private String getToken() throws IdentityProviderAPIException {
-        return securityConfig.getToken(Constants.SCOPE_MANAGE_ROLES);
+        try {
+            return aacContext.getToken(Constants.SCOPE_MANAGE_ROLES);
+        } catch (AACException e) {
+            throw new IdentityProviderAPIException("Unable to generate an access token with the desired scope.");
+        }
     }
 
 }

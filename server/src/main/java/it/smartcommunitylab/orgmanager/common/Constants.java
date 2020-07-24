@@ -28,6 +28,7 @@ public class Constants {
 
     public static final String NAME_PATTERN = "^[a-zA-Z0-9 _-]+$";
     public static final String ROLE_PATTERN = "^[a-zA-Z0-9_]+$";
+    public static final String USERID_PATTERN = "^[a-zA-Z0-9_-]+$";
 
     public static final String SLUG_PATTERN = "^[a-z0-9_]*$";
     public static final String SLUG_CHARS = "[^a-z0-9_]+";
