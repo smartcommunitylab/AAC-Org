@@ -178,13 +178,16 @@ public class ComponentService {
     public ComponentDTO addComponent(String organization, String componentId, String userName)
             throws IdentityProviderAPIException, NoSuchUserException {
 
+        logger.info("add component " + componentId + " org " + organization + " owner " + userName);
+        
         // components are listed in org sub-context
         String context = getOrgContext(organization);
-
+               
         // validate owner via idp
         BasicProfile profile = profileService.getUserProfile(userName);
 
-        logger.info("add component " + componentId + " org " + organization + " owner " + userName);
+        logger.debug("add component user profile "+profile.toString());
+
 
         // add space
         AACRoleDTO spaceRole = roleService.addSpace(context, componentId, profile.getUserId());

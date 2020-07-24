@@ -41,10 +41,10 @@ security:
       clientId: ${OAUTH2_CLIENT_CLIENTID:}
       clientSecret: ${OAUTH2_CLIENT_CLIENTSECRET:}
       scopes: ${OAUTH_SCOPES:profile,email,user.roles.me}
-    resource:
-      id: ${OAUTH2_CLIENT_ID:}
-      jwk:
-        keySetUri: ${OAUTH2_JWK_URI:}
+    resourceserver:
+      client-id: ${OAUTH2_CLIENT_ID:}
+      jwt:
+        issuer-uri: ${OAUTH2_ISSUER_URI:}
 
 # AAC APIS
 aac:

@@ -18,6 +18,7 @@ import it.smartcommunitylab.orgmanager.common.AmbiguousIdentifierException;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.InvalidArgumentException;
 import it.smartcommunitylab.orgmanager.common.InvalidConfigurationException;
+import it.smartcommunitylab.orgmanager.common.NoSuchComponentException;
 import it.smartcommunitylab.orgmanager.common.NoSuchOrganizationException;
 import it.smartcommunitylab.orgmanager.common.NoSuchSpaceException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
@@ -50,7 +51,18 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         }
         return buildResponseEntity(error, HttpStatus.NOT_FOUND);
     }
-
+    
+    @ExceptionHandler(NoSuchComponentException.class)
+    public ResponseEntity<String> noSuchComponent(NoSuchComponentException e) {
+        JSONObject error = new JSONObject();
+        try {
+            error.put("error", "component_not_found");
+            error.put("error_description", e.getMessage());
+        } catch (JSONException je) {
+        }
+        return buildResponseEntity(error, HttpStatus.NOT_FOUND);
+    }
+    
     @ExceptionHandler(NoSuchUserException.class)
     public ResponseEntity<String> noSuchUser(NoSuchUserException e) {
         JSONObject error = new JSONObject();
@@ -259,6 +271,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(NullPointerException.class)
     protected ResponseEntity<String> handleNullPointer(NullPointerException e) {
+        e.printStackTrace();
         JSONObject error = new JSONObject();
         try {
             error.put("error", "null_pointer");

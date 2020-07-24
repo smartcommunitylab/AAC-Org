@@ -7,11 +7,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.security.jwt.JwtUserAuthenticationToken;
 import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 import it.smartcommunitylab.orgmanager.dto.UserRightsDTO;
 
@@ -54,18 +54,24 @@ public class OrgManagerUtils {
      */
     private static boolean userHasOrganizationMgmtScope() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof OAuth2Authentication) {
-            OAuth2Request request = ((OAuth2Authentication) authentication).getOAuth2Request();
-            if (request != null) {
-                Set<String> scopeSet = request.getScope();
-                if (scopeSet != null) {
-                    // searches for the scope
-                    return scopeSet.stream()
-                            .anyMatch(s -> s.equalsIgnoreCase(Constants.SCOPE_ORG_MANAGEMENT));
-                }
-            }
-        }
-        return false;
+//        System.out.println("auth dump " + authentication.toString());
+//        System.out.println("authorities " + authentication.getAuthorities().toString());
+
+        String mgmt = "SCOPE_" + Constants.SCOPE_ORG_MANAGEMENT;
+        return authentication.getAuthorities().stream().anyMatch(ga -> mgmt.equals(ga.getAuthority()));
+
+//        if (authentication instanceof OAuth2Authentication) {
+//            OAuth2Request request = ((OAuth2Authentication) authentication).getOAuth2Request();
+//            if (request != null) {
+//                Set<String> scopeSet = request.getScope();
+//                if (scopeSet != null) {
+//                    // searches for the scope
+//                    return scopeSet.stream()
+//                            .anyMatch(s -> s.equalsIgnoreCase(Constants.SCOPE_ORG_MANAGEMENT));
+//                }
+//            }
+//        }
+//        return false;
     }
 
     /*
@@ -155,22 +161,29 @@ public class OrgManagerUtils {
      *         authenticated user
      * @throws IdentityProviderAPIException
      */
-    @SuppressWarnings("unchecked")
     public static String getAuthenticatedUserId() throws IdentityProviderAPIException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        // claims
-        if (!(auth instanceof OAuth2Authentication)) { // cannot find token value, needed to find the ID
-            throw new IdentityProviderAPIException(
-                    "Unable to call identity provider's API to retrieve authenticated user's name.");
-        }
-        OAuth2Authentication oauth = (OAuth2Authentication) auth;
-        Map<String, Object> claims = (Map<String, Object>) oauth.getUserAuthentication().getDetails();
-        if (claims == null || !claims.containsKey("sub")) {
-            throw new IdentityProviderAPIException("Incorrect OAuth2 claims.");
-        }
 
-        return claims.get("sub").toString();
+        if (auth instanceof JwtUserAuthenticationToken) {
+            return ((JwtUserAuthenticationToken) auth).getSubject();
+        }
+        return auth.getName();
+
     }
+
+//        // claims
+//        if (!(auth instanceof JwtAuthenticationToken)) { // cannot find token value, needed to find the ID
+//            throw new IdentityProviderAPIException(
+//                    "Unable to call identity provider's API to retrieve authenticated user's name.");
+//        }
+//        JwtAuthenticationToken oauth = (JwtAuthenticationToken) auth;
+//        Map<String, Object> claims = (Map<String, Object>) oauth.getUserAuthentication().getDetails();
+//        if (claims == null || !claims.containsKey("sub")) {
+//            throw new IdentityProviderAPIException("Incorrect OAuth2 claims.");
+//        }
+//
+//        return claims.get("sub").toString();
+//    }
 
     /**
      * Returns the user name used by the identity provider to identify the currently
@@ -180,8 +193,13 @@ public class OrgManagerUtils {
      *         authenticated user
      */
     public static String getAuthenticatedUserName() {
-        Authentication obj = SecurityContextHolder.getContext().getAuthentication(); // retrieves token
-        return obj.getPrincipal().toString();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        return obj.getPrincipal().toString();
+        if (auth instanceof JwtUserAuthenticationToken) {
+            return ((JwtUserAuthenticationToken) auth).getUsername();
+        }
+
+        return auth.getName();
     }
 
     /**

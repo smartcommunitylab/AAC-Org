@@ -1,6 +1,7 @@
 package it.smartcommunitylab.orgmanager.service;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -57,7 +58,16 @@ public class ProfileService {
                 throw new NoSuchUserException(
                         "Profile for user " + userName + " could not be found; unable to continue.");
             }
-            return profiles.iterator().next();
+            
+            //we need to filter out null elements in client response
+            //TODO fix in aac.client!
+            Collection<BasicProfile> result = profiles.stream().filter(c -> c != null).collect(Collectors.toList()); 
+            if (result.isEmpty()) {
+                throw new NoSuchUserException(
+                        "Profile for user " + userName + " could not be found; unable to continue.");
+            }          
+            
+            return result.iterator().next();
         } catch (SecurityException | AACException e) {
             throw new IdentityProviderAPIException("Unable to obtain profile information: " + e.getMessage());
         }
