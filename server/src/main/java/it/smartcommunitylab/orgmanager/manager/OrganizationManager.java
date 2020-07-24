@@ -79,7 +79,7 @@ public class OrganizationManager {
 
     }
 
-    public OrganizationDTO addOrganization(String organization, String userName)
+    public OrganizationDTO addOrganization(String organization, String userId)
             throws NoSuchUserException, IdentityProviderAPIException {
 
         // Admin or context owner/provider can manage org
@@ -89,7 +89,7 @@ public class OrganizationManager {
             throw new AccessDeniedException("Access is denied: insufficient rights.");
         }
 
-        return organizationService.addOrganization(organization, userName);
+        return organizationService.addOrganization(organization, userId);
     }
 
     public void deleteOrganization(String organization, boolean cleanup)
@@ -168,7 +168,7 @@ public class OrganizationManager {
 
     }
 
-    public SpaceDTO addSpace(String organization, String space, String userName)
+    public SpaceDTO addSpace(String organization, String space, String userId)
             throws IdentityProviderAPIException, NoSuchUserException {
 
         // Admin or org owner/provider can manage org spaces
@@ -178,7 +178,7 @@ public class OrganizationManager {
             throw new AccessDeniedException("Access is denied: insufficient rights.");
         }
 
-        return spaceService.addSpace(organization, space, userName);
+        return spaceService.addSpace(organization, space, userId);
     }
 
     public void deleteSpace(String organization, String space, boolean cleanup)

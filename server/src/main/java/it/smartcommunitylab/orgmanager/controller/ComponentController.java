@@ -89,7 +89,7 @@ public class ComponentController {
             throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException,
             NoSuchUserException {
         // set current user as owner
-        String owner = OrgManagerUtils.getAuthenticatedUserName();
+        String ownerId = OrgManagerUtils.getAuthenticatedUserId();
 
 //        // validate and normalize space
 //        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(Constants.SLUG_CHARS);
@@ -99,7 +99,7 @@ public class ComponentController {
 //            // normalize if needed
 //            componentId = pattern.matcher(componentId).replaceAll(Constants.SLUG_FILL);
 
-            components.add(componentManager.addComponent(slug, componentId, owner));
+            components.add(componentManager.addComponent(slug, componentId, ownerId));
         }
 
         return components;
@@ -112,9 +112,9 @@ public class ComponentController {
             throws NoSuchOrganizationException, NoSuchComponentException, IdentityProviderAPIException,
             NoSuchUserException, InvalidArgumentException {
         // set current user as owner
-        String owner = OrgManagerUtils.getAuthenticatedUserName();
+        String ownerId = OrgManagerUtils.getAuthenticatedUserId();
 
-        return componentManager.addComponent(slug, componentId, owner);
+        return componentManager.addComponent(slug, componentId, ownerId);
     }
 
     @DeleteMapping("api/organizations/{slug}/components")

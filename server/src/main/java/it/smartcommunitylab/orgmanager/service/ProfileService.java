@@ -37,41 +37,41 @@ public class ProfileService {
         aacProfileService = aacContext.getAACProfileService();
     }
 
-    /**
-     * Obtains a BasicProfile from the identity provider, representing the profile
-     * of the user with the input user name.
-     * 
-     * @param userName - User name to query the identity provider with
-     * @return - Profile of the requested user
-     * @throws IdentityProviderAPIException
-     * @throws NoSuchUserException
-     */
-    public BasicProfile getUserProfile(String userName) throws IdentityProviderAPIException, NoSuchUserException {
-        if (userName == null || userName.equals("")) {
-            // invalid request
-            return null;
-        }
-        logger.debug("get profile for username " + userName);
-        try {
-            Collection<BasicProfile> profiles = aacProfileService.searchUsersByUsername(getToken(), userName);
-            if (profiles == null || profiles.isEmpty()) {
-                throw new NoSuchUserException(
-                        "Profile for user " + userName + " could not be found; unable to continue.");
-            }
-            
-            //we need to filter out null elements in client response
-            //TODO fix in aac.client!
-            Collection<BasicProfile> result = profiles.stream().filter(c -> c != null).collect(Collectors.toList()); 
-            if (result.isEmpty()) {
-                throw new NoSuchUserException(
-                        "Profile for user " + userName + " could not be found; unable to continue.");
-            }          
-            
-            return result.iterator().next();
-        } catch (SecurityException | AACException e) {
-            throw new IdentityProviderAPIException("Unable to obtain profile information: " + e.getMessage());
-        }
-    }
+//    /**
+//     * Obtains a BasicProfile from the identity provider, representing the profile
+//     * of the user with the input user name.
+//     * 
+//     * @param userName - User name to query the identity provider with
+//     * @return - Profile of the requested user
+//     * @throws IdentityProviderAPIException
+//     * @throws NoSuchUserException
+//     */
+//    public BasicProfile getUserProfile(String userName) throws IdentityProviderAPIException, NoSuchUserException {
+//        if (userName == null || userName.equals("")) {
+//            // invalid request
+//            return null;
+//        }
+//        logger.debug("get profile for username " + userName);
+//        try {
+//            Collection<BasicProfile> profiles = aacProfileService.searchUsersByUsername(getToken(), userName);
+//            if (profiles == null || profiles.isEmpty()) {
+//                throw new NoSuchUserException(
+//                        "Profile for user " + userName + " could not be found; unable to continue.");
+//            }
+//            
+//            //we need to filter out null elements in client response
+//            //TODO fix in aac.client!
+//            Collection<BasicProfile> result = profiles.stream().filter(c -> c != null).collect(Collectors.toList()); 
+//            if (result.isEmpty()) {
+//                throw new NoSuchUserException(
+//                        "Profile for user " + userName + " could not be found; unable to continue.");
+//            }          
+//            
+//            return result.iterator().next();
+//        } catch (SecurityException | AACException e) {
+//            throw new IdentityProviderAPIException("Unable to obtain profile information: " + e.getMessage());
+//        }
+//    }
 
     /**
      * Obtains a BasicProfile from the identity provider, representing the profile

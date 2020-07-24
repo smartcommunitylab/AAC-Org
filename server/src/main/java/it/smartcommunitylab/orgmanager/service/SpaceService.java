@@ -77,7 +77,7 @@ public class SpaceService {
 
     }
 
-    public SpaceDTO addSpace(String organization, String space, String userName)
+    public SpaceDTO addSpace(String organization, String space, String userId)
             throws IdentityProviderAPIException, NoSuchUserException {
 
         // spaces are listed in org sub-context
@@ -88,9 +88,9 @@ public class SpaceService {
 //        String owner = roleService.getSpaceOwner(AACRoleDTO.ORGANIZATION_PREFIX, organization);
 
         // validate owner via idp
-        BasicProfile profile = profileService.getUserProfile(userName);
+        BasicProfile profile = profileService.getUserProfileById(userId);
 
-        logger.info("add space " + space + " org " + organization + " owner " + userName);
+        logger.info("add space " + space + " org " + organization + " owner " + userId);
 
         // add space
         AACRoleDTO spaceRole = roleService.addSpace(context, space, profile.getUserId());

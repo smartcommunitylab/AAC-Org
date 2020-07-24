@@ -72,13 +72,13 @@ public class OrganizationController {
             throws SystemException, InvalidArgumentException, IdentityProviderAPIException, NoSuchUserException {
         // extract data
         String name = organizationDTO.getName();
-        String owner = organizationDTO.getOwner();
+        String ownerId = organizationDTO.getOwner();
         String slug = organizationDTO.getSlug();
 
         // validate
-        if (owner.isEmpty()) {
+        if (ownerId.isEmpty()) {
             // set current user as owner
-            owner = OrgManagerUtils.getAuthenticatedUserName();
+            ownerId = OrgManagerUtils.getAuthenticatedUserId();
         }
 
         // normalizes the name
@@ -104,7 +104,7 @@ public class OrganizationController {
 //        }
 
         // TODO save the name
-        OrganizationDTO organization = orgManager.addOrganization(slug, owner);
+        OrganizationDTO organization = orgManager.addOrganization(slug, ownerId);
 
         return organization;
     }
@@ -115,7 +115,7 @@ public class OrganizationController {
             throws IdentityProviderAPIException, NoSuchUserException, InvalidArgumentException {
 
         // set current user as owner
-        String owner = OrgManagerUtils.getAuthenticatedUserName();
+        String ownerId = OrgManagerUtils.getAuthenticatedUserId();
 
 //        // validate slug
 //        Pattern pattern = Pattern.compile(Constants.SLUG_PATTERN);
@@ -125,7 +125,7 @@ public class OrganizationController {
 //                            + slug);
 //        }
 
-        OrganizationDTO organization = orgManager.addOrganization(slug, owner);
+        OrganizationDTO organization = orgManager.addOrganization(slug, ownerId);
 
         return organization;
 
@@ -176,11 +176,11 @@ public class OrganizationController {
             @RequestBody @Valid Collection<@Pattern(regexp = Constants.SLUG_PATTERN) String> spaces)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchUserException {
         // set current user as owner
-        String owner = OrgManagerUtils.getAuthenticatedUserName();
+        String ownerId = OrgManagerUtils.getAuthenticatedUserId();
 
         List<String> list = new ArrayList<>();
         for (String space : spaces) {
-            SpaceDTO s = orgManager.addSpace(slug, space, owner);
+            SpaceDTO s = orgManager.addSpace(slug, space, ownerId);
 
             list.add(s.getSlug());
         }
@@ -196,9 +196,9 @@ public class OrganizationController {
             InvalidArgumentException {
 
         // set current user as owner
-        String owner = OrgManagerUtils.getAuthenticatedUserName();
+        String ownerId = OrgManagerUtils.getAuthenticatedUserId();
 
-        SpaceDTO s = orgManager.addSpace(slug, space, owner);
+        SpaceDTO s = orgManager.addSpace(slug, space, ownerId);
 
         return s.getSlug();
     }

@@ -69,7 +69,7 @@ public class ComponentManager {
         return componentService.getComponent(organization, componentId);
     }
 
-    public ComponentDTO addComponent(String organization, String componentId, String userName)
+    public ComponentDTO addComponent(String organization, String componentId, String userId)
             throws IdentityProviderAPIException, NoSuchUserException {
         // Admin or org owner/provider can manage org spaces
         if (!OrgManagerUtils.userHasAdminRights()
@@ -78,7 +78,7 @@ public class ComponentManager {
             throw new AccessDeniedException("Access is denied: insufficient rights.");
         }
 
-        return componentService.addComponent(organization, componentId, userName);
+        return componentService.addComponent(organization, componentId, userId);
     }
 
     public void deleteComponent(String organization, String componentId, boolean cleanup)

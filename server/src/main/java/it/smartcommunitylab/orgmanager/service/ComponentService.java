@@ -175,18 +175,17 @@ public class ComponentService {
 
     }
 
-    public ComponentDTO addComponent(String organization, String componentId, String userName)
+    public ComponentDTO addComponent(String organization, String componentId, String userId)
             throws IdentityProviderAPIException, NoSuchUserException {
 
-        logger.info("add component " + componentId + " org " + organization + " owner " + userName);
         
         // components are listed in org sub-context
         String context = getOrgContext(organization);
                
         // validate owner via idp
-        BasicProfile profile = profileService.getUserProfile(userName);
+        BasicProfile profile = profileService.getUserProfileById(userId);
 
-        logger.debug("add component user profile "+profile.toString());
+        logger.info("add component " + componentId + " org " + organization + " owner " + userId);
 
 
         // add space
@@ -379,7 +378,7 @@ public class ComponentService {
 //        
 //    }
 
-    public String registerComponentSpace(String organization, String componentId, String space, String owner,
+    public String registerComponentSpace(String organization, String componentId, String space, String ownerId,
             List<String> providers)
             throws IdentityProviderAPIException, NoSuchComponentException {
 
@@ -393,14 +392,14 @@ public class ComponentService {
         }
 
         logger.info(
-                "add component space " + space + " for " + componentId + " org " + organization + " owner " + owner);
+                "add component space " + space + " for " + componentId + " org " + organization + " owner " + ownerId);
 
         // add space
         String cSpace = getSpaceSlug(organization, space);
-        AACRoleDTO spaceRole = roleService.addSpace(context, cSpace, owner);
+        AACRoleDTO spaceRole = roleService.addSpace(context, cSpace, ownerId);
 
         // ensure owner is a provider
-        providers.add(owner);
+        providers.add(ownerId);
         AACRoleDTO providerRole = AACRoleDTO.providerRole(context, cSpace);
 
         for (String provider : providers) {

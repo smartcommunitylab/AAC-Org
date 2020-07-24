@@ -92,12 +92,12 @@ public class RoleService {
         }
     }
 
-    public AACRoleDTO addSpace(String context, String space, String owner) throws IdentityProviderAPIException {
+    public AACRoleDTO addSpace(String context, String space, String ownerId) throws IdentityProviderAPIException {
         logger.debug("add space " + space + " for context " + context);
 
         try {
             Role role = AACRoleDTO.ownerRole(context, space);
-            aacRoleService.addRoles(getToken(), owner, Collections.singletonList(role.getAuthority()));
+            aacRoleService.addRoles(getToken(), ownerId, Collections.singletonList(role.getAuthority()));
 
             return AACRoleDTO.from(role);
         } catch (SecurityException | AACException e) {
@@ -107,12 +107,12 @@ public class RoleService {
 
     }
 
-    public void deleteSpace(String context, String space, String owner) throws IdentityProviderAPIException {
+    public void deleteSpace(String context, String space, String ownerId) throws IdentityProviderAPIException {
         logger.debug("delete space " + space + " for context " + context);
 
         try {
             Role role = AACRoleDTO.ownerRole(context, space);
-            aacRoleService.deleteRoles(getToken(), owner, Collections.singletonList(role.getAuthority()));
+            aacRoleService.deleteRoles(getToken(), ownerId, Collections.singletonList(role.getAuthority()));
         } catch (SecurityException | AACException e) {
             e.printStackTrace();
             throw new IdentityProviderAPIException("Unable to call identity provider's API to delete user roles.");

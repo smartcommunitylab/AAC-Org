@@ -73,23 +73,23 @@ public class OrganizationService {
 
         try {
             BasicProfile profile = profileService.getUserProfileById(ownerId);
-            return OrganizationDTO.from(profile.getUsername(), orgRole);
+            return OrganizationDTO.from(profile.getUserId(), orgRole);
         } catch (NoSuchUserException e) {
             throw new NoSuchOrganizationException();
         }
 
     }
 
-    public OrganizationDTO addOrganization(String organization, String userName)
+    public OrganizationDTO addOrganization(String organization, String userId)
             throws IdentityProviderAPIException, NoSuchUserException {
 
         // orgs are listed in root context
         String context = Constants.ROOT_ORGANIZATIONS;
 
         // validate owner via idp
-        BasicProfile profile = profileService.getUserProfile(userName);
+        BasicProfile profile = profileService.getUserProfileById(userId);
 
-        logger.info("create org " + organization + " owner " + userName);
+        logger.info("create org " + organization + " owner " + userId);
 
         // add as space
         AACRoleDTO orgRole = roleService.addSpace(context, organization, profile.getUserId());
@@ -98,7 +98,7 @@ public class OrganizationService {
         AACRoleDTO providerRole = AACRoleDTO.providerRole(context, organization);
         roleService.addRoles(profile.getUserId(), Collections.singletonList(providerRole.getAuthority()));
 
-        return OrganizationDTO.from(userName, orgRole);
+        return OrganizationDTO.from(profile.getUserId(), orgRole);
     }
 
     public void deleteOrganization(String organization, boolean cleanup)
