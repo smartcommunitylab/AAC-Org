@@ -64,7 +64,7 @@
       <dependency>
          <groupId>it.smartcommunitylab</groupId>
          <artifactId>aac.client</artifactId>
-         <version>3.1.0</version>
+         <version>3.1.2</version>
       </dependency>		
 		
       <dependency>

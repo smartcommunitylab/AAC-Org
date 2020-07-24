@@ -42,13 +42,16 @@ security:
       clientSecret: ${OAUTH2_CLIENT_CLIENTSECRET:}
       scopes: ${OAUTH_SCOPES:profile,email,user.roles.me}
     resource:
-      id: ${OAUTH2_CLIENT_CLIENTID:}
+      id: ${OAUTH2_CLIENT_ID:}
       jwk:
-        keySetUri: ${OMC_SECURITY_OAUTH2_JWK_URI:}
+        keySetUri: ${OAUTH2_JWK_URI:}
 
 # AAC APIS
 aac:
   uri: ${AAC_URI:}
+  clientId: ${OAUTH2_CLIENT_ID:}
+  clientSecret: ${OAUTH2_CLIENT_SECRET:}
+  
 
 # LOGGING
 logging:
