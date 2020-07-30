@@ -1,7 +1,6 @@
 package it.smartcommunitylab.orgmanager.controller;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,7 +66,7 @@ public class OrganizationController {
     }
 
     @PostMapping("api/organizations")
-    public OrganizationDTO createOrganization(
+    public OrganizationDTO addOrganization(
             @RequestBody @Valid OrganizationDTO organizationDTO)
             throws SystemException, InvalidArgumentException, IdentityProviderAPIException, NoSuchUserException {
         // extract data
@@ -81,8 +80,10 @@ public class OrganizationController {
             ownerId = OrgManagerUtils.getAuthenticatedUserId();
         }
 
-        // normalizes the name
-        name = name.trim().replaceAll("\\s+", " ");
+        if (name != null) {
+            // normalizes the name
+            name = name.trim().replaceAll("\\s+", " ");
+        }
 //        // checks if the name contains illegal characters
 //        Pattern pattern = Pattern.compile(Constants.NAME_PATTERN);
 //        if (!pattern.matcher(name).matches()) {
@@ -110,24 +111,28 @@ public class OrganizationController {
     }
 
     @PutMapping("api/organizations/{slug}")
-    public OrganizationDTO addOrganization(
-            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug)
+    public OrganizationDTO createOrUpdateOrganization(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @RequestBody(required = false) OrganizationDTO organizationDTO)
             throws IdentityProviderAPIException, NoSuchUserException, InvalidArgumentException {
 
         // set current user as owner
         String ownerId = OrgManagerUtils.getAuthenticatedUserId();
 
-//        // validate slug
-//        Pattern pattern = Pattern.compile(Constants.SLUG_PATTERN);
-//        if (!pattern.matcher(slug).matches()) {
-//            throw new InvalidArgumentException(
-//                    "The slug contains illegal characters (only lowercase alphanumeric characters and underscore are allowed): "
-//                            + slug);
-//        }
+        // extract data
+        String name = organizationDTO.getName();
 
-        OrganizationDTO organization = orgManager.addOrganization(slug, ownerId);
+        if (name != null) {
+            // normalizes the name
+            name = name.trim().replaceAll("\\s+", " ");
+        }
 
-        return organization;
+        try {
+            return orgManager.updateOrganization(slug, ownerId, name);
+        } catch (NoSuchOrganizationException noex) {
+            // TODO save the name
+            return orgManager.addOrganization(slug, ownerId);
+        }
 
     }
 
@@ -164,57 +169,88 @@ public class OrganizationController {
      */
 
     @GetMapping("api/organizations/{slug}/spaces")
-    public List<String> getSpaces(
-            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug)
+    public List<SpaceDTO> listSpaces(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @RequestParam(name = "id", required = false) String[] ids)
             throws NoSuchOrganizationException, IdentityProviderAPIException {
-        return orgManager.listSpaces(slug).stream().map(s -> s.getSlug()).collect(Collectors.toList());
+
+        if (ids == null) {
+            return orgManager.listSpaces(slug);
+        } else {
+            List<String> filterIds = Arrays.asList(ids);
+            return orgManager.listSpaces(slug).stream().filter(s -> filterIds.contains(s.getId()))
+                    .collect(Collectors.toList());
+        }
     }
 
     @PostMapping("api/organizations/{slug}/spaces")
-    public List<String> addSpaces(
+    public SpaceDTO addSpace(
             @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
-            @RequestBody @Valid Collection<@Pattern(regexp = Constants.SLUG_PATTERN) String> spaces)
+            @RequestBody @Valid SpaceDTO space)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchUserException {
         // set current user as owner
         String ownerId = OrgManagerUtils.getAuthenticatedUserId();
 
-        List<String> list = new ArrayList<>();
-        for (String space : spaces) {
-            SpaceDTO s = orgManager.addSpace(slug, space, ownerId);
+        // extract data
+        String id = space.getId();
+        String name = space.getName();
 
-            list.add(s.getSlug());
+        if (name != null) {
+            // normalizes the name
+            name = name.trim().replaceAll("\\s+", " ");
         }
 
-        return list;
+        // TODO save name
+        return orgManager.addSpace(slug, id, ownerId);
+
     }
 
-    @PutMapping("api/organizations/{slug}/spaces")
-    public String addSpace(
+    @PutMapping("api/organizations/{slug}/spaces/{id}")
+    public SpaceDTO createOrUpdateSpace(
             @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
-            @RequestParam @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String space)
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String id,
+            @RequestBody(required = false) SpaceDTO space)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchUserException,
             InvalidArgumentException {
 
         // set current user as owner
         String ownerId = OrgManagerUtils.getAuthenticatedUserId();
 
-        SpaceDTO s = orgManager.addSpace(slug, space, ownerId);
+        // extract data
+        String name = space.getName();
 
-        return s.getSlug();
+        if (name != null) {
+            // normalizes the name
+            name = name.trim().replaceAll("\\s+", " ");
+        }
+
+        try {
+            return orgManager.updateSpace(slug, id, ownerId, name);
+        } catch (NoSuchSpaceException noex) {
+            // TODO save the name
+            return orgManager.addSpace(slug, id, ownerId);
+        }
+
     }
 
-    @DeleteMapping("api/organizations/{slug}/spaces")
-    public List<String> deleteSpace(
+    @DeleteMapping("api/organizations/{slug}/spaces/{id}")
+    public void deleteSpace(
             @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
-            @RequestParam @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String space,
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String id,
             @RequestParam(required = false, defaultValue = "false") boolean cleanup)
             throws NoSuchOrganizationException, IdentityProviderAPIException, NoSuchSpaceException {
 
-        orgManager.deleteSpace(slug, space, cleanup);
+        orgManager.deleteSpace(slug, id, cleanup);
 
-        // return all spaces
-        return getSpaces(slug);
+    }
 
+    @GetMapping("api/organizations/{slug}/spaces/{id}")
+    public SpaceDTO getSpace(
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String slug,
+            @PathVariable @Valid @Pattern(regexp = Constants.SLUG_PATTERN) String id)
+            throws NoSuchSpaceException, InvalidArgumentException, SystemException,
+            IdentityProviderAPIException {
+        return orgManager.getSpace(slug, id);
     }
 
 }

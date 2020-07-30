@@ -2,35 +2,38 @@ package it.smartcommunitylab.orgmanager.dto;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.orgmanager.common.Constants;
 
 public class ComponentDTO extends ModelDTO {
+    private String organization; // domain of org
+
+    private List<String> spaces;
 
     public ComponentDTO() {
         super();
+        spaces = null;
     }
 
-    public ComponentDTO(String name, String componentId, List<String> roles) {
+    public ComponentDTO(String name, String componentId, String organization, List<String> roles) {
         super(name, componentId, roles);
+        this.organization = organization;
+        spaces = null;
     }
 
-    public String getName() {
-        return name;
+    public String getOrganization() {
+        return organization;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setOrganization(String organization) {
+        this.organization = organization;
     }
 
-    public List<String> getRoles() {
-        return roles;
+    public List<String> getSpaces() {
+        return spaces;
     }
 
-    public void setRoles(List<String> roles) {
-        this.roles = roles;
+    public void setSpaces(List<String> spaces) {
+        this.spaces = spaces;
     }
 
     public String getPath() {
@@ -64,10 +67,11 @@ public class ComponentDTO extends ModelDTO {
 //        return dto;
 //    }
 
-    public static ComponentDTO from(String component, List<String> roles) {
+    public static ComponentDTO from(String component, String organization, List<String> roles) {
         ComponentDTO dto = new ComponentDTO();
         dto.name = component;
         dto.id = component;
+        dto.organization = organization;
         dto.roles = new ArrayList<>();
 
         if (roles != null && !roles.isEmpty()) {

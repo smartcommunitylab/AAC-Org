@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -34,9 +35,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/**").authorizeRequests()
+                .antMatchers(HttpMethod.OPTIONS, "**").permitAll()//allow CORS option calls
                 .antMatchers("/api/auth/login", "/api/auth/callback", "/api/auth/user", "api/auth/profile").permitAll()
                 .antMatchers("/", "/login**", "/webjars/**", "/error**", "/swagger*", "/v2/api-docs**").permitAll()
                 .antMatchers("/api/**").authenticated()
+                .and().cors()
 //                .anyRequest().authenticated().and().logout().logoutSuccessUrl("/").permitAll()
                 .and()
                 .oauth2ResourceServer()

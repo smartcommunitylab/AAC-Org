@@ -24,6 +24,7 @@ import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.config.ModelsConfig.ComponentsConfiguration;
 import it.smartcommunitylab.orgmanager.dto.AACRoleDTO;
 import it.smartcommunitylab.orgmanager.dto.ComponentDTO;
+import it.smartcommunitylab.orgmanager.dto.ModelDTO;
 
 @Service
 public class ComponentService {
@@ -57,9 +58,9 @@ public class ComponentService {
     /*
      * Models TODO merge static model with /models/<component> definitions
      */
-    public List<ComponentDTO> listModels() {
+    public List<ModelDTO> listModels() {
         logger.debug("list models");
-        List<ComponentDTO> components = new ArrayList<ComponentDTO>();
+        List<ModelDTO> components = new ArrayList<ModelDTO>();
 
         // retrieve configuration
         List<Map<String, String>> componentProperties = componentsConfiguration.getComponents();
@@ -71,15 +72,15 @@ public class ComponentService {
             String rolesString = map.get(Constants.FIELD_ROLES);
             List<String> roles = parseRoles(rolesString);
             // adds the component to the output list
-            components.add(new ComponentDTO(name, componentId, roles));
+            components.add(new ModelDTO(name, componentId, roles));
         }
 
         return components;
     }
 
-    public ComponentDTO getModel(String component) throws NoSuchComponentException {
+    public ModelDTO getModel(String component) throws NoSuchComponentException {
 
-        ComponentDTO c = null;
+        ModelDTO c = null;
         // retrieve configuration
         List<Map<String, String>> componentProperties = componentsConfiguration.getComponents();
 
@@ -91,7 +92,7 @@ public class ComponentService {
                 String rolesString = map.get(Constants.FIELD_ROLES);
                 List<String> roles = parseRoles(rolesString);
 
-                c = new ComponentDTO(name, componentId, roles);
+                c = new ModelDTO(name, componentId, roles);
                 break;
             }
         }
@@ -167,7 +168,7 @@ public class ComponentService {
                     .map(r -> r.getRole())
                     .collect(Collectors.toList());
 
-            return ComponentDTO.from(componentId, cRoles);
+            return ComponentDTO.from(componentId, organization, cRoles);
 
         } catch (NoSuchUserException e) {
             throw new NoSuchComponentException();
@@ -175,18 +176,16 @@ public class ComponentService {
 
     }
 
-    public ComponentDTO addComponent(String organization, String componentId, String userId)
+    public ComponentDTO addComponent(String organization, String componentId, String userId, List<String> roles)
             throws IdentityProviderAPIException, NoSuchUserException {
 
-        
         // components are listed in org sub-context
         String context = getOrgContext(organization);
-               
+
         // validate owner via idp
         BasicProfile profile = profileService.getUserProfileById(userId);
 
         logger.info("add component " + componentId + " org " + organization + " owner " + userId);
-
 
         // add space
         AACRoleDTO spaceRole = roleService.addSpace(context, componentId, profile.getUserId());
@@ -202,13 +201,16 @@ public class ComponentService {
             roleService.addRoles(provider, Collections.singletonList(providerRole.getAuthority()));
         }
 
-        // search for configuration for custom roles
-        List<String> roles = Collections.emptyList();
-        try {
-            ComponentDTO conf = getModel(componentId);
-            roles = conf.getRoles();
-        } catch (NoSuchComponentException e) {
-            // conf is not required
+        if (roles == null || roles.isEmpty()) {
+            roles = Collections.emptyList();
+
+            // search for configuration for custom roles
+            try {
+                ModelDTO conf = getModel(componentId);
+                roles = conf.getRoles();
+            } catch (NoSuchComponentException e) {
+                // conf is not required
+            }
         }
 
         if (!roles.isEmpty()) {
@@ -220,7 +222,7 @@ public class ComponentService {
             roleService.addRoles(profile.getUserId(), rolesToAdd);
         }
 
-        return ComponentDTO.from(componentId, roles);
+        return ComponentDTO.from(componentId, organization, roles);
 
     }
 
@@ -443,7 +445,7 @@ public class ComponentService {
                 Set<String> roles = new HashSet<>();
 
                 try {
-                    ComponentDTO conf = getModel(componentId);
+                    ModelDTO conf = getModel(componentId);
                     roles.addAll(conf.getRoles());
                 } catch (NoSuchComponentException e) {
                     // conf is not required

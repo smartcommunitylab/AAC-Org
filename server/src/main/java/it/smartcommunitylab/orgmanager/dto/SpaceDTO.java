@@ -1,26 +1,33 @@
 package it.smartcommunitylab.orgmanager.dto;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.orgmanager.common.Constants;
 
 public class SpaceDTO {
+
+    @Pattern(regexp = Constants.NAME_PATTERN)
     private String name;
-    private String slug; // domain of the space
+    @NotNull
+    @Pattern(regexp = Constants.SLUG_PATTERN)
+    private String id; // domain of the space
     private String organization; // domain of org
 
     public SpaceDTO() {
-        name = "";
-        slug = "";
-        organization = "";
+        name = null;
+        id = null;
+        organization = null;
 
     }
 
     public SpaceDTO(String name, String slug, String organization) {
         super();
         this.name = name;
-        this.slug = slug;
+        this.id = slug;
         this.organization = organization;
     }
 
@@ -32,12 +39,12 @@ public class SpaceDTO {
         this.name = name;
     }
 
-    public String getSlug() {
-        return slug;
+    public String getId() {
+        return id;
     }
 
-    public void setSlug(String slug) {
-        this.slug = slug;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getOrganization() {
@@ -49,7 +56,7 @@ public class SpaceDTO {
     }
 
     public String getPath() {
-        return Constants.ROOT_ORGANIZATIONS + organization + Constants.PATH_SEPARATOR + slug;
+        return Constants.ROOT_ORGANIZATIONS + Constants.PATH_SEPARATOR + organization + Constants.PATH_SEPARATOR + id;
     }
 
     @Override
@@ -65,7 +72,7 @@ public class SpaceDTO {
             SpaceDTO dto = new SpaceDTO();
             // TODO extract from attributes when available
             dto.name = role.getSpace();
-            dto.slug = role.getSpace();
+            dto.id = role.getSpace();
             dto.organization = role.getContext()
                     .substring(Constants.ROOT_ORGANIZATIONS.length() + 1)
                     .replace(Constants.PATH_SEPARATOR + Constants.ROOT_SPACES, "");

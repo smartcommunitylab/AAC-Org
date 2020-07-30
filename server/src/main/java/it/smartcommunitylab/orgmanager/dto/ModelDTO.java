@@ -1,14 +1,26 @@
 package it.smartcommunitylab.orgmanager.dto;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
+import it.smartcommunitylab.orgmanager.common.Constants;
+
 public class ModelDTO {
+
+    @Pattern(regexp = Constants.NAME_PATTERN)
     protected String name;
+    @NotNull
+    @Pattern(regexp = Constants.SLUG_PATTERN)
     protected String id;
     protected List<String> roles;
 
     public ModelDTO() {
+        this.name = null;
+        this.id = null;
         this.roles = Collections.emptyList();
     }
 
@@ -47,4 +59,16 @@ public class ModelDTO {
         return this.id;
     }
 
+    public static ModelDTO from(String component, List<String> roles) {
+        ModelDTO dto = new ModelDTO();
+        dto.name = component;
+        dto.id = component;
+        dto.roles = new ArrayList<>();
+
+        if (roles != null && !roles.isEmpty()) {
+            dto.roles.addAll(roles);
+        }
+
+        return dto;
+    }
 }

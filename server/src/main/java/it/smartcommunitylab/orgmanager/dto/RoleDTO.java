@@ -3,6 +3,8 @@ package it.smartcommunitylab.orgmanager.dto;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -19,7 +21,9 @@ public class RoleDTO implements Comparable<RoleDTO> {
     public static final String TYPE_COMPONENT = "component";
     public static final String TYPE_SPACE = "space";
 
+    @NotNull
     private String type;
+    @NotNull
     private String role;
 
     private String space;
@@ -27,8 +31,8 @@ public class RoleDTO implements Comparable<RoleDTO> {
     private String resource;
 
     public RoleDTO() {
-        type = "";
-        role = "";
+        type = null;
+        role = null;
 
         space = null;
         component = null;

@@ -12,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import it.smartcommunitylab.orgmanager.common.AmbiguousIdentifierException;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
@@ -95,6 +97,33 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         }
         return buildResponseEntity(error, HttpStatus.BAD_REQUEST);
     }
+    
+    /**
+     * One of the fields of the object in the request body has invalid values. The
+     * response will also list the constraint violations encountered.
+     * 
+     * @param e - Exception
+     * @return - Response with error and proper status code
+     */
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        JSONObject error = new JSONObject();
+        try {
+            error.put("error", "invalid_field_values");
+            error.put("error_description", ex.getMessage());
+        } catch (JSONException je) {
+        }
+      
+        String response = null;
+        try {
+            response = error.toString(2);
+        } catch (JSONException je) {
+        }
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new ResponseEntity<>(response, headers, HttpStatus.BAD_REQUEST);
+    }
+    
 
     /**
      * One of the fields of the object in the request body has invalid values. The
