@@ -1,6 +1,7 @@
 # SERVER ENDPOINT
 server:
   port: ${SERVER_PORT:7979}
+  max-http-header-size: 16000  
   servlet:
     session:
       cookie:
