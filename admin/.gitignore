@@ -1,0 +1,12 @@
+#local
+.env.local
+.lock
+# compiled output
+/dist
+/tmp
+
+# dependencies
+/node_modules
+
+# IDE - VSCode
+.vscode/
