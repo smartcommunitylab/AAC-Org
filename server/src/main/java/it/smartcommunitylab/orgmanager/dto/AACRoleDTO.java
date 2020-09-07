@@ -116,6 +116,18 @@ public class AACRoleDTO extends Role {
         }
     }
 
+    public static boolean isOrgSpaceRole(Role role) {
+        // role assigned to space below prefix
+        return role.getContext() != null && role.getContext().startsWith(ORGANIZATION_PREFIX)
+                && role.getContext().endsWith(Constants.ROOT_SPACES);
+    }
+
+    public static boolean isOrgComponentRole(Role role) {
+        // role assigned to space below prefix
+        return role.getContext() != null && role.getContext().startsWith(ORGANIZATION_PREFIX)
+                && role.getContext().endsWith(Constants.ROOT_COMPONENTS);
+    }
+    
     /*
      * builder
      */

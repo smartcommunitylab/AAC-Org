@@ -168,7 +168,7 @@ public class ComponentService {
                     .map(r -> r.getRole())
                     .collect(Collectors.toList());
 
-            return ComponentDTO.from(componentId, organization, cRoles);
+            return ComponentDTO.from(componentId, organization,owner, cRoles);
 
         } catch (NoSuchUserException e) {
             throw new NoSuchComponentException();
@@ -222,7 +222,7 @@ public class ComponentService {
             roleService.addRoles(profile.getUserId(), rolesToAdd);
         }
 
-        return ComponentDTO.from(componentId, organization, roles);
+        return ComponentDTO.from(componentId, organization,profile.getUserId(), roles);
 
     }
 

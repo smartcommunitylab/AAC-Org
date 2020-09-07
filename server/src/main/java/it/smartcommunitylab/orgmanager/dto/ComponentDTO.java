@@ -6,8 +6,9 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 
 public class ComponentDTO extends ModelDTO {
     private String organization; // domain of org
-
-    private List<String> spaces;
+    private String owner;
+    // TODO replace with proper SpaceDTO
+    private List<SpaceDTO> spaces;
 
     public ComponentDTO() {
         super();
@@ -28,16 +29,24 @@ public class ComponentDTO extends ModelDTO {
         this.organization = organization;
     }
 
-    public List<String> getSpaces() {
+    public List<SpaceDTO> getSpaces() {
         return spaces;
     }
 
-    public void setSpaces(List<String> spaces) {
+    public void setSpaces(List<SpaceDTO> spaces) {
         this.spaces = spaces;
     }
 
     public String getPath() {
         return Constants.ROOT_COMPONENTS + Constants.PATH_SEPARATOR + id;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     @Override
@@ -67,11 +76,12 @@ public class ComponentDTO extends ModelDTO {
 //        return dto;
 //    }
 
-    public static ComponentDTO from(String component, String organization, List<String> roles) {
+    public static ComponentDTO from(String component, String organization, String owner, List<String> roles) {
         ComponentDTO dto = new ComponentDTO();
         dto.name = component;
         dto.id = component;
         dto.organization = organization;
+        dto.owner = owner;
         dto.roles = new ArrayList<>();
 
         if (roles != null && !roles.isEmpty()) {

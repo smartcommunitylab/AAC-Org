@@ -100,6 +100,7 @@ public class OrganizationMemberService {
         if (roles.stream().anyMatch(r -> orgMember.equals(r.getAuthority()) || ownerMember.equals(r.getAuthority()))) {
             // filter users roles to expose only those related to org
             OrganizationMemberDTO member = OrganizationMemberDTO.from(
+                    organization,
                     profile,
                     filterRoles(organization, roles, true));
 
@@ -135,7 +136,10 @@ public class OrganizationMemberService {
 
         // filter roles and extract only those in org
         // fetch also roles in disabled components
-        List<AACRoleDTO> rolesToDel = filterRoles(organization, roles, false);
+        // ensure we do not remove org owner role otherwise org will disappear!
+        List<AACRoleDTO> rolesToDel = filterRoles(organization, roles, false).stream()
+                .filter(r -> (!(AACRoleDTO.isOrgRole(r, true) && r.getRole().equals(Constants.ROLE_OWNER))))
+                .collect(Collectors.toList());
 
         // remove roles
         roleService.deleteRoles(userId,
@@ -216,7 +220,8 @@ public class OrganizationMemberService {
             boolean provider)
             throws SystemException, NoSuchOrganizationException, InvalidArgumentException, NoSuchUserException {
 
-        logger.info("update roles for user " + userId + " from organization " + organization);
+        logger.info(
+                "update roles for user " + userId + " from organization " + organization + " to " + roles.toString());
 
         try {
             // get user details
@@ -229,19 +234,36 @@ public class OrganizationMemberService {
             // revoked.
             List<AACRoleDTO> newRoles = roles.stream().map(r -> RoleDTO.to(organization, r))
                     .collect(Collectors.toList());
+            logger.debug("new roles for user " + userId + ": " + newRoles.toString());
 
             // re-read to fetch also roles in disabled components
             List<AACRoleDTO> oldRoles = filterRoles(organization, roleService.getRoles(userId), false);
             logger.debug("old roles for user " + userId + ": " + oldRoles.toString());
 
             // roles to grant
-            Set<AACRoleDTO> rolesToAdd = newRoles.stream()
+            Set<AACRoleDTO> candidateRolesToAdd = newRoles.stream()
                     .filter(r -> !oldRoles.contains(r))
                     .collect(Collectors.toSet());
 
             // roles to delete
-            Set<AACRoleDTO> rolesToDel = oldRoles.stream()
+            Set<AACRoleDTO> candidateRolesToDel = oldRoles.stream()
                     .filter(r -> !newRoles.contains(r))
+                    .collect(Collectors.toSet());
+
+            
+            
+            // ensure basic roles + roles definitions for components are NOT handled here
+            Set<AACRoleDTO> rolesToAdd = candidateRolesToAdd.stream()
+                    .filter(r -> (
+                            !(Constants.ROLE_OWNER.equals(r.getRole())) &&                            
+                            !(AACRoleDTO.isOrgRole(r, true) && Constants.ROLE_MEMBER.equals(r.getRole())) &&
+                            !(AACRoleDTO.isOrgComponentRole(r))))
+                    .collect(Collectors.toSet());
+            Set<AACRoleDTO> rolesToDel = candidateRolesToDel.stream()
+                    .filter(r -> (
+                            !(Constants.ROLE_OWNER.equals(r.getRole())) &&                            
+                            !(AACRoleDTO.isOrgRole(r, true) && Constants.ROLE_MEMBER.equals(r.getRole())) &&
+                            !(AACRoleDTO.isOrgComponentRole(r))))
                     .collect(Collectors.toSet());
 
             // also check if provider role requested
@@ -266,16 +288,18 @@ public class OrganizationMemberService {
 
             // update roles
             if (rolesToDel.size() > 0) {
-                // ensure basic roles are excluded here
-                List<String> rolesList = rolesToDel.stream().map(r -> r.getAuthority())
-                        .filter(r -> (!Constants.ROLE_OWNER.equals(r) && !Constants.ROLE_MEMBER.equals(r)))
+                logger.debug("roles toDel for user " + userId + ": " + rolesToDel.toString());
+                List<String> rolesList = rolesToDel.stream()
+                        .map(r -> r.getAuthority())
                         .collect(Collectors.toList());
+                logger.debug("roles toDel list for user " + userId + ": " + rolesList.toString());
+
                 roleService.deleteRoles(userId, rolesList);
             }
             if (rolesToAdd.size() > 0) {
-                // ensure basic roles are excluded here
-                List<String> rolesList = rolesToAdd.stream().map(r -> r.getAuthority())
-                        .filter(r -> (!Constants.ROLE_OWNER.equals(r) && !Constants.ROLE_MEMBER.equals(r)))
+                logger.debug("roles toAdd for user " + userId + ": " + rolesToAdd.toString());
+                List<String> rolesList = rolesToAdd.stream()
+                        .map(r -> r.getAuthority())
                         .collect(Collectors.toList());
                 roleService.addRoles(userId, rolesList);
             }
@@ -387,7 +411,8 @@ public class OrganizationMemberService {
         // roles are
         // 1. within organization
         // 2. within org/spaces
-        // 3. within org/components -> disabled, use this space for roles definitions
+        // 3. within org/components -> enabled, NOTE use this space for roles
+        // definitions
         // 4. within components/space
         // 5. within org/resources
         // 6. within resources/spaces
@@ -409,10 +434,10 @@ public class OrganizationMemberService {
                     orgRoles.add(role);
                 }
 
-//                // 3. also add roles at org component level
-//                if (role.getContext().equals(componentService.getOrgContext(organization))) {
-//                    orgRoles.add(role);
-//                }
+                // 3. also add roles at org component level
+                if (role.getContext().equals(componentService.getOrgContext(organization))) {
+                    orgRoles.add(role);
+                }
 
                 // TODO 5.
             }

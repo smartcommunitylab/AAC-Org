@@ -16,19 +16,22 @@ public class SpaceDTO {
     @Pattern(regexp = Constants.SLUG_PATTERN)
     private String id; // domain of the space
     private String organization; // domain of org
+    private String owner;
 
     public SpaceDTO() {
         name = null;
         id = null;
         organization = null;
+        owner = null;
 
     }
 
-    public SpaceDTO(String name, String slug, String organization) {
+    public SpaceDTO(String name, String slug, String organization, String ownerId) {
         super();
         this.name = name;
         this.id = slug;
         this.organization = organization;
+        this.owner = ownerId;
     }
 
     public String getName() {
@@ -55,6 +58,14 @@ public class SpaceDTO {
         this.organization = organization;
     }
 
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
     public String getPath() {
         return Constants.ROOT_ORGANIZATIONS + Constants.PATH_SEPARATOR + organization + Constants.PATH_SEPARATOR + id;
     }
@@ -67,7 +78,17 @@ public class SpaceDTO {
     /*
      * Builder
      */
-    public static SpaceDTO from(Role role) {
+    public static SpaceDTO from(String organization, String id, String name) {
+        SpaceDTO dto = new SpaceDTO();
+        // TODO extract from attributes when available
+        dto.name = name;
+        dto.id = id;
+        dto.organization = organization;
+
+        return dto;
+    }
+
+    public static SpaceDTO from(Role role, String ownerId) {
         if (AACRoleDTO.isOrgRole(role, false) && StringUtils.hasText(role.getSpace())) {
             SpaceDTO dto = new SpaceDTO();
             // TODO extract from attributes when available
@@ -76,6 +97,8 @@ public class SpaceDTO {
             dto.organization = role.getContext()
                     .substring(Constants.ROOT_ORGANIZATIONS.length() + 1)
                     .replace(Constants.PATH_SEPARATOR + Constants.ROOT_SPACES, "");
+
+            dto.owner = ownerId;
 
             return dto;
         } else {

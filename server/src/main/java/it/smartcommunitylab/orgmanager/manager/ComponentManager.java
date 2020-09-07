@@ -16,6 +16,7 @@ import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
 import it.smartcommunitylab.orgmanager.dto.ComponentDTO;
 import it.smartcommunitylab.orgmanager.dto.ModelDTO;
+import it.smartcommunitylab.orgmanager.dto.SpaceDTO;
 import it.smartcommunitylab.orgmanager.service.ComponentService;
 import it.smartcommunitylab.orgmanager.service.SpaceService;
 
@@ -82,8 +83,11 @@ public class ComponentManager {
         ComponentDTO dto = componentService.getComponent(organization, componentId);
 
         if (inflate) {
+            System.out.println("get component spaces for " + organization + " id " + componentId);
             // enrich component with spaces info
             dto.setSpaces(listComponentSpaces(organization, componentId));
+            System.out.println("dump spaces " + dto.getSpaces().toString());
+
         }
         return dto;
     }
@@ -113,6 +117,7 @@ public class ComponentManager {
         // name is not saved
         // check roles
         ComponentDTO component = getComponent(organization, componentId, true);
+        System.out.println("pre " + component.getSpaces().toString());
         if (roles != null) {
             // match config
             List<String> current = (component.getRoles() == null) ? new ArrayList<>() : component.getRoles();
@@ -140,6 +145,7 @@ public class ComponentManager {
             // re-read
             component = getComponent(organization, componentId, true);
         }
+        System.out.println("post " + component.getSpaces().toString());
 
         return component;
     }
@@ -215,7 +221,7 @@ public class ComponentManager {
     /*
      * Component spaces
      */
-    public List<String> listComponentSpaces(String organization, String componentId)
+    public List<SpaceDTO> listComponentSpaces(String organization, String componentId)
             throws NoSuchComponentException, IdentityProviderAPIException {
 
         // Admin or org owner/provider can manage org spaces
@@ -233,11 +239,12 @@ public class ComponentManager {
         // check against registered spaces
         return spaces.stream()
                 .filter(s -> cSpaces.contains(organization + Constants.SLUG_SEPARATOR + s))
+                .map(s -> SpaceDTO.from(organization, s, s))
                 .collect(Collectors.toList());
 
     }
 
-    public List<String> updateComponentSpaces(String organization, String componentId, List<String> spaces)
+    public List<SpaceDTO> updateComponentSpaces(String organization, String componentId, List<String> spaces)
             throws NoSuchComponentException, IdentityProviderAPIException, NoSuchSpaceException {
 
         // Admin or org owner/provider can manage org spaces
@@ -254,21 +261,22 @@ public class ComponentManager {
         List<String> oSpaces = spaceService.listSpaces(organization);
 
         // updates
-        List<String> toRemove = new ArrayList<>();
-        List<String> toAdd = new ArrayList<>();
+//        List<String> toRemove = new ArrayList<>();
+//        List<String> toAdd = new ArrayList<>();
 
-        for (String s : cSpaces) {
-            if (!spaces.contains(s)) {
-                toAdd.add(s);
-            }
-        }
+        // ?
+//        for (String s : cSpaces) {
+//            if (!spaces.contains(s)) {
+//                toAdd.add(s);
+//            }
+//        }
 
-        toAdd = spaces.stream()
+        List<String> toAdd = spaces.stream()
                 .filter(s -> !cSpaces.contains(s))
                 .filter(s -> oSpaces.contains(s))
                 .collect(Collectors.toList());
 
-        toRemove = cSpaces.stream()
+        List<String> toRemove = cSpaces.stream()
                 .filter(s -> !spaces.contains(s))
                 .filter(s -> oSpaces.contains(s))
                 .collect(Collectors.toList());
@@ -283,7 +291,7 @@ public class ComponentManager {
             registerComponentSpace(organization, componentId, space);
         }
 
-        return componentService.listComponentSpaces(componentId);
+        return listComponentSpaces(organization, componentId);
     }
 
     public String registerComponentSpace(String organization, String componentId, String space)

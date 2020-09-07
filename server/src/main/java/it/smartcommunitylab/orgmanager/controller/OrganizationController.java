@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,17 +71,18 @@ public class OrganizationController {
             @RequestBody @Valid OrganizationDTO organizationDTO)
             throws SystemException, InvalidArgumentException, IdentityProviderAPIException, NoSuchUserException {
         // extract data
+        String id = organizationDTO.getId();
         String name = organizationDTO.getName();
         String ownerId = organizationDTO.getOwner();
         String slug = organizationDTO.getSlug();
 
         // validate
-        if (ownerId.isEmpty()) {
+        if (!StringUtils.hasText(ownerId)) {
             // set current user as owner
             ownerId = OrgManagerUtils.getAuthenticatedUserId();
         }
 
-        if (name != null) {
+        if (StringUtils.hasText(name)) {
             // normalizes the name
             name = name.trim().replaceAll("\\s+", " ");
         }
@@ -105,7 +107,7 @@ public class OrganizationController {
 //        }
 
         // TODO save the name
-        OrganizationDTO organization = orgManager.addOrganization(slug, ownerId);
+        OrganizationDTO organization = orgManager.addOrganization(id, ownerId);
 
         return organization;
     }

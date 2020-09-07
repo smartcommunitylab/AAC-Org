@@ -1,5 +1,6 @@
 package it.smartcommunitylab.orgmanager.manager;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -45,16 +47,6 @@ public class MemberManager {
     private OrganizationMemberService memberService;
 
     /*
-     * Global
-     */
-
-    // TODO add pagination
-    public List<OrganizationMemberDTO> listUsers() {
-        // TODO ask roleService
-        return Collections.emptyList();
-    }
-
-    /*
      * Org
      */
 
@@ -73,6 +65,25 @@ public class MemberManager {
 
     }
 
+    public List<OrganizationMemberDTO> getUsers(String organization, Collection<String> ids)
+            throws NoSuchUserException, SystemException, IdentityProviderAPIException {
+
+        // Admin or org owner/provider can manage org
+        if (!OrgManagerUtils.userHasAdminRights()
+                && !OrgManagerUtils.userIsOwner(organization)
+                && !OrgManagerUtils.userIsProvider(organization)) {
+            throw new AccessDeniedException("Access is denied: insufficient rights.");
+        }
+
+        List<OrganizationMemberDTO> users = new ArrayList<>();
+
+        for (String id : ids) {
+            users.add(getUser(organization, id));
+        }
+
+        return users;
+    }
+
     public OrganizationMemberDTO getUser(String organization, String userId)
             throws IdentityProviderAPIException, NoSuchUserException {
 
@@ -83,7 +94,12 @@ public class MemberManager {
             throw new AccessDeniedException("Access is denied: insufficient rights.");
         }
 
-        return memberService.getUser(organization, userId);
+        OrganizationMemberDTO member = memberService.getUser(organization, userId);
+        // sort roles with comparable and dedup
+        TreeSet<RoleDTO> curRoles = new TreeSet<>();
+        curRoles.addAll(member.getRoles());
+        member.setRoles(curRoles);
+        return member;
 
     }
 
@@ -195,7 +211,12 @@ public class MemberManager {
 
         // keep only valid roles compatible with org/space/components
         Set<RoleDTO> newRoles = filterRoles(organization, roles);
-        return memberService.handleUserRoles(organization, userId, newRoles, provider);
+        OrganizationMemberDTO member = memberService.handleUserRoles(organization, userId, newRoles, provider);
+        // sort roles with comparable and dedup
+        TreeSet<RoleDTO> curRoles = new TreeSet<>();
+        curRoles.addAll(member.getRoles());
+        member.setRoles(curRoles);
+        return member;
     }
 
     /*
@@ -203,7 +224,7 @@ public class MemberManager {
      */
     private Set<RoleDTO> filterRoles(String organization, Collection<RoleDTO> roles)
             throws IdentityProviderAPIException {
-logger.trace("requested roles "+roles.toString());
+        logger.trace("requested roles " + roles.toString());
 
         // fetch for org
         List<String> orgSpaces = spaceService.listSpaces(organization);
@@ -252,9 +273,9 @@ logger.trace("requested roles "+roles.toString());
 
             }
         }
-        
-        logger.trace("component spaces "+componentSpaces.toString());
-        logger.trace("component roles "+componentRoles.toString());
+
+        logger.trace("component spaces " + componentSpaces.toString());
+        logger.trace("component roles " + componentRoles.toString());
 
         // end-users can have roles in
         // 1. org
@@ -264,27 +285,40 @@ logger.trace("requested roles "+roles.toString());
         Set<RoleDTO> rolesToAdd = new HashSet<>();
 
         for (RoleDTO r : roles) {
-            // ensure basic roles are excluded here
-            if (Constants.ROLE_OWNER.equals(r.getRole()) || Constants.ROLE_MEMBER.equals(r.getRole())) {
+            // ensure system roles are excluded here
+            if (Constants.ROLE_OWNER.equals(r.getRole())) {
                 continue;
             }
             if (r.isOrgRole()) {
+                // ensure basic roles are excluded here
+                if (Constants.ROLE_MEMBER.equals(r.getRole())) {
+                    continue;
+                }
                 rolesToAdd.add(r);
             } else if (r.isSpaceRole()) {
+                // ensure basic roles are excluded here
+                if (Constants.ROLE_MEMBER.equals(r.getRole())) {
+                    continue;
+                }
                 // spaces need to exist in org
                 if (orgSpaces.contains(r.getSpace())) {
                     // TODO define policy
                     rolesToAdd.add(r);
                 }
             } else if (r.isComponentRole()) {
+            
+                String componentId = r.getComponent();
+
+                logger.trace("role check for " + r.getRole() + " space " + r.getSpace());
                 // check if component is enabled for org
                 // also check if role is defined for this component
-                // also check if space is enabled for this component
-                String componentId = r.getComponent();
-                
-                logger.trace("role check for "+r.getRole()+" space "+r.getSpace());
-                
                 if (componentRoles.containsKey(componentId) && componentSpaces.containsKey(componentId)) {
+                    //provider role is allowed
+                    if(Constants.ROLE_PROVIDER.equals(r.getRole())) {
+                        rolesToAdd.add(r);
+                    }
+                    
+                    // also check if space is enabled for this component
                     if (componentRoles.get(componentId).contains(r.getRole())
                             && componentSpaces.get(componentId).contains(r.getSpace())) {
                         rolesToAdd.add(r);
@@ -297,7 +331,7 @@ logger.trace("requested roles "+roles.toString());
             }
 
         }
-        logger.trace("accepted roles "+rolesToAdd.toString());
+        logger.trace("accepted roles " + rolesToAdd.toString());
 
         return rolesToAdd;
     }

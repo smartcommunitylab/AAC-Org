@@ -1,6 +1,7 @@
 package it.smartcommunitylab.orgmanager.dto;
 
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import javax.validation.constraints.NotNull;
@@ -133,7 +134,11 @@ public class RoleDTO implements Comparable<RoleDTO> {
         }
 
         if (TYPE_COMPONENT.equals(type)) {
-            return type + "/" + component + "/" + space + ":" + role;
+            if (space != null) {
+                return type + "/" + component + "/" + space + ":" + role;
+            } else {
+                return type + "/" + component + ":" + role;
+            }
         }
 
         if (TYPE_RESOURCE.equals(type)) {
@@ -141,6 +146,35 @@ public class RoleDTO implements Comparable<RoleDTO> {
         }
 
         return role;
+    }
+
+    public String getId() {
+        // custom map for component roles
+        // TODO rework for full mapping
+        if (TYPE_COMPONENT.equals(type)) {
+            return type + "/" +  component + ":" + role;
+        } else {
+            return type + "/" +  role;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, role, space, component, resource);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        RoleDTO other = (RoleDTO) obj;
+        return Objects.equals(component, other.component) && Objects.equals(resource, other.resource)
+                && Objects.equals(role, other.role) && Objects.equals(space, other.space)
+                && Objects.equals(type, other.type);
     }
 
     /*
@@ -177,6 +211,16 @@ public class RoleDTO implements Comparable<RoleDTO> {
     /*
      * Builders
      */
+
+    public static RoleDTO from(String type, String role, String component, String space) {
+        RoleDTO dto = new RoleDTO();
+        dto.type = type;
+        dto.role = role;
+        dto.space = space;
+        dto.component = component;
+        return dto;
+    }
+
     public static RoleDTO from(AACRoleDTO aacRole) {
         // we won't keep org details, roleDTO is bounded to org
         RoleDTO dto = new RoleDTO();
@@ -193,6 +237,11 @@ public class RoleDTO implements Comparable<RoleDTO> {
                 if (aacRole.getContext().endsWith(Constants.ROOT_SPACES)) {
                     dto.type = TYPE_SPACE;
                     dto.space = aacRole.getSpace();
+                }
+                // component
+                if (aacRole.getContext().endsWith(Constants.ROOT_COMPONENTS)) {
+                    dto.type = TYPE_COMPONENT;
+                    dto.component = aacRole.getSpace();
                 }
             }
         }
@@ -236,7 +285,8 @@ public class RoleDTO implements Comparable<RoleDTO> {
         }
 
         if (TYPE_SPACE.equals(dto.getType())) {
-            context = Constants.ROOT_ORGANIZATIONS + Constants.PATH_SEPARATOR + organization + Constants.ROOT_SPACES;
+            context = Constants.ROOT_ORGANIZATIONS + Constants.PATH_SEPARATOR + organization + Constants.PATH_SEPARATOR
+                    + Constants.ROOT_SPACES;
             space = dto.getSpace();
         }
 

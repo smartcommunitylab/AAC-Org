@@ -185,6 +185,7 @@ public class RoleService {
     public void addRoles(String userId, List<String> roles) throws IdentityProviderAPIException {
         try {
             if (!roles.isEmpty()) {
+                logger.debug("add roles for user " + userId + ": " + String.valueOf(roles));
                 aacRoleService.addRoles(getToken(), userId, roles);
             }
         } catch (SecurityException | AACException e) {
@@ -196,6 +197,7 @@ public class RoleService {
     public void deleteRoles(String userId, List<String> roles) throws IdentityProviderAPIException {
         try {
             if (!roles.isEmpty()) {
+                logger.debug("delete roles for user " + userId + ": " + String.valueOf(roles));
                 aacRoleService.deleteRoles(getToken(), userId, roles);
             }
         } catch (SecurityException | AACException e) {

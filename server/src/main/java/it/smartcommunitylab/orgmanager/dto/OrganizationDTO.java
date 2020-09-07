@@ -1,5 +1,6 @@
 package it.smartcommunitylab.orgmanager.dto;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.springframework.util.StringUtils;
@@ -9,16 +10,23 @@ import it.smartcommunitylab.orgmanager.common.Constants;
 
 public class OrganizationDTO {
 
+    @NotNull
+    @Pattern(regexp = Constants.SLUG_PATTERN)
+    private String id; // domain of the space
+
     @Pattern(regexp = Constants.NAME_PATTERN)
     private String name;
+
     @Pattern(regexp = Constants.SLUG_PATTERN)
     private String slug; // domain of the space
     private String owner;
 
-    public OrganizationDTO() {
-        name = "";
-        slug = "";
+    public String getId() {
+        return id;
+    }
 
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -64,6 +72,7 @@ public class OrganizationDTO {
             dto.name = role.getSpace();
             dto.slug = role.getSpace();
             dto.owner = owner;
+            dto.id = dto.slug;
 
             return dto;
         } else {

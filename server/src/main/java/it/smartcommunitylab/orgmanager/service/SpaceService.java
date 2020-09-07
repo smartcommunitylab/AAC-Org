@@ -57,7 +57,17 @@ public class SpaceService {
 
         // spaces are listed in org sub-context
         String context = getOrgContext(organization);
-        return roleService.listSpaces(context).stream().map(r -> SpaceDTO.from(r))
+//        return roleService.listSpaces(context).stream().map(r -> SpaceDTO.from(r))
+//                .collect(Collectors.toList());
+        return roleService.listSpaces(context).stream().map(r -> {
+            try {
+                return getSpace(organization, r.getSpace());
+            } catch (NoSuchSpaceException | IdentityProviderAPIException | NoSuchUserException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return null;
+        })
                 .collect(Collectors.toList());
     }
 
@@ -73,7 +83,7 @@ public class SpaceService {
             throw new NoSuchSpaceException();
         }
 
-        return new SpaceDTO(space, space, organization);
+        return new SpaceDTO(space, space, organization, ownerId);
 
     }
 
@@ -106,7 +116,7 @@ public class SpaceService {
             roleService.addRoles(provider, Collections.singletonList(providerRole.getAuthority()));
         }
 
-        return SpaceDTO.from(spaceRole);
+        return SpaceDTO.from(spaceRole, userId);
     }
 
     public void deleteSpace(String organization, String space, boolean cleanup)
