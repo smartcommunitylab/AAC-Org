@@ -1,9 +1,18 @@
-import { UserManager, WebStorageStateStore} from 'oidc-client';
+import { UserManager, WebStorageStateStore } from 'oidc-client';
+import env from './environment'
+// const issuer = process.env.REACT_APP_OAUTH_ISSUER;
+// const clientId = process.env.REACT_APP_OAUTH_CLIENT_ID;
+// let redirectUri = process.env.REACT_APP_OAUTH_REDIRECT_URI;
+// const scopes = process.env.REACT_APP_OAUTH_SCOPES;
+const issuer = env.get('REACT_APP_OAUTH_ISSUER');
+const clientId = env.get('REACT_APP_OAUTH_CLIENT_ID');
+let redirectUri = env.get('REACT_APP_OAUTH_REDIRECT_URI');
+const scopes = env.get('REACT_APP_OAUTH_SCOPES');
 
-const issuer = process.env.REACT_APP_OAUTH_ISSUER;
-const clientId = process.env.REACT_APP_OAUTH_CLIENT_ID;
-const redirectUri = process.env.REACT_APP_OAUTH_REDIRECT_URI;
-const scopes = process.env.REACT_APP_OAUTH_SCOPES;
+//check if redirectUrl is relative
+if (!redirectUri.startsWith("http")) {
+  redirectUri = window.location.origin + redirectUri
+}
 
 //configure to use localStorage to support sharing token with multiple tabs
 const userManager = new UserManager({

@@ -6,8 +6,8 @@ import { useState } from "react";
 
 import jsonServerProvider from 'ra-data-json-server';
 import authProvider from './authProvider'
-
-const apiUrl = process.env.REACT_APP_API;
+import env from './environment'
+const apiUrl =env.get('REACT_APP_API');
 //const apiUrl = process.env.REACT_APP_API + '/organizations/test_1';
 
 const API_LIMIT = 1000;
