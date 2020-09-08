@@ -19,7 +19,7 @@ componentsconfig:
     # Cyclotron
     - name: Cyclotron
       componentId: cyclotron
-      roles: ROLE_MANAGER,ROLE_USER
+      roles: ROLE_EDITOR,ROLE_VIEWER
       
     # Superset
 #    - name: Superset
@@ -57,3 +57,8 @@ componentsconfig:
     - name: Nuclio
       componentId: nuclio
       roles: ROLE_OPERATOR,ROLE_DEVELOPER     
+
+    # JupyterHub
+    - name: jupyterhub
+      componentId: jupyterhub
+      roles: ROLE_USER
