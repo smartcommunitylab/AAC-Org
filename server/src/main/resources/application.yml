@@ -1,6 +1,7 @@
 # SERVER ENDPOINT
 server:
   port: ${SERVER_PORT:7979}
+  max-http-header-size: 16000  
   servlet:
     session:
       cookie:
@@ -28,21 +29,6 @@ client:
 
 # SPRING CONFIGURATION
 spring:
-  datasource:
-    url: ${JDBC_URL:jdbc:h2:file:./data/db}
-    username: ${JDBC_USER:omc}
-    password: ${JDBC_PASS:omc}
-    driver-class-name: ${JDBC_DRIVER:org.h2.Driver}
-  jpa:
-    database-platform: ${JDBC_DIALECT:org.hibernate.dialect.H2Dialect}
-    generate-ddl: ${OMC_SPRING_JPA_GENERATEDDL:true}
-    hibernate:
-      ddl-auto: ${OMC_SPRING_JPA_HIBERNATE_DDLAUTO:update}
-    properties:
-      hibernate:
-        jdbc:
-          lob:
-            non_contextual_creation: ${OMC_SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_LOB_NONCONTEXTUALCREATION:true}
   profiles:
     include:
       - components
@@ -50,27 +36,30 @@ spring:
 # OAUTH INTEGRATION
 security:
   oauth2:
-    client:
-      userAuthorizationUri: ${OAUTH_AUTH_URI:}
-      accessTokenUri: ${OAUTH_TOKEN_URI:}
-      clientId: ${OAUTH2_CLIENT_CLIENTID:}
-      clientSecret: ${OAUTH2_CLIENT_CLIENTSECRET:}
-      scopes: ${OAUTH_SCOPES:profile,email,user.roles.me}
-    resource:
-      id: ${OAUTH2_CLIENT_CLIENTID:}
-      jwk:
-        keySetUri: ${OMC_SECURITY_OAUTH2_JWK_URI:}
+#    client:
+#      userAuthorizationUri: ${OAUTH_AUTH_URI:}
+#      accessTokenUri: ${OAUTH_TOKEN_URI:}
+#      clientId: ${OAUTH2_CLIENT_CLIENTID:}
+#      clientSecret: ${OAUTH2_CLIENT_CLIENTSECRET:}
+#      scopes: ${OAUTH_SCOPES:profile,email,user.roles.me}
+    resourceserver:
+      client-id: ${OAUTH2_CLIENT_ID:}
+      jwt:
+        issuer-uri: ${OAUTH2_ISSUER_URI:}
 
 # AAC APIS
 aac:
   uri: ${AAC_URI:}
+  client-id: ${AAC_CLIENT_ID:}
+  client-secret: ${AAC_CLIENT_SECRET:}
+  
 
 # LOGGING
 logging:
   level:
     ROOT: INFO
-    it.smartcommunitylab.orgmanager: ${LOG_LEVEL:DEBUG}
-    org.springframework.security: ${OMC_LOGGING_LEVEL_ORGSPRINGFRAMEWORKSECURITY:INFO}
+    it.smartcommunitylab.orgmanager: ${LOG_LEVEL:INFO}
+    #org.springframework.security: ${OMC_LOGGING_LEVEL_ORGSPRINGFRAMEWORKSECURITY:INFO}
 
 # SWAGGER
 swagger:

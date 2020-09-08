@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
@@ -44,13 +45,14 @@ import it.smartcommunitylab.aac.model.BasicProfile;
 import it.smartcommunitylab.orgmanager.common.IdentityProviderAPIException;
 import it.smartcommunitylab.orgmanager.common.NoSuchUserException;
 import it.smartcommunitylab.orgmanager.common.OrgManagerUtils;
+import it.smartcommunitylab.orgmanager.dto.UserRightsDTO;
 import it.smartcommunitylab.orgmanager.service.ProfileService;
 
-@Controller
+@RestController
 @Api(value = "/auth")
 public class AuthController {
 
-    private final static Logger _log = LoggerFactory.getLogger(AuthController.class);
+    private final static Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Value("${security.oauth2.client.user-authorization-uri}")
     private String authorizationURL;
@@ -79,6 +81,14 @@ public class AuthController {
     @Autowired
     private ProfileService profileService;
 
+    @GetMapping(value = "/api/auth/user", produces = "application/json")
+    public UserRightsDTO getUserRights() {
+        logger.trace("called userrights");
+        UserRightsDTO dto = OrgManagerUtils.getUserRights();
+        logger.trace(dto.toString());
+        return dto;
+    }
+
     /*
      * Login
      */
@@ -102,8 +112,8 @@ public class AuthController {
         attributes.addAttribute("redirect_uri", callbackURL);
         // TODO create and store state var
 
-        _log.debug("send redirect to oauth at " + authorizationURL);
-        _log.debug(attributes.asMap().toString());
+        logger.debug("send redirect to oauth at " + authorizationURL);
+        logger.debug(attributes.asMap().toString());
 
         return new RedirectView(authorizationURL, false);
     }
@@ -134,8 +144,8 @@ public class AuthController {
             throw new LoginException("invalid code");
         }
 
-        _log.debug("oauth callback");
-        _log.trace("oauth authorization code " + code);
+        logger.debug("oauth callback");
+        logger.trace("oauth authorization code " + code);
 
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -156,15 +166,15 @@ public class AuthController {
 //        map.add("client_secret", clientSecret);
         map.add("redirect_uri", redirectURI);
 
-        _log.trace("call token url at " + tokenURL);
-        _log.trace(map.toString());
+        logger.trace("call token url at " + tokenURL);
+        logger.trace(map.toString());
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
 
         ResponseEntity<String> result = template.exchange(tokenURL, HttpMethod.POST, entity, String.class);
         if (result.getStatusCode() != HttpStatus.OK) {
-            _log.error("token response code " + String.valueOf(result.getStatusCodeValue()));
-            _log.debug(result.getBody());
+            logger.error("token response code " + String.valueOf(result.getStatusCodeValue()));
+            logger.debug(result.getBody());
             throw new LoginException("invalid token response");
         }
 
@@ -172,18 +182,18 @@ public class AuthController {
             // parse as json
             JSONObject json = new JSONObject(result.getBody());
 
-            _log.trace(json.toString());
+            logger.trace(json.toString());
 
             // extract tokens
             String accessToken = json.optString("access_token", "");
             String refreshToken = json.optString("refresh_token", "");
             String expiresIn = json.optString("expires_in", "");
 
-            _log.trace("access token " + accessToken);
-            _log.trace("refresh token " + refreshToken);
+            logger.trace("access token " + accessToken);
+            logger.trace("refresh token " + refreshToken);
 
             if (accessToken.isEmpty()) {
-                _log.error("empty access token");
+                logger.error("empty access token");
                 throw new LoginException("empty access token");
             }
 
@@ -193,14 +203,14 @@ public class AuthController {
             // append token - should be already urlencoded
             redirectURL = redirectURL.concat("#access_token=" + accessToken + "&expires_in=" + expiresIn);
 
-            _log.debug("send redirect to " + redirectURL);
+            logger.debug("send redirect to " + redirectURL);
             response.sendRedirect(redirectURL);
 
         } catch (JSONException jex) {
-            _log.error("json parsing error " + jex.getMessage());
+            logger.error("json parsing error " + jex.getMessage());
             throw new LoginException("response error");
         } catch (IOException iex) {
-            _log.error("io error " + iex.getMessage());
+            logger.error("io error " + iex.getMessage());
             throw new LoginException("network error");
         }
     }
@@ -221,9 +231,9 @@ public class AuthController {
         }
 
         String userName = OrgManagerUtils.getAuthenticatedUserId();
-        _log.info("user name " + userName);
+        logger.info("user name " + userName);
         BasicProfile profile = profileService.getUserProfileById(userName);
-        _log.debug(profile.toString());
+        logger.debug(profile.toString());
         return profile;
     }
 

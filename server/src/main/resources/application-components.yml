@@ -19,7 +19,7 @@ componentsconfig:
     # Cyclotron
     - name: Cyclotron
       componentId: cyclotron
-      roles: ROLE_MANAGER,ROLE_USER
+      roles: ROLE_EDITOR,ROLE_VIEWER
       
     # Superset
 #    - name: Superset
@@ -34,7 +34,7 @@ componentsconfig:
     # Grafana
     - name: Grafana
       componentId: grafana
-      roles: ROLE_MANAGER,ROLE_USER
+      roles: ROLE_ADMIN,ROLE_EDITOR,ROLE_VIEWER
 
     # CKAN
     - name: CKAN Open Data Catalogue
@@ -51,3 +51,14 @@ componentsconfig:
     - name: Resource Manager
       componentId: resourcemanager
       roles: ROLE_ADMIN,ROLE_USER,ROLE_RESOURCE_ADMIN,ROLE_CONSUMER_ADMIN
+
+      
+    # Nuclio
+    - name: Nuclio
+      componentId: nuclio
+      roles: ROLE_OPERATOR,ROLE_DEVELOPER     
+
+    # JupyterHub
+    - name: jupyterhub
+      componentId: jupyterhub
+      roles: ROLE_USER
