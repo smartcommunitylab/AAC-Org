@@ -10,7 +10,6 @@ COPY --from=node /app/build/ /server/src/main/resources/static/
 RUN mvn package -DskipTests
 
 FROM openjdk:8-jdk-alpine
-#ENV FOLDER=/tmp/server/target
 ENV APP=orgmanager-current.jar
 ARG USER=aac-org
 ARG USER_ID=1002
@@ -22,7 +21,7 @@ RUN  addgroup -g ${USER_GROUP_ID} ${USER_GROUP}; \
      adduser -u ${USER_ID} -D -g '' -h ${USER_HOME} -G ${USER_GROUP} ${USER} ;
 
 WORKDIR  ${USER_HOME}
-COPY --chown=aac-org:aac-org --from=mvn /tmp/target/*.jar ${USER_HOME}/${APP}
+COPY --chown=aac-org:aac-org --from=mvn /server/target/*.jar ${USER_HOME}/${APP}
 USER aac-org
 EXPOSE 7979
 ENTRYPOINT java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar ${APP}
