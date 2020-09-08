@@ -36,12 +36,12 @@ spring:
 # OAUTH INTEGRATION
 security:
   oauth2:
-    client:
-      userAuthorizationUri: ${OAUTH_AUTH_URI:}
-      accessTokenUri: ${OAUTH_TOKEN_URI:}
-      clientId: ${OAUTH2_CLIENT_CLIENTID:}
-      clientSecret: ${OAUTH2_CLIENT_CLIENTSECRET:}
-      scopes: ${OAUTH_SCOPES:profile,email,user.roles.me}
+#    client:
+#      userAuthorizationUri: ${OAUTH_AUTH_URI:}
+#      accessTokenUri: ${OAUTH_TOKEN_URI:}
+#      clientId: ${OAUTH2_CLIENT_CLIENTID:}
+#      clientSecret: ${OAUTH2_CLIENT_CLIENTSECRET:}
+#      scopes: ${OAUTH_SCOPES:profile,email,user.roles.me}
     resourceserver:
       client-id: ${OAUTH2_CLIENT_ID:}
       jwt:
@@ -50,16 +50,16 @@ security:
 # AAC APIS
 aac:
   uri: ${AAC_URI:}
-  clientId: ${OAUTH2_CLIENT_ID:}
-  clientSecret: ${OAUTH2_CLIENT_SECRET:}
+  client-id: ${AAC_CLIENT_ID:}
+  client-secret: ${AAC_CLIENT_SECRET:}
   
 
 # LOGGING
 logging:
   level:
     ROOT: INFO
-    it.smartcommunitylab.orgmanager: ${LOG_LEVEL:DEBUG}
-    org.springframework.security: ${OMC_LOGGING_LEVEL_ORGSPRINGFRAMEWORKSECURITY:INFO}
+    it.smartcommunitylab.orgmanager: ${LOG_LEVEL:INFO}
+    #org.springframework.security: ${OMC_LOGGING_LEVEL_ORGSPRINGFRAMEWORKSECURITY:INFO}
 
 # SWAGGER
 swagger:

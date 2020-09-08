@@ -8,10 +8,10 @@ import it.smartcommunitylab.aac.AACContext;
 
 @Configuration
 public class AACConfig {
-    @Value("${aac.clientId}")
+    @Value("${aac.client-id}")
     private String clientId;
 
-    @Value("${aac.clientSecret}")
+    @Value("${aac.client-secret}")
     private String clientSecret;
 
     @Value("${aac.uri}")
