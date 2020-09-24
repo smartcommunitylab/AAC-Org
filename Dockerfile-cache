@@ -3,8 +3,8 @@ COPY ./server /tmp
 WORKDIR /tmp
 RUN  mvn install -DskipTests
 
-FROM node:lts as node
-COPY ./client /tmp
+FROM node:12-alpine as node
+COPY ./admin /tmp
 WORKDIR /tmp
 RUN npm install
 
