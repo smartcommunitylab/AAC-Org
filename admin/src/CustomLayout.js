@@ -38,7 +38,7 @@ const CustomMenu = ({ onMenuClick, logout }) => {
 
             {
                 //generic resources
-                permissions && !org &&
+                permissions && 
                 resources.map(
                     (resource) => {
                         if (!subresources.includes(resource.name) && resource.hasList) {
